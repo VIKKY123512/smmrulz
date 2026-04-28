@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.firebaseio.com https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseio.com https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com;">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <script>if (window.top !== window.self) window.top.location.replace(window.self.location.href);</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+    <title>Perfect SMM</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Theme Variables */
+            --primary: #3b49df; 
+            --primary-dark: #2f3ab2;
+            --primary-light: #e0e7ff; 
+            --gradient-top: linear-gradient(135deg, #3b49df 0%, #4f46e5 100%);
+            --bg-top: #ffffff; --bg-bottom: #f4f7fa; --dark-card: #1e1e1e; 
+            --text-dark: #333333; --text-gray: #6b7280;
+            --border-color: #dce1e8; --radius: 12px; 
+            --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
+        }
+
+        /* 🌙 Dark Mode Variables */
+        body.dark-mode {
+            --bg-bottom: #0f172a;
+            --bg-top: #1e293b;
+            --dark-card: #1e293b;
+            --text-dark: #f8fafc;
+            --text-gray: #94a3b8;
+            --border-color: #334155;
+            --primary-light: rgba(59, 73, 223, 0.2);
+        }
+        body.dark-mode .card, body.dark-mode header, body.dark-mode aside, body.dark-mode .auth-box, body.dark-mode .faq-item, body.dark-mode footer, body.dark-mode .landing-footer, body.dark-mode .promo-card {
+            background-color: #1e293b;
+            border-color: #334155;
+        }
+        body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+            background-color: #0f172a; color: #f8fafc; border-color: #334155;
+        }
+        body.dark-mode table th { background-color: #0f172a; color: #cbd5e1; border-color: #334155;}
+        body.dark-mode table td { border-color: #334155; }
+        body.dark-mode .custom-select-options, body.dark-mode #search-suggestions { background-color: #1e293b; border-color: #334155; }
+        body.dark-mode .custom-option { color: #f8fafc; }
+        body.dark-mode .custom-option:hover { background-color: #334155; }
+        body.dark-mode .wave-bg { background: #0f172a; }
+        body.dark-mode .step-circle { background: #1e293b; border-color: #3b49df; }
+        body.dark-mode .landing-hero { background: #0f172a; }
+        body.dark-mode .hero-text h1 { color: #f8fafc; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        html, body { background-color: var(--bg-bottom); color: var(--text-dark); overflow-x: hidden; height: 100%; display: flex; flex-direction: column; transition: background-color 0.3s, color 0.3s; }
+
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 10px 18px; border-radius: 50px; color: white; font-weight: 600; font-size: 13px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); backdrop-filter: blur(5px);}
+        .toast.show { transform: translateX(0); }
+        .toast-success { background: rgba(16, 185, 129, 0.95); } .toast-error { background: rgba(239, 68, 68, 0.95); } .toast-info { background: rgba(59, 130, 246, 0.95); }
+
+        .floating-wa { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: white; width: 55px; height: 55px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); z-index: 1000; text-decoration: none; transition: 0.3s; }
+        .floating-wa:hover { transform: scale(1.1); }
+
+        /* =========================================
+           FIXED LANDING PAGE & AUTH STYLES
+           ========================================= */
+        #auth-container { display: flex; flex-direction: column; width: 100%; min-height: 100vh; background: var(--bg-bottom); position: fixed; inset: 0; z-index: 2000; overflow-y: auto; overflow-x: hidden; }
+        
+        .landing-content { flex: 1 0 auto; display: flex; flex-direction: column; width: 100%; position: relative; }
+        
+        .landing-header { padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; position: absolute; top: 0; width: 100%; z-index: 10; }
+        .landing-logo { font-size: 24px; font-weight: 800; color: var(--primary); font-style: italic; letter-spacing: -1px; }
+        .landing-logo span { color: #28a745; }
+        
+        .landing-hero { background: var(--bg-bottom); padding: 100px 5% 40px 5%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 40px; position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; width: 100%;}
+        .hero-text { flex: 1; min-width: 300px; }
+        .hero-text h1 { font-size: 36px; color: var(--text-dark); line-height: 1.2; margin-bottom: 15px; font-weight: 700; transition: 0.3s; }
+        .hero-text p { font-size: 15px; color: var(--text-gray); margin-bottom: 20px; }
+        
+        .auth-wrapper { flex: 1; min-width: 320px; max-width: 450px; display: flex; flex-direction: column; align-items: center; margin: 0 auto; }
+        .auth-box { background: var(--bg-top); width: 100%; padding: 35px 30px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; border: 1px solid var(--border-color); }
+        
+        .auth-tabs { display: flex; margin-bottom: 25px; border-bottom: 2px solid var(--border-color); }
+        .auth-tab { flex: 1; padding: 10px; font-weight: 600; color: var(--text-gray); cursor: pointer; transition: 0.3s; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+        .auth-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .input-group { margin-bottom: 16px; text-align: left; width: 100%; }
+        .input-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; }
+        input, select, textarea { width: 100%; padding: 14px 16px; border: 1px solid var(--border-color); border-radius: 8px; background-color: #f8fafd; color: var(--text-dark); font-size: 14px; outline: none; transition: 0.2s; box-sizing: border-box; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); background-color: var(--bg-top); box-shadow: 0 0 0 3px rgba(59, 73, 223, 0.1); }
+        
+        .auth-actions-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 12px; }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 8px; color: var(--text-gray); font-weight: 500; cursor: pointer; }
+        .checkbox-wrapper input { width: 16px; height: 16px; margin: 0; cursor: pointer; box-shadow: none; }
+        .forgot-link { color: var(--primary); font-weight: 600; text-decoration: none; cursor: pointer; }
+        .forgot-link:hover { text-decoration: underline; }
+
+        .btn { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 14px 20px; font-weight: 600; font-size: 15px; cursor: pointer; transition: 0.2s; width: 100%; display: inline-flex; justify-content: center; align-items: center; gap: 8px;}
+        .btn:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(59, 73, 223, 0.25); }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-warning:hover { background: #d97706; }
+        
+        .btn-google { background: var(--bg-top); color: var(--text-dark); border: 1px solid var(--border-color); margin-top: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .btn-google:hover { background: var(--bg-bottom); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        
+        .divider { display: flex; align-items: center; margin: 20px 0; color: var(--text-gray); font-size: 11px; text-transform: uppercase; font-weight: 600; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border-color); } .divider:not(:empty)::before { margin-right: 10px; } .divider:not(:empty)::after { margin-left: 10px; }
+
+        /* PROMO CARDS */
+        .promo-cards-container { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px; width: 100%; }
+        .promo-card { flex: 1; min-width: 250px; background: var(--bg-top); border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 15px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.03); transition: 0.2s;}
+        .promo-card:hover { box-shadow: 0 8px 15px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .promo-icon { width: 45px; height: 45px; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 20px; flex-shrink: 0; }
+        .promo-text { flex: 1; text-align: left; }
+        .promo-text h4 { font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 2px; }
+        .promo-text p { font-size: 11px; color: var(--text-gray); }
+        .promo-btn { padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 700; text-decoration: none; text-transform: uppercase; flex-shrink: 0; }
+
+        .wave-bg { background: var(--primary); color: white; padding: 60px 5%; position: relative; transition: 0.3s; }
+        .wave-top { position: absolute; top: -1px; left: 0; width: 100%; overflow: hidden; line-height: 0; }
+        .wave-top svg { display: block; width: calc(100% + 1.3px); height: 50px; }
+        .wave-bottom { position: absolute; bottom: -1px; left: 0; width: 100%; overflow: hidden; line-height: 0; transform: rotate(180deg); }
+        .wave-bottom svg { display: block; width: calc(100% + 1.3px); height: 50px; }
+        
+        .section-title { text-align: center; margin-bottom: 40px; }
+        .section-title h2 { font-size: 28px; font-weight: 700; margin-bottom: 10px; }
+        .section-title p { font-size: 14px; opacity: 0.9; }
+
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .feature-card { background: var(--bg-top); color: var(--text-dark); padding: 25px; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: left; border: 1px solid var(--border-color); }
+        .feature-icon { font-size: 32px; color: var(--primary); margin-bottom: 15px; display: inline-block; padding: 15px; background: var(--primary-light); border-radius: 8px;}
+        .feature-card h3 { font-size: 16px; margin-bottom: 8px; font-weight: 700;}
+        .feature-card p { font-size: 13px; color: var(--text-gray); line-height: 1.5;}
+
+        .steps-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; max-width: 1000px; margin: 60px auto; padding: 0 5%;}
+        .step-item { text-align: center; flex: 1; min-width: 150px; position: relative; }
+        .step-circle { width: 60px; height: 60px; background: var(--bg-top); color: var(--primary); font-size: 20px; font-weight: 700; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto; box-shadow: 0 5px 15px rgba(0,0,0,0.08); border: 2px solid var(--primary-light);}
+        .step-item h4 { font-size: 15px; margin-bottom: 8px; color: var(--text-dark); }
+        .step-item p { font-size: 12px; color: var(--text-gray); }
+        
+        .faq-container { max-width: 800px; margin: 60px auto; padding: 0 5%; }
+        .faq-item { background: var(--bg-top); border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); border: 1px solid var(--border-color); overflow: hidden; }
+        .faq-question { padding: 18px 20px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--text-dark); }
+        .faq-answer { padding: 0 20px; max-height: 0; opacity: 0; transition: all 0.3s ease; font-size: 13px; color: var(--text-gray); line-height: 1.5; }
+        .faq-item.open .faq-answer { padding: 0 20px 18px 20px; max-height: 200px; opacity: 1; }
+        .faq-item.open .faq-question i { transform: rotate(45deg); transition: 0.3s;}
+
+        /* FIXED LANDING FOOTER */
+        .landing-footer { flex-shrink: 0; text-align: center; padding: 20px; color: var(--text-gray); font-size: 12px; background: var(--bg-bottom); border-top: 1px solid var(--border-color); margin-top: auto; width: 100%;}
+
+        /* =========================================
+           INTERNAL APP STYLES
+           ========================================= */
+        #app-layout { display: none; flex-direction: column; width: 100%; min-height: 100vh; }
+        header { background: var(--bg-top); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 10; width: 100%; border-bottom: 2px solid var(--border-color); flex-shrink: 0;}
+        .header-logo { font-size: 24px; font-weight: 800; color: var(--text-dark); font-style: italic; letter-spacing: -1px; text-transform: uppercase; }
+        .header-logo span { color: #28a745; } 
+        .menu-btn { font-size: 24px; color: var(--primary); cursor: pointer; padding: 5px; }
+
+        /* SMOOTH CSS AUTO-SCROLLING TICKER */
+        .announcement-bar { background: var(--primary-light); color: var(--primary); padding: 8px 16px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border-color); flex-shrink:0; overflow: hidden; position: relative; }
+        .announcement-bar i { font-size: 16px; animation: pulse 2s infinite; flex-shrink: 0; z-index: 2; background: var(--primary-light); padding-right: 10px; }
+        .ticker-wrap { width: 100%; overflow: hidden; white-space: nowrap; box-sizing: border-box; }
+        .ticker-move { display: inline-block; animation: ticker 25s linear infinite; padding-left: 100%; }
+        .ticker-move:hover { animation-play-state: paused; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        .main-wrapper { display: flex; flex: 1; width: 100%; overflow: hidden; position: relative; flex-direction: row; }
+        #drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; visibility: hidden; opacity: 0; transition: all 0.3s ease; }
+        #drawer-overlay.show { visibility: visible; opacity: 1; }
+        aside { position: fixed; top: 0; left: -300px; width: 280px; background: var(--bg-top); height: 100%; z-index: 100; transition: transform 0.3s ease; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; border-right: 1px solid var(--border-color);}
+        aside.open { transform: translateX(300px); }
+        
+        .drawer-header { padding: 30px 20px; background: var(--gradient-top); text-align: center; border-bottom: 1px solid var(--border-color); color: white; }
+        .drawer-header i.avatar-icon { font-size: 40px; color: white; margin-bottom: 10px; background: rgba(255,255,255,0.2); padding: 15px; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .drawer-header .email-box { display: flex; align-items: center; justify-content: center; gap: 5px; font-weight: 600; font-size: 14px; }
+        .verified-tick { color: #10b981; font-size: 15px; background: white; border-radius: 50%; padding: 1px; } 
+        
+        .nav-links { padding: 10px 0; flex: 1; }
+        .nav-item { padding: 14px 24px; display: flex; align-items: center; gap: 15px; cursor: pointer; color: var(--text-dark); font-weight: 500; font-size: 14px; transition: 0.2s; border-left: 4px solid transparent; }
+        .nav-item i { font-size: 18px; width: 24px; text-align: center; }
+        .nav-item.new-order i { color: #a855f7; } .nav-item.services i { color: #3b82f6; } .nav-item.orders-history i { color: #f59e0b; } .nav-item.add-funds i { color: #10b981; } .nav-item.deposit-history i { color: #06b6d4; } .nav-item.support i { color: #ec4899; }
+        .nav-item:hover { background: var(--bg-bottom); }
+        .nav-item.active { background: var(--primary-light); font-weight: 600; border-left-color: var(--primary); color: var(--primary); }
+
+        main { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 100vw; overflow-y: auto; overflow-x: hidden; background-color: var(--bg-bottom); }
+        .view { display: none; animation: fadeIn 0.3s ease; width: 100%; box-sizing: border-box; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        #stats-header { background-color: var(--bg-top); padding: 20px; padding-bottom: 40px; width: 100%; display: none; } 
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; width: 100%; }
+        .stat-card { background: var(--dark-card); border-radius: 12px; padding: 20px; position: relative; border-left: 4px solid var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.1); color: white; }
+        .stat-card.light { background: var(--bg-top); color: var(--text-dark); border-color: var(--warning); border: 1px solid var(--border-color); border-left: 4px solid var(--warning);}
+        .stat-icon { position: absolute; right: 20px; top: 20px; font-size: 30px; opacity: 0.2; }
+        .stat-card.light .stat-icon { opacity: 0.8; color: var(--warning); }
+        .stat-card.colorful-1 { background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); border: none; }
+        .stat-card.colorful-2 { background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%); border: none; }
+        
+        .stat-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; opacity: 0.9; }
+        .stat-value { font-size: 26px; font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 5px; }
+        .stat-email { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+        .stat-desc { font-size: 12px; opacity: 0.8; }
+
+        #wave { width: 100%; height: 40px; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120"><path fill="%23f8fafd" fill-opacity="1" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"></path></svg>') no-repeat center bottom; background-size: cover; margin-top: -20px; position: relative; z-index: 2; display: none; transition: 0.3s;}
+        body.dark-mode #wave { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120"><path fill="%230f172a" fill-opacity="1" d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"></path></svg>'); }
+
+        .page-content { flex: 1; padding: 20px; width: 100%; box-sizing: border-box; }
+        .page-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; color: var(--text-dark); }
+        .card { background: var(--bg-top); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--border-color); margin-bottom: 20px; width: 100%; box-sizing: border-box; }
+        
+        #order-form-card { background: var(--gradient-top); color: white; box-shadow: 0 10px 20px rgba(59, 73, 223, 0.2); border: none; }
+        #order-form-card .page-title { color: white; margin-bottom: 15px; }
+        #order-form-card .input-group label { color: rgba(255,255,255,0.95); font-weight: 600; }
+        
+        .custom-select-wrapper { position: relative; width: 100%; user-select: none; }
+        .custom-select-trigger { background-color: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 14px 16px; border-radius: var(--radius); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 14px; transition: 0.2s; }
+        .custom-select-trigger:active { background-color: rgba(255,255,255,0.2); }
+        .custom-select-trigger::after { content: '\f0d7'; font-family: 'Font Awesome 6 Free'; font-weight: 900; font-size: 14px; }
+        
+        .custom-select-options { position: absolute; background-color: var(--bg-top); top: 100%; left: 0; right: 0; z-index: 99; border-radius: var(--radius); box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-height: 250px; overflow-y: auto; margin-top: 5px; padding: 8px; display: none; border: 1px solid var(--border-color); }
+        .custom-select-options.show { display: block; animation: slideDown 0.2s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .custom-option { color: var(--text-dark); padding: 12px 15px; cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 13px; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+        .custom-option i { font-size: 16px; width: 20px; text-align: center;}
+        .custom-option:hover { background-color: var(--primary-light); color: var(--primary); }
+
+        .glowing-warning { border: 2px solid #ff4d4d; box-shadow: 0 0 15px rgba(255, 77, 77, 0.4); border-radius: 12px; padding: 20px; background: var(--bg-top); margin-top: 20px; text-align: center; }
+        .glowing-warning h4 { color: #ff4d4d; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 16px; text-transform: uppercase;}
+        
+        #order-form-card input[type="url"], #order-form-card input[type="number"], #order-form-card input[type="text"] { background-color: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: white; }
+        #order-form-card input:focus { background-color: rgba(255,255,255,0.25); border-color: white; box-shadow: 0 0 0 3px rgba(255,255,255,0.2); }
+        #order-form-card input::placeholder { color: rgba(255,255,255,0.7); }
+        #order-form-card input:read-only { background-color: rgba(0,0,0,0.2); color: white; border-color: transparent;}
+        #order-form-card .btn { background: white; color: var(--primary); font-weight: 700; }
+        #order-form-card .btn:hover { background: #f8fafd; transform: translateY(-2px); }
+
+        /* LIVE SEARCH STYLES */
+        .live-search-wrapper { position: relative; width: 100%; max-width: 400px; z-index: 50;}
+        .live-search-input { width: 100%; padding: 12px 16px 12px 40px; border-radius: 50px; border: 1px solid var(--border-color); background: var(--bg-top); color: var(--text-dark); font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .live-search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-gray); }
+        #search-suggestions { display:none; position:absolute; top:100%; left:0; right:0; background:var(--bg-top); border:1px solid var(--border-color); border-radius:12px; max-height:300px; overflow-y:auto; box-shadow:0 10px 25px rgba(0,0,0,0.15); margin-top:8px; padding: 5px;}
+        .search-suggestion-item { padding: 12px 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 4px; border-radius: 8px;}
+        .search-suggestion-item:last-child { border-bottom: none; }
+        .search-suggestion-item:hover { background-color: var(--primary-light); }
+        .search-suggestion-cat { font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase;}
+        .search-suggestion-name { font-size: 13px; font-weight: 600; color: var(--text-dark); }
+        .search-suggestion-price { font-size: 12px; color: var(--success); font-weight: 600; }
+
+        .table-wrapper { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border-color); width: 100%; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; background: var(--bg-top); }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        th { background: var(--bg-bottom); color: var(--text-gray); font-weight: 600; text-transform: uppercase; font-size: 11px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: white; }
+        .bg-pending { background: #f39c12; } .bg-processing { background: #3498db; } .bg-completed { background: #2ecc71; } .bg-canceled { background: #e74c3c; }
+
+        .chat-app { background: #0f172a; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 500px; margin: 0 auto; border: 1px solid #1e293b;}
+        .chat-header { padding: 15px 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; background: #111827; }
+        .chat-history { height: 400px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: #0f172a; }
+        .chat-bubble { max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 13px; line-height: 1.4; color: white; position: relative; }
+        .chat-user { align-self: flex-end; background: var(--success); border-bottom-right-radius: 4px; }
+        .chat-admin { align-self: flex-start; background: #1e293b; border-bottom-left-radius: 4px; border: 1px solid #334155;}
+        .chat-topic { display: block; font-size: 11px; font-weight: 700; opacity: 0.7; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .chat-footer { padding: 15px; border-top: 1px solid #1e293b; background: #111827; }
+        .chat-input-row { display: flex; gap: 10px; margin-top: 10px; }
+        .chat-input { background: #1e293b !important; border: 1px solid #0ea5e9; color: #ffffff !important; border-radius: 8px; padding: 12px; outline: none; transition: 0.2s;}
+        .chat-input::placeholder { color: #94a3b8; }
+        .chat-input:focus { border-color: var(--success); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+        .chat-send-btn { background: var(--success); color: white; border: none; border-radius: 8px; width: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;}
+        .chat-send-btn:hover { background: #059669; }
+
+        footer { background: var(--bg-top); border-top: 1px solid var(--border-color); padding: 20px; text-align: center; color: var(--text-gray); font-size: 13px; font-weight: 500; margin-top: auto; width: 100%; flex-shrink: 0; }
+        
+        .flex-row { display: flex; gap: 15px; flex-wrap: wrap; width: 100%; }
+        .flex-row > div { flex: 1; min-width: 140px; }
+
+        @media (min-width: 769px) { .menu-btn { display: none; } aside { position: relative; left: 0; transform: none; width: 260px; border-right: 1px solid var(--border-color); box-shadow: none; z-index: 1; } #drawer-overlay { display: none !important; } }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container" class="toast-container"></div>
+    
+    <a href="#" id="floating-wa" class="floating-wa" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
+
+    <div id="reset-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
+        <div class="card" style="max-width:380px; width:90%; animation: fadeIn 0.3s ease; padding: 30px; text-align: center; margin:0;">
+            <i class="fa-solid fa-lock" style="font-size: 40px; color: var(--primary); margin-bottom: 15px;"></i>
+            <h3 style="margin-bottom:10px; color:var(--text-dark); font-size: 18px;">Reset Password</h3>
+            <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 20px;">Enter your email address. We will send you a highly secure link to choose a new password.</p>
+            <input type="email" id="reset-email-input" placeholder="Enter your email" style="margin-bottom:20px; width: 100%; text-align: center;">
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="window.sendResetLink()" style="flex:1;">Send Link</button>
+                <button class="btn btn-warning" onclick="window.closeResetModal()" style="flex:1; background: #f1f5f9; color: var(--text-dark);">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="auth-container">
+        
+        <div class="landing-content">
+            <header class="landing-header">
+                <div class="landing-logo">PERFECT<span>SMM</span></div>
+            </header>
+
+            <section class="landing-hero">
+                <div class="hero-text">
+                    <h1>The most trustworthy SMM panel online</h1>
+                    <p>Fully automated & cheap SMM services with super fast delivery. Join thousands of happy users boosting their social presence today.</p>
+                    <p style="font-size: 13px; font-weight: 500;"><i class="fa-solid fa-envelope"></i> Contact: perfectsmmpanel@gmail.com</p>
+                </div>
+                
+                <div class="auth-wrapper">
+                    <div class="auth-box" id="login-box">
+                        
+                        <div class="auth-tabs">
+                            <div class="auth-tab active" id="tab-login" onclick="window.setAuthMode('login')">Sign In</div>
+                            <div class="auth-tab" id="tab-register" onclick="window.setAuthMode('register')">Register</div>
+                        </div>
+
+                        <form id="auth-form" onsubmit="window.handleAuth(event)">
+                            <div class="input-group">
+                                <label id="email-label">Email Address</label>
+                                <input type="email" id="auth-email" placeholder="Enter your email" required>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 20px;">
+                                <label>Password</label>
+                                <div style="position: relative;">
+                                    <input type="password" id="auth-password" placeholder="••••••••" style="padding-right: 45px; width: 100%;" required>
+                                    <i class="fa-solid fa-eye" onclick="window.togglePassword('auth-password', this)" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-gray); font-size: 16px; z-index: 10;"></i>
+                                </div>
+                            </div>
+
+                            <div class="auth-actions-row" id="auth-actions-row">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" id="remember-me" checked> Remember me
+                                </label>
+                                <a class="forgot-link" onclick="window.openResetModal()">Forgot password?</a>
+                            </div>
+
+                            <button type="submit" class="btn" id="auth-submit-btn">Login Securely</button>
+                        </form>
+
+                        <div class="divider">Or</div>
+                        
+                        <button class="btn btn-google" id="btn-google" onclick="window.googleSignIn()">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google
+                        </button>
+
+                        <div class="promo-cards-container" style="margin-top: 30px;">
+                            <div class="promo-card">
+                                <div class="promo-icon" style="background:#e0f2fe; color:#0ea5e9;"><i class="fa-brands fa-telegram"></i></div>
+                                <div class="promo-text">
+                                    <h4>Telegram Channel</h4>
+                                    <p>Join for exclusive updates</p>
+                                </div>
+                                <a href="#" id="auth-promo-tg" target="_blank" class="promo-btn" style="background:#e0f2fe; color:#0ea5e9;">JOIN</a>
+                            </div>
+                            <div class="promo-card">
+                                <div class="promo-icon" style="background:#d1fae5; color:#10b981;"><i class="fa-brands fa-whatsapp"></i></div>
+                                <div class="promo-text">
+                                    <h4>WhatsApp Channel</h4>
+                                    <p>24/7 Support & Offers</p>
+                                </div>
+                                <a href="#" id="auth-promo-wa" target="_blank" class="promo-btn" style="background:#d1fae5; color:#10b981;">JOIN</a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <div class="wave-bg">
+                <div class="wave-top">
+                    <svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#f4f7fa"></path></svg>
+                </div>
+                
+                <div class="section-title">
+                    <h2>Reasons to pick our panel</h2>
+                    <p>Learn why using our panel is the best & cheapest way to get popular online.</p>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="fa-solid fa-thumbs-up feature-icon"></i>
+                        <h3>Five-star services</h3>
+                        <p>The quality of SMM services we provide is really great and highly rated.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fa-solid fa-credit-card feature-icon"></i>
+                        <h3>Numerous payment systems</h3>
+                        <p>Pick a payment method you want to add funds securely and easily.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fa-solid fa-chart-line feature-icon"></i>
+                        <h3>Extra affordable</h3>
+                        <p>SMM services that we provide on our panel are extremely cheap for resellers.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fa-solid fa-rocket feature-icon"></i>
+                        <h3>Prompt delivery</h3>
+                        <p>Orders on our panel are processed and delivered extremely quickly.</p>
+                    </div>
+                </div>
+
+                <div class="wave-bottom">
+                    <svg viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#ffffff"></path></svg>
+                </div>
+            </div>
+
+            <div style="background: var(--bg-top); padding: 60px 0;">
+                <div class="section-title">
+                    <h2 style="color: var(--text-dark);">How to place orders on our panel</h2>
+                    <p style="color: var(--text-gray);">Check out the step-by-step tutorial on how to get started.</p>
+                </div>
+
+                <div class="steps-container">
+                    <div class="step-item">
+                        <div class="step-circle">1</div>
+                        <h4>Create an account</h4>
+                        <p>Register securely and log in.</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-circle">2</div>
+                        <h4>Make a deposit</h4>
+                        <p>Add funds using QR or UTR.</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-circle">3</div>
+                        <h4>Order services</h4>
+                        <p>Pick the best boost for you.</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-circle">4</div>
+                        <h4>Amazing results</h4>
+                        <p>Watch your popularity grow instantly.</p>
+                    </div>
+                </div>
+
+                <div class="section-title" style="margin-top: 80px;">
+                    <h2 style="color: var(--text-dark);">FAQ (Frequently Asked Questions)</h2>
+                </div>
+                
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="window.toggleFaq(this)">Why do people look for SMM panels? <i class="fa-solid fa-plus"></i></div>
+                        <div class="faq-answer">SMM panels provide an easy, automated way to purchase social media marketing services like followers, likes, and views at wholesale prices.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="window.toggleFaq(this)">What kinds of SMM services can I find here? <i class="fa-solid fa-plus"></i></div>
+                        <div class="faq-answer">We offer services for Instagram, YouTube, Telegram, Facebook, and many other platforms, including both guaranteed and instant options.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="window.toggleFaq(this)">Is it safe to order SMM services sold here? <i class="fa-solid fa-plus"></i></div>
+                        <div class="faq-answer">Yes! We strictly use highly secure and safe methods to deliver stats without asking for your social media passwords.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="landing-footer">
+            &copy; 2024 Perfect SMM. All Rights Reserved.
+        </div>
+    </div>
+    <div id="username-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
+        <div class="card" style="max-width:350px; width:90%; animation: fadeIn 0.3s ease; padding: 25px; text-align: center; margin:0;">
+            <h3 style="margin-bottom:15px; color:var(--primary); font-size: 18px;">Edit Profile Name</h3>
+            <input type="text" id="new-username-input" placeholder="Enter new username" style="margin-bottom:20px; width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; text-align: center;">
+            <div style="display:flex; gap:10px;">
+                <button class="btn btn-success" onclick="window.saveNewUsername()" style="flex:1;">Save Name</button>
+                <button class="btn btn-danger" onclick="window.closeUsernameModal()" style="flex:1; background:var(--danger);">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-layout">
+        
+        <header>
+            <div class="header-logo">PERFECT<span>SMM</span></div>
+            <div style="display:flex; align-items:center; gap: 20px;">
+                <i class="fa-solid fa-moon" id="theme-toggle" onclick="window.toggleTheme()" style="font-size:22px; cursor:pointer; color:var(--text-gray); transition: 0.3s;" title="Toggle Dark Mode"></i>
+                <i class="fa-solid fa-bars menu-btn" onclick="window.toggleDrawer()"></i>
+            </div>
+        </header>
+
+        <div class="announcement-bar">
+            <i class="fa-solid fa-bullhorn"></i>
+            <div class="ticker-wrap">
+                <div class="ticker-move">
+                    🔥 Welcome to Perfect SMM! The fastest, most secure SMM Panel. Keep adding funds to enjoy uninterrupted service. 🚀
+                </div>
+            </div>
+        </div>
+
+        <div class="main-wrapper">
+            <div id="drawer-overlay" onclick="window.toggleDrawer()"></div>
+            <aside id="drawer">
+                <div class="drawer-header">
+                    <i class="fa-solid fa-user-astronaut avatar-icon"></i>
+                    <div class="email-box"><span id="drawer-email">user</span> <i class="fa-solid fa-circle-check verified-tick"></i></div>
+                </div>
+                <div class="nav-links">
+                    <div class="nav-item new-order active" onclick="window.switchView('new-order')"><i class="fa-solid fa-rocket"></i> New Order</div>
+                    <div class="nav-item services" onclick="window.switchView('services')"><i class="fa-solid fa-list-ul"></i> Services List</div>
+                    <div class="nav-item orders-history" onclick="window.switchView('orders-history')"><i class="fa-solid fa-clock-rotate-left"></i> Order History</div>
+                    <div class="nav-item add-funds" onclick="window.switchView('add-funds')"><i class="fa-solid fa-money-bill-transfer"></i> Add Funds</div>
+                    <div class="nav-item deposit-history" onclick="window.switchView('deposit-history')"><i class="fa-solid fa-file-invoice-dollar"></i> Deposit History</div>
+                    <div class="nav-item support" onclick="window.switchView('support')"><i class="fa-solid fa-headset"></i> Support</div>
+                    
+                    <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                        <span style="font-size: 11px; color: var(--text-gray); font-weight: 600; text-transform: uppercase;">Live Updates & Support</span>
+                        
+                        <div id="custom-link-box" style="margin-top: 10px; display: none;">
+                            <a id="custom-link-url" href="#" target="_blank" style="display: inline-block; background: var(--primary-light); color: var(--primary); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 50px; text-decoration: none;">🔗 <span id="custom-link-title">Link</span></a>
+                        </div>
+
+                        <div style="display:flex; justify-content:center; gap:15px; margin-top:15px;">
+                            <a id="link-wa" href="#" target="_blank" style="color:#25D366; font-size:22px; display:none;"><i class="fa-brands fa-whatsapp"></i></a>
+                            <a id="link-tg" href="#" target="_blank" style="color:#0088cc; font-size:22px; display:none;"><i class="fa-brands fa-telegram"></i></a>
+                            <a id="link-ig" href="#" target="_blank" style="color:#E1306C; font-size:22px; display:none;"><i class="fa-brands fa-instagram"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="nav-item" onclick="window.logout()" style="color: var(--danger); border-top: 1px solid var(--border-color); margin-top: 10px;"><i class="fa-solid fa-sign-out-alt"></i> Logout</div>
+                </div>
+            </aside>
+
+            <main>
+                <div class="top-stats-section" id="stats-header">
+                    <div class="grid-cards">
+                        <div class="stat-card light">
+                            <i class="fa-solid fa-user-circle stat-icon"></i>
+                            <div class="stat-title" style="color: var(--text-gray);">Welcome Back</div>
+                            <div class="stat-email">
+                                <span id="stat-username">user</span>
+                                <i class="fa-solid fa-pen" onclick="window.openUsernameModal()" style="cursor:pointer; font-size:12px; color:#3b82f6; margin-left:5px;" title="Edit Username"></i> 
+                                <i class="fa-solid fa-circle-check verified-tick"></i>
+                            </div>
+                            <div class="stat-desc" style="color: var(--text-dark);">Your social dashboard.</div>
+                        </div>
+                        <div class="stat-card colorful-1">
+                            <i class="fa-solid fa-shopping-basket stat-icon"></i>
+                            <div class="stat-title">Your Total Orders</div>
+                            <div class="stat-value" id="stat-total-orders">0</div>
+                            <div class="stat-desc">Boosts delivered.</div>
+                        </div>
+                        <div class="stat-card colorful-2">
+                            <i class="fa-solid fa-wallet stat-icon"></i>
+                            <div class="stat-title">Available Funds</div>
+                            <div class="stat-value">₹<span id="stat-balance">0.00</span></div>
+                            <div class="stat-desc">Add more in Wallet.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="wave-divider" id="wave"></div>
+
+                <div id="new-order" class="view active">
+                    <div class="page-content">
+                        
+                        <div class="promo-cards-container" style="margin-bottom: 20px;">
+                            <div class="promo-card">
+                                <div class="promo-icon" style="background:#e0f2fe; color:#0ea5e9;"><i class="fa-brands fa-telegram"></i></div>
+                                <div class="promo-text">
+                                    <h4>Telegram Channel</h4>
+                                    <p>Join for exclusive updates</p>
+                                </div>
+                                <a href="#" id="order-promo-tg" target="_blank" class="promo-btn" style="background:#e0f2fe; color:#0ea5e9;">JOIN</a>
+                            </div>
+                            <div class="promo-card">
+                                <div class="promo-icon" style="background:#d1fae5; color:#10b981;"><i class="fa-brands fa-whatsapp"></i></div>
+                                <div class="promo-text">
+                                    <h4>WhatsApp Channel</h4>
+                                    <p>24/7 Support & Offers</p>
+                                </div>
+                                <a href="#" id="order-promo-wa" target="_blank" class="promo-btn" style="background:#d1fae5; color:#10b981;">JOIN</a>
+                            </div>
+                        </div>
+
+                        <div class="card" id="order-form-card">
+                            <h2 class="page-title">Place a New Boost</h2>
+                            <form id="order-form" onsubmit="window.submitOrder(event)">
+                                
+                                <div class="input-group">
+                                    <label>1. Select Platform Category</label>
+                                    <div class="custom-select-wrapper" onclick="window.toggleDropdown('cat-options', event)">
+                                        <div class="custom-select-trigger" id="cat-trigger">📌 Select Category First...</div>
+                                        <div class="custom-select-options" id="cat-options"></div>
+                                    </div>
+                                    <input type="hidden" id="order-cat" required>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label>2. Select Service Type</label>
+                                    <div class="custom-select-wrapper" onclick="window.toggleDropdown('srv-options', event)">
+                                        <div class="custom-select-trigger" id="srv-trigger">⚡ Now, choose your boost...</div>
+                                        <div class="custom-select-options" id="srv-options">
+                                            <div class="custom-option">Select category above first</div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="order-srv" required>
+                                </div>
+                                
+                                <div id="service-info-box" style="display: none; margin-bottom: 20px;">
+                                    <div style="background: rgba(16, 185, 129, 0.15); border-left: 4px solid #10b981; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px;">
+                                        <h4 style="font-size: 12px; color: #34d399; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-clock"></i> Average Time</h4>
+                                        <div id="service-time-text" style="font-size: 14px; font-weight: 600; color: white;">Not specified</div>
+                                    </div>
+
+                                    <div style="background: rgba(59, 130, 246, 0.15); border-left: 4px solid #3b82f6; padding: 12px 15px; border-radius: 8px; margin-bottom: 10px;">
+                                        <h4 style="font-size: 12px; color: #60a5fa; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-circle-info"></i> Description</h4>
+                                        <div id="service-desc-text" style="font-size: 13px; color: white;"></div>
+                                    </div>
+                                    <div style="background: rgba(239, 68, 68, 0.15); border-left: 4px solid #ef4444; padding: 12px 15px; border-radius: 8px;">
+                                        <h4 style="font-size: 12px; color: #f87171; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fa-solid fa-triangle-exclamation"></i> Rules</h4>
+                                        <div id="service-rules-text" style="font-size: 13px; color: white;"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label>3. Target Link</label>
+                                    <input type="text" id="order-link" placeholder="Paste target link here..." required>
+                                </div>
+                                
+                                <div class="flex-row">
+                                    <div class="input-group">
+                                        <label>4. Quantity</label>
+                                        <input type="number" id="order-qty" placeholder="1000" min="1" required oninput="window.calculateCharge()">
+                                        <small id="qty-limits" style="display:block; color:rgba(255,255,255,0.7); font-size: 11px; margin-top:4px;">Min: 0 - Max: 0</small>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Estimated Charge (₹)</label>
+                                        <input type="text" id="order-charge" value="0.00" readonly>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn" id="order-btn" style="margin-top: 10px; margin-bottom: 15px;"><i class="fa-solid fa-paper-plane"></i> Launch Boost</button>
+                                
+                                <button type="button" class="btn btn-warning" onclick="window.switchView('add-funds')" style="width: 100%;"><i class="fa-solid fa-wallet"></i> Low Balance? Add Funds</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="services" class="view">
+                    <div class="page-content">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                            <h1 class="page-title" style="margin: 0;">Services List</h1>
+                            
+                            <div class="live-search-wrapper">
+                                <i class="fa-solid fa-magnifying-glass live-search-icon"></i>
+                                <input type="text" id="service-search" class="live-search-input" placeholder="Search for a service..." onkeyup="window.searchServicesDropdown()" autocomplete="off">
+                                <div id="search-suggestions"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="card" style="padding: 10px;">
+                            <div class="table-wrapper" style="border: none;">
+                                <table>
+                                    <thead><tr><th>Category</th><th>Service Name & Time</th><th>Rate/1k (₹)</th><th>Min/Max</th></tr></thead>
+                                    <tbody id="app-services-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="orders-history" class="view">
+                    <div class="page-content">
+                        <h1 class="page-title">Orders History</h1>
+                        <div class="card" style="padding: 10px;">
+                            <div class="table-wrapper" style="border: none;">
+                                <table>
+                                    <thead><tr><th>Order ID</th><th>Service</th><th>Link</th><th>Charge (₹)</th><th>Qty</th><th>Status</th></tr></thead>
+                                    <tbody id="user-orders-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="add-funds" class="view">
+                    <div class="page-content">
+                        <h1 class="page-title">Add Funds</h1>
+
+                        <div id="add-funds-intro" class="card" style="text-align: center; padding: 40px 20px;">
+                            <i class="fa-solid fa-wallet" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
+                            <h3 style="margin-bottom: 20px; color: var(--text-dark);">Ready to top up your wallet?</h3>
+                            <button class="btn" onclick="window.showPaymentDetails()" style="max-width: 250px; margin: 0 auto; padding: 14px;"><i class="fa-solid fa-plus-circle"></i> Click here to Add Funds</button>
+                        </div>
+
+                        <div class="card" id="payment-details-section" style="display: none;">
+                            
+                            <div class="input-group" style="margin-bottom: 25px;">
+                                <label>Select Payment Method</label>
+                                <div class="custom-select-wrapper" onclick="window.toggleDropdown('pay-options', event)">
+                                    <div class="custom-select-trigger" id="pay-trigger" style="background:var(--bg-top); color:var(--text-dark); border-color:var(--border-color);">💳 Select Method...</div>
+                                    <div class="custom-select-options" id="pay-options"></div>
+                                </div>
+                                <input type="hidden" id="selected-pay-method" required>
+                            </div>
+
+                            <div id="qr-instruction-area" style="display:none;">
+                                <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--primary); text-align: center;">Scan QR Code to Pay</h3>
+                                <div style="text-align: center; margin-bottom: 20px;">
+                                    <img id="payment-qr-img" src="" alt="Payment QR Code" style="max-width: 250px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: 0 auto 15px auto;">
+                                </div>
+                                
+                                <div class="glowing-warning">
+                                    <h4><i class="fa-solid fa-triangle-exclamation"></i> Important Warning</h4>
+                                    <p id="payment-instructions" style="font-size: 13px; color: var(--text-dark); white-space: pre-wrap; font-weight: 500;"></p>
+                                </div>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 25px 0;">
+                            <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--primary);">Submit Payment Details</h3>
+                            <form id="proof-form" onsubmit="window.submitPaymentProof(event)">
+                                <div class="flex-row">
+                                    <div class="input-group">
+                                        <label>Amount Sent (₹)</label>
+                                        <input type="number" step="0.01" min="1" id="proof-amount" placeholder="e.g. 500" required>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Transaction ID / UTR</label>
+                                        <input type="text" id="proof-txid" placeholder="Paste TXN ID / UTR here" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn"><i class="fa-solid fa-check-circle"></i> Submit Payment Proof</button>
+                            </form>
+                            <button class="btn" onclick="window.hidePaymentDetails()" style="background: var(--bg-bottom); color: var(--text-dark); margin-top: 15px; box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Go Back</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="deposit-history" class="view">
+                    <div class="page-content">
+                        <h1 class="page-title">Deposit History</h1>
+                        <div class="card" style="padding: 10px;">
+                            <div class="table-wrapper" style="border: none;">
+                                <table>
+                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>Txn ID</th><th>Status</th></tr></thead>
+                                    <tbody id="deposit-history-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="support" class="view">
+                    <div class="page-content">
+                        <div class="chat-app">
+                            <div class="chat-header">
+                                <h3 style="color: var(--success); margin: 0; font-size: 18px;">Support Chat</h3>
+                                <i class="fa-solid fa-headset" style="color: white; font-size: 18px;"></i>
+                            </div>
+                            <div class="chat-history" id="chat-history-container">
+                                <div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;"><i class="fa-regular fa-comments"></i> Send a message to start.</div>
+                            </div>
+                            <div class="chat-footer">
+                                <form id="ticket-form" onsubmit="window.createTicket(event)" style="display: flex; flex-direction: column;">
+                                    <input type="text" id="ticket-subject" class="chat-input" placeholder="Topic (e.g. Order #123 issue)" required>
+                                    <div class="chat-input-row">
+                                        <input type="text" id="ticket-message" class="chat-input" placeholder="Type your message here..." required style="flex: 1;">
+                                        <button type="submit" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <footer>
+                    <i class="fa-regular fa-copyright"></i> 2024 Perfect SMM. All rights reversed.
+                </footer>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Security Wrapper
+        window.safeHTML = function(text) { return DOMPurify.sanitize(text || ''); };
+
+        window.showToast = function(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const t = document.createElement('div'); t.className = `toast toast-${type}`;
+            let icon = type === 'error' ? 'fa-xmark' : (type === 'info' ? 'fa-info' : 'fa-check');
+            t.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${window.safeHTML(msg)}</span>`;
+            container.appendChild(t);
+            void t.offsetWidth; t.classList.add('show');
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 2500);
+        };
+
+        // Dark Mode Logic
+        window.toggleTheme = function() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            const icon = document.getElementById('theme-toggle');
+            if(icon) icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            localStorage.setItem('perfectsmm_theme', isDark ? 'dark' : 'light');
+        };
+        
+        if (localStorage.getItem('perfectsmm_theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            window.addEventListener('DOMContentLoaded', () => {
+                const icon = document.getElementById('theme-toggle');
+                if(icon) icon.className = 'fa-solid fa-sun';
+            });
+        }
+
+        // Toggle FAQ
+        window.toggleFaq = function(element) {
+            const item = element.parentElement;
+            item.classList.toggle('open');
+        };
+
+        // Password Hide/Show Fix
+        window.togglePassword = function(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") { 
+                input.type = "text"; 
+                iconElement.classList.remove('fa-eye');
+                iconElement.classList.add('fa-eye-slash');
+            } else { 
+                input.type = "password"; 
+                iconElement.classList.remove('fa-eye-slash');
+                iconElement.classList.add('fa-eye');
+            }
+        };
+
+        let isSignupMode = false;
+        window.setAuthMode = function(mode) {
+            isSignupMode = (mode === 'register');
+            document.getElementById('tab-login').classList.toggle('active', !isSignupMode);
+            document.getElementById('tab-register').classList.toggle('active', isSignupMode);
+            document.getElementById('auth-submit-btn').innerText = isSignupMode ? "Register Account" : "Login Securely";
+            document.getElementById('auth-actions-row').style.display = isSignupMode ? 'none' : 'flex';
+        };
+
+        window.openResetModal = function() {
+            document.getElementById('reset-email-input').value = document.getElementById('auth-email').value;
+            document.getElementById('reset-modal').style.display = 'flex';
+        };
+
+        window.closeResetModal = function() {
+            document.getElementById('reset-modal').style.display = 'none';
+        };
+
+        window.openUsernameModal = function() {
+            document.getElementById('new-username-input').value = document.getElementById('stat-username').innerText;
+            document.getElementById('username-modal').style.display = 'flex';
+        };
+
+        window.closeUsernameModal = function() {
+            document.getElementById('username-modal').style.display = 'none';
+        };
+
+        window.toggleDrawer = function() {
+            document.getElementById('drawer').classList.toggle('open');
+            const isOpened = document.getElementById('drawer').classList.contains('open');
+            const overlay = document.getElementById('drawer-overlay');
+            if(isOpened){ overlay.classList.add('show'); } else { overlay.classList.remove('show'); }
+        };
+
+        // 🐛 FIX: Add Funds UI Triggers perfectly restored
+        window.showPaymentDetails = function() {
+            document.getElementById('add-funds-intro').style.display = 'none';
+            document.getElementById('payment-details-section').style.display = 'block';
+        };
+
+        window.hidePaymentDetails = function() {
+            document.getElementById('payment-details-section').style.display = 'none';
+            document.getElementById('add-funds-intro').style.display = 'block';
+        };
+
+        window.toggleDropdown = function(id, event) {
+            if(event) event.stopPropagation();
+            const dropdown = document.getElementById(id);
+            const isShowing = dropdown.classList.contains('show');
+            document.querySelectorAll('.custom-select-options').forEach(el => el.classList.remove('show'));
+            if(!isShowing) dropdown.classList.add('show');
+        };
+
+        document.addEventListener('click', (e) => {
+            document.querySelectorAll('.custom-select-options').forEach(el => el.classList.remove('show'));
+            if(e.target.id !== 'service-search') {
+                const sugg = document.getElementById('search-suggestions');
+                if(sugg) sugg.style.display = 'none';
+            }
+        });
+
+        window.switchView = function(viewId, pushHistory = true) {
+            document.querySelectorAll('.view').forEach(v => { if(v.id !== 'stats-header' && v.id !== 'wave') v.classList.remove('active'); });
+            document.querySelectorAll('.nav-item').forEach(l => l.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            const targetNav = document.querySelector(`.nav-item.${viewId}`);
+            if(targetNav) targetNav.classList.add('active');
+            
+            const header = document.getElementById('stats-header'); 
+            const wave = document.getElementById('wave');
+            if (viewId === 'new-order') { header.style.display = 'block'; wave.style.display = 'block'; } 
+            else { header.style.display = 'none'; wave.style.display = 'none'; }
+            
+            if (viewId === 'add-funds') {
+                document.getElementById('add-funds-intro').style.display = 'block';
+                document.getElementById('payment-details-section').style.display = 'none';
+            }
+
+            if(window.innerWidth <= 768) { 
+                document.getElementById('drawer').classList.remove('open'); 
+                document.getElementById('drawer-overlay').classList.remove('show'); 
+            }
+            
+            if (pushHistory) { history.pushState({ view: viewId }, '', '#' + viewId); }
+        };
+
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.view) { window.switchView(e.state.view, false); } 
+            else { window.switchView('new-order', false); }
+        });
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getDatabase, ref, get, set, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
+            authDomain: "smm-panel-c1821.firebaseapp.com",
+            databaseURL: "https://smm-panel-c1821-default-rtdb.firebaseio.com",
+            projectId: "smm-panel-c1821",
+            storageBucket: "smm-panel-c1821.firebasestorage.app",
+            messagingSenderId: "399872773449",
+            appId: "1:399872773449:web:57816f99993b9451b41e98",
+            measurementId: "G-PWX4TCSM3L"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const provider = new GoogleAuthProvider();
+
+        let currentUser = null;
+        let rawBalance = 0;
+        let globalCategories = {};
+        let globalServices = {};
+        let globalPaymentMethods = {};
+
+        window.sendResetLink = async function() {
+            const emailInput = document.getElementById('reset-email-input').value.trim();
+            if(!emailInput) return window.showToast("Please enter an email address.", "error");
+            try {
+                await sendPasswordResetEmail(auth, emailInput);
+                window.showToast("Success! A secure reset link has been sent to your email.", "success");
+                window.closeResetModal();
+            } catch(error) {
+                if(error.code === 'auth/user-not-found') window.showToast("No account found with this email.", "error");
+                else window.showToast("Error sending reset link. Check your email format.", "error");
+            }
+        };
+
+        window.handleAuth = async function(e) {
+            e.preventDefault();
+            // isSignupMode comes from the Fast-Load script
+            const email = window.safeHTML(document.getElementById('auth-email').value.trim()); 
+            const pass = document.getElementById('auth-password').value; 
+            const rememberMe = document.getElementById('remember-me').checked;
+            const btn = document.getElementById('auth-submit-btn');
+            
+            if(!email || !pass) return window.showToast("Fill all fields", "error");
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Working...';
+            
+            try {
+                await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+                
+                if(isSignupMode) {
+                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                    const username = email.split('@')[0];
+                    await set(ref(db, `users/${cred.user.uid}`), { email: email, username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                    window.showToast("Account Created! Logging in...");
+                } else { 
+                    await signInWithEmailAndPassword(auth, email, pass); 
+                    window.showToast("Login Successful!");
+                }
+            } catch(error) { 
+                if(error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    window.showToast("Invalid details. Sign up first.", "error");
+                } else if(error.code === 'auth/email-already-in-use') {
+                    window.showToast("Email already exists. Please Login.", "error");
+                } else if(error.code === 'auth/weak-password') {
+                    window.showToast("Password must be at least 6 characters.", "error");
+                } else {
+                    window.showToast("Invalid details. Please try again.", "error");
+                }
+            } finally { 
+                btn.disabled = false; btn.innerHTML = isSignupMode ? 'Register Account' : 'Login Securely'; 
+            }
+        };
+
+        window.googleSignIn = async function() {
+            const btn = document.getElementById('btn-google');
+            try {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
+                await setPersistence(auth, browserLocalPersistence);
+                
+                const result = await signInWithPopup(auth, provider);
+                
+                const userRef = ref(db, `users/${result.user.uid}`);
+                const snapshot = await get(userRef);
+                if (!snapshot.exists()) {
+                    const username = window.safeHTML(result.user.email.split('@')[0]);
+                    await set(userRef, { email: window.safeHTML(result.user.email), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                }
+                window.showToast("Google Login Successful!");
+            } catch (error) { 
+                console.error("Google Auth Error:", error);
+                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                    window.showToast("Popup blocked. Redirecting securely...", "info");
+                    signInWithRedirect(auth, provider); 
+                } else {
+                    window.showToast("Google Login Cancelled.", "error"); 
+                }
+            } finally {
+                btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
+            }
+        };
+
+        getRedirectResult(auth).then(async (result) => {
+            if (result) {
+                const userRef = ref(db, `users/${result.user.uid}`);
+                const snapshot = await get(userRef);
+                if (!snapshot.exists()) {
+                    const username = window.safeHTML(result.user.email.split('@')[0]);
+                    await set(userRef, { email: window.safeHTML(result.user.email), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                }
+                window.showToast("Google Login Successful!");
+            }
+        }).catch((error) => console.error("Redirect Result Error:", error));
+
+        window.logout = function() {
+            signOut(auth); window.showToast("Logged Out", "info");
+        };
+
+        window.saveNewUsername = async function() {
+            const newName = window.safeHTML(document.getElementById('new-username-input').value.trim());
+            if(newName.length > 0) {
+                await update(ref(db, `users/${currentUser.uid}`), { username: newName });
+                window.showToast("Username updated!");
+                window.closeUsernameModal();
+            } else { window.showToast("Name cannot be empty", "error"); }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            if (user) {
+                let lastSignIn = Date.now();
+                if (user.metadata.lastLoginAt) lastSignIn = parseInt(user.metadata.lastLoginAt);
+                else if (user.metadata.lastSignInTime) lastSignIn = new Date(user.metadata.lastSignInTime).getTime();
+
+                if (Date.now() - lastSignIn > 24 * 60 * 60 * 1000) {
+                    window.showToast("Session expired. Please log in again.", "info");
+                    signOut(auth); return;
+                }
+
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                
+                const defaultName = window.safeHTML(user.email.split('@')[0]);
+                document.getElementById('drawer-email').innerHTML = defaultName;
+                document.getElementById('stat-username').innerHTML = defaultName;
+                
+                const initialView = window.location.hash.replace('#', '') || 'new-order';
+                window.switchView(initialView, false);
+                history.replaceState({ view: initialView }, '', '#' + initialView);
+
+                try {
+                    const userSnap = await get(ref(db, `users/${user.uid}`));
+                    if (userSnap.exists() && userSnap.val().suspended) { 
+                        window.showToast("Account Suspended.", "error"); signOut(auth); return; 
+                    }
+                    update(ref(db, `users/${user.uid}`), { lastActive: Date.now() }).catch(()=>{});
+                } catch(e) {}
+                
+                loadUserData(); 
+                loadAppData();
+            } else {
+                document.getElementById('auth-container').style.display = 'flex';
+                document.getElementById('app-layout').style.display = 'none';
+            }
+        });
+
+        window.getCatIcon = function(name) {
+            const n = name.toLowerCase();
+            if(n.includes('instagram') || n.includes('ig')) return '<i class="fa-brands fa-instagram" style="color:#E1306C; font-size:16px;"></i>';
+            if(n.includes('youtube') || n.includes('yt')) return '<i class="fa-brands fa-youtube" style="color:#FF0000; font-size:16px;"></i>';
+            if(n.includes('telegram') || n.includes('tg')) return '<i class="fa-brands fa-telegram" style="color:#0088cc; font-size:16px;"></i>';
+            if(n.includes('facebook') || n.includes('fb')) return '<i class="fa-brands fa-facebook" style="color:#1877F2; font-size:16px;"></i>';
+            if(n.includes('twitter') || n.includes('x')) return '<i class="fa-brands fa-x-twitter" style="font-size:16px;"></i>';
+            if(n.includes('tiktok')) return '<i class="fa-brands fa-tiktok" style="font-size:16px;"></i>';
+            if(n.includes('spotify')) return '<i class="fa-brands fa-spotify" style="color:#1DB954; font-size:16px;"></i>';
+            return '📌'; 
+        };
+
+        window.selectCategory = function(catId, event) {
+            if(event) event.stopPropagation();
+            document.querySelectorAll('.custom-select-options').forEach(el => el.classList.remove('show'));
+            let catName = globalCategories[catId].name;
+            let icon = window.getCatIcon(catName);
+            document.getElementById('order-cat').value = window.safeHTML(catId);
+            document.getElementById('cat-trigger').innerHTML = `${icon} ${window.safeHTML(catName)}`;
+            window.filterServices();
+        };
+        
+        window.selectService = function(srvId, event) {
+            if(event) event.stopPropagation();
+            document.querySelectorAll('.custom-select-options').forEach(el => el.classList.remove('show'));
+            let s = globalServices[srvId];
+            let catName = globalCategories[s.categoryId]?.name || '';
+            let icon = window.getCatIcon(catName);
+            
+            document.getElementById('order-srv').value = window.safeHTML(srvId);
+            document.getElementById('srv-trigger').innerHTML = `${icon} ${window.safeHTML(s.name)} - ₹${parseFloat(s.price).toFixed(2)}/1k`;
+            window.updateServiceDetails();
+        };
+
+        window.searchServicesDropdown = function() {
+            const input = document.getElementById('service-search').value.toLowerCase();
+            const suggestionsBox = document.getElementById('search-suggestions');
+            suggestionsBox.innerHTML = '';
+
+            if (input.length < 2) {
+                suggestionsBox.style.display = 'none';
+                renderServices(); 
+                return;
+            }
+
+            let matches = [];
+            for (let id in globalServices) {
+                let s = globalServices[id];
+                if (s.active && (s.name.toLowerCase().includes(input) || (globalCategories[s.categoryId] && globalCategories[s.categoryId].name.toLowerCase().includes(input)))) {
+                    matches.push({id: id, ...s});
+                }
+            }
+
+            if (matches.length > 0) {
+                matches.slice(0, 15).forEach(s => { 
+                    let catName = globalCategories[s.categoryId]?.name || 'Unknown';
+                    let div = document.createElement('div');
+                    div.className = 'search-suggestion-item';
+                    
+                    let htmlContent = `<span class="search-suggestion-cat">${window.getCatIcon(catName)} ${window.safeHTML(catName)}</span>
+                                       <span class="search-suggestion-name">${window.safeHTML(s.name)}</span>
+                                       <span class="search-suggestion-price">₹${parseFloat(s.price).toFixed(2)} per 1000</span>`;
+                    div.innerHTML = htmlContent;
+                    
+                    div.onclick = () => {
+                        window.switchView('new-order');
+                        window.selectCategory(s.categoryId, null);
+                        setTimeout(() => { window.selectService(s.id, null); }, 100);
+                        suggestionsBox.style.display = 'none';
+                        document.getElementById('service-search').value = '';
+                    };
+                    suggestionsBox.appendChild(div);
+                });
+                suggestionsBox.style.display = 'block';
+            } else {
+                suggestionsBox.innerHTML = '<div style="padding:15px; font-size:12px; color:var(--text-gray); text-align:center;">No services found.</div>';
+                suggestionsBox.style.display = 'block';
+            }
+
+            const tableBody = document.getElementById('app-services-table');
+            const rows = tableBody.getElementsByTagName('tr');
+            for (let i = 0; i < rows.length; i++) {
+                let text = rows[i].innerText.toLowerCase();
+                rows[i].style.display = text.includes(input) ? "" : "none";
+            }
+        };
+
+        window.selectPayment = function(payId, event) {
+            if(event) event.stopPropagation();
+            document.querySelectorAll('.custom-select-options').forEach(el => el.classList.remove('show'));
+            let p = globalPaymentMethods[payId];
+            if(p) {
+                document.getElementById('selected-pay-method').value = window.safeHTML(payId);
+                document.getElementById('pay-trigger').innerHTML = `💳 ${window.safeHTML(p.name)}`;
+                
+                let qrImg = document.getElementById('payment-qr-img');
+                if (p.qrUrl && (p.qrUrl.startsWith('http://') || p.qrUrl.startsWith('https://') || p.qrUrl.startsWith('data:image'))) {
+                    qrImg.src = p.qrUrl;
+                } else { qrImg.src = ''; }
+                
+                document.getElementById('payment-instructions').innerText = p.instructions || '';
+                document.getElementById('qr-instruction-area').style.display = 'block';
+            }
+        };
+
+        function loadAppData() {
+            onValue(ref(db, 'categories'), (snap) => { 
+                globalCategories = snap.val() || {}; 
+                let catHtml = '';
+
+                let sortedCats = Object.keys(globalCategories).map(k => {
+                    return { id: k, name: globalCategories[k].name, sortOrder: globalCategories[k].sortOrder || 9999999999999 };
+                });
+                sortedCats.sort((a, b) => a.sortOrder - b.sortOrder);
+
+                sortedCats.forEach(cat => {
+                    let catName = window.safeHTML(cat.name);
+                    let icon = window.getCatIcon(catName);
+                    catHtml += `<div class="custom-option" onclick="window.selectCategory('${cat.id}', event)">${icon} ${catName}</div>`;
+                });
+                
+                document.getElementById('cat-options').innerHTML = catHtml || '<div class="custom-option">No categories yet</div>';
+            });
+            
+            onValue(ref(db, 'services'), (snap) => { globalServices = snap.val() || {}; renderServices(); });
+            
+            onValue(ref(db, 'payment_methods'), (snap) => {
+                globalPaymentMethods = snap.val() || {};
+                let payHtml = '';
+                for(let k in globalPaymentMethods) {
+                    let pName = window.safeHTML(globalPaymentMethods[k].name);
+                    payHtml += `<div class="custom-option" onclick="window.selectPayment('${k}', event)">💳 ${pName}</div>`;
+                }
+                document.getElementById('pay-options').innerHTML = payHtml || '<div class="custom-option">No methods added by Admin</div>';
+            });
+
+            onValue(ref(db, 'settings/socials'), (snap) => {
+                const s = snap.val() || {};
+                
+                // Set WhatsApp Promos
+                const waNum = window.safeHTML(s.whatsapp ? s.whatsapp.replace(/[^0-9]/g, '') : '');
+                const waLink = waNum ? `https://wa.me/${waNum}` : '';
+                if(waLink) {
+                    document.getElementById('floating-wa').href = waLink;
+                    document.getElementById('floating-wa').style.display = 'flex';
+                    document.getElementById('link-wa').href = waLink;
+                    document.getElementById('link-wa').style.display = 'block';
+                    
+                    const authWa = document.getElementById('auth-promo-wa');
+                    if(authWa) authWa.href = waLink;
+                    const ordWa = document.getElementById('order-promo-wa');
+                    if(ordWa) ordWa.href = waLink;
+                } else {
+                    document.getElementById('floating-wa').style.display = 'none';
+                    document.getElementById('link-wa').style.display = 'none';
+                }
+
+                // Set Telegram Promos
+                const checkUrl = (url) => (url && (url.startsWith('http://') || url.startsWith('https://'))) ? window.safeHTML(url) : '';
+                const tgUrl = checkUrl(s.telegram);
+                if(tgUrl) { 
+                    document.getElementById('link-tg').href = tgUrl; 
+                    document.getElementById('link-tg').style.display = 'block'; 
+                    
+                    const authTg = document.getElementById('auth-promo-tg');
+                    if(authTg) authTg.href = tgUrl;
+                    const ordTg = document.getElementById('order-promo-tg');
+                    if(ordTg) ordTg.href = tgUrl;
+                } else { 
+                    document.getElementById('link-tg').style.display = 'none'; 
+                }
+                
+                // Other Promos
+                const igUrl = checkUrl(s.instagram);
+                if(igUrl) { document.getElementById('link-ig').href = igUrl; document.getElementById('link-ig').style.display = 'block'; } 
+                else { document.getElementById('link-ig').style.display = 'none'; }
+                
+                const customUrl = checkUrl(s.customUrl);
+                if(customUrl) {
+                    let cTitle = window.safeHTML(s.customTitle || 'App');
+                    document.getElementById('custom-link-url').href = customUrl;
+                    document.getElementById('custom-link-title').innerHTML = cTitle;
+                    document.getElementById('custom-link-box').style.display = 'block';
+                } else {
+                    document.getElementById('custom-link-box').style.display = 'none';
+                }
+            });
+        }
+
+        function loadUserData() {
+            if(!currentUser) return;
+            
+            onValue(ref(db, `users/${currentUser.uid}`), (snap) => { 
+                if(snap.exists()) {
+                    rawBalance = snap.val().balance || 0; 
+                    document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
+                    const displayUsername = window.safeHTML(snap.val().username || snap.val().email.split('@')[0]);
+                    document.getElementById('stat-username').innerHTML = displayUsername;
+                    document.getElementById('drawer-email').innerHTML = displayUsername;
+                }
+            });
+            
+            onValue(ref(db, 'orders'), (snap) => {
+                const orders = snap.val() || {}; const userOrdersList = Object.keys(orders).map(k => ({id:k, ...orders[k]})).filter(o => o.userId === currentUser.uid).reverse();
+                document.getElementById('stat-total-orders').innerText = userOrdersList.length; 
+                let html = '';
+                userOrdersList.forEach(o => {
+                    let badge = '<span class="badge bg-pending">Pending</span>'; if(o.status === 'Processing') badge = '<span class="badge bg-processing">Processing</span>'; if(o.status === 'Completed') badge = '<span class="badge bg-completed">Completed</span>'; if(o.status === 'Canceled' || o.status === 'Refunded') badge = '<span class="badge bg-canceled">Refunded</span>';
+                    
+                    let safeServiceName = window.safeHTML(o.serviceName);
+                    let safeLink = (o.link && (o.link.startsWith('http://') || o.link.startsWith('https://'))) ? window.safeHTML(o.link) : '#';
+                    
+                    html += `<tr><td><small>${o.id.slice(-6)}</small></td><td style="font-weight:600;">${safeServiceName}</td><td><a href="${safeLink}" target="_blank" rel="noopener noreferrer" style="color:var(--primary); text-decoration:none;">View Link</a></td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
+                });
+                document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
+            });
+            
+            onValue(ref(db, 'payment_proofs'), (snap) => {
+                const proofs = snap.val() || {}; const userDepositsList = Object.keys(proofs).map(k => ({id: k, ...proofs[k]})).filter(p => p.userId === currentUser.uid).sort((a, b) => b.timestamp - a.timestamp);
+                let html = '';
+                userDepositsList.forEach(p => {
+                    let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
+                    if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
+                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td>${badge}</td></tr>`;
+                });
+                document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="4" align="center">No deposit history found.</td></tr>';
+            });
+            
+            onValue(ref(db, 'tickets'), (snap) => {
+                const tickets = snap.val() || {}; let html = '';
+                const myTickets = Object.keys(tickets).map(k => ({id:k, ...tickets[k]})).filter(t => t.userId === currentUser.uid);
+                if(myTickets.length === 0){ html = '<div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;">Send a message to start a conversation.</div>'; } 
+                else {
+                    myTickets.forEach(t => {
+                        html += `<div class="chat-bubble chat-user"><span class="chat-topic">${window.safeHTML(t.subject)}</span>${window.safeHTML(t.message)}</div>`;
+                        if(t.reply) { html += `<div class="chat-bubble chat-admin"><span class="chat-topic" style="color: var(--primary);">Support Agent <i class="fa-solid fa-circle-check"></i></span>${window.safeHTML(t.reply)}</div>`; }
+                    });
+                }
+                const container = document.getElementById('chat-history-container');
+                container.innerHTML = html; container.scrollTop = container.scrollHeight;
+            });
+        }
+
+        function renderServices() {
+            let html = '';
+            for(let id in globalServices) {
+                const s = globalServices[id];
+                if(s.active) {
+                    let avgTimeBadge = s.averageTime ? `<br><small style="color:var(--success); font-weight:600;"><i class="fa-solid fa-clock"></i> ${window.safeHTML(s.averageTime)}</small>` : '';
+                    html += `<tr>
+                        <td><small>${window.safeHTML(globalCategories[s.categoryId]?.name || '')}</small></td>
+                        <td style="font-weight:600;">${window.safeHTML(s.name)} ${avgTimeBadge}</td>
+                        <td style="color:var(--primary); font-weight:700;">₹${parseFloat(s.price || 0).toFixed(2)}</td>
+                        <td><small>${s.min} / ${s.max}</small></td>
+                    </tr>`;
+                }
+            }
+            document.getElementById('app-services-table').innerHTML = html;
+        }
+
+        window.filterServices = function() {
+            const catId = document.getElementById('order-cat').value; 
+            let srvHtml = '';
+            let catName = globalCategories[catId]?.name || '';
+            let catIcon = window.getCatIcon(catName);
+            for(let id in globalServices) { 
+                const s = globalServices[id]; 
+                if(s.active && s.categoryId === catId) {
+                    srvHtml += `<div class="custom-option" onclick="window.selectService('${id}', event)">${catIcon} ${window.safeHTML(s.name)}</div>`;
+                }
+            }
+            document.getElementById('srv-options').innerHTML = srvHtml || '<div class="custom-option">No services available</div>';
+            document.getElementById('srv-trigger').innerHTML = "⚡ Now, choose your boost...";
+            document.getElementById('order-srv').value = '';
+            window.updateServiceDetails();
+        };
+
+        window.updateServiceDetails = function() {
+            const srvId = document.getElementById('order-srv').value;
+            const infoBox = document.getElementById('service-info-box'); 
+            const timeText = document.getElementById('service-time-text');
+            const descText = document.getElementById('service-desc-text');
+            const rulesText = document.getElementById('service-rules-text');
+            const limitsBox = document.getElementById('qty-limits');
+            
+            document.getElementById('order-qty').value = ''; document.getElementById('order-charge').value = '0.00';
+            
+            if(srvId && globalServices[srvId]) {
+                const s = globalServices[srvId];
+                infoBox.style.display = 'block'; 
+                timeText.innerHTML = window.safeHTML(s.averageTime || 'Not specified');
+                descText.innerHTML = window.safeHTML(s.desc || 'No description provided.');
+                rulesText.innerHTML = window.safeHTML(s.rules || 'No rules provided.');
+                limitsBox.innerText = `Min: ${s.min} | Max: ${s.max}`;
+            } else { 
+                infoBox.style.display = 'none'; 
+                limitsBox.innerText = 'Min: 0 - Max: 0'; 
+            }
+        };
+
+        window.calculateCharge = function() {
+            const srvId = document.getElementById('order-srv').value; const qty = parseInt(document.getElementById('order-qty').value);
+            if(srvId && globalServices[srvId] && qty && !isNaN(qty) && qty > 0) { const baseCharge = (globalServices[srvId].price / 1000) * qty; document.getElementById('order-charge').value = baseCharge.toFixed(2); } else { document.getElementById('order-charge').value = '0.00'; }
+        };
+
+        window.submitOrder = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('order-btn'); 
+            const srvId = document.getElementById('order-srv').value; 
+            let link = document.getElementById('order-link').value.trim(); 
+            const qty = parseInt(document.getElementById('order-qty').value);
+            
+            if(!srvId || !link || !qty) return window.showToast("Missing fields", "error");
+            if(qty <= 0) return window.showToast("Quantity must be greater than 0", "error");
+            
+            try {
+                new URL(link.startsWith('http') ? link : 'https://' + link);
+                if(!link.startsWith('http')) link = 'https://' + link;
+            } catch(err) {
+                return window.showToast("Please enter a valid URL", "error");
+            }
+
+            const service = globalServices[srvId];
+            if(qty < service.min || qty > service.max) return window.showToast(`Limits: ${service.min} - ${service.max}`, "error");
+            
+            const baseCharge = (service.price / 1000) * qty;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+            try {
+                if(rawBalance < baseCharge) { window.showToast("Insufficient funds!", "error"); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; return; }
+                await update(ref(db, `users/${currentUser.uid}`), { balance: rawBalance - baseCharge });
+                
+                await set(ref(db, `orders/${'ORD' + Date.now()}`), { userId: currentUser.uid, serviceId: srvId, serviceName: service.name, link: window.safeHTML(link), quantity: qty, charge: baseCharge, status: 'Pending', timestamp: Date.now() });
+                window.showToast("Order Placed Successfully!");
+                document.getElementById('order-form').reset(); window.updateServiceDetails(); window.switchView('orders-history');
+            } catch(error) { window.showToast("Error: " + error.message, "error"); } 
+            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; }
+        };
+
+        window.submitPaymentProof = async function(e) {
+            e.preventDefault();
+            const payMethod = document.getElementById('selected-pay-method').value;
+            const typedAmount = parseFloat(document.getElementById('proof-amount').value);
+            const txid = window.safeHTML(document.getElementById('proof-txid').value.trim());
+            
+            if(!payMethod) return window.showToast("Please select a Payment Method first", "error");
+            if(typedAmount <= 0) return window.showToast("Invalid amount", "error");
+
+            try {
+                await push(ref(db, 'payment_proofs'), { 
+                    userId: currentUser.uid, 
+                    email: currentUser.email, 
+                    amount: typedAmount, 
+                    txid: txid, 
+                    method: globalPaymentMethods[payMethod]?.name || 'Unknown',
+                    status: 'Pending', 
+                    timestamp: Date.now() 
+                });
+                window.showToast("Proof Sent Successfully!"); 
+                e.target.reset(); 
+                document.getElementById('selected-pay-method').value = '';
+                document.getElementById('pay-trigger').innerHTML = '💳 Select Method...';
+                document.getElementById('qr-instruction-area').style.display = 'none';
+                window.switchView('deposit-history');
+            } catch(error) { window.showToast("Error submitting proof", "error"); }
+        };
+
+        window.createTicket = async function(e) {
+            e.preventDefault();
+            const subject = window.safeHTML(document.getElementById('ticket-subject').value.trim());
+            const message = window.safeHTML(document.getElementById('ticket-message').value.trim());
+            
+            if(!subject || !message) return window.showToast("Don't leave fields blank", "error");
+
+            try {
+                await push(ref(db, 'tickets'), { userId: currentUser.uid, subject: subject, message: message, status: 'Open', timestamp: Date.now() });
+                window.showToast("Message Sent!"); e.target.reset();
+            } catch (error) { window.showToast("Error", "error"); }
+        };
+    </script>
+    
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || 
+               (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+               (e.ctrlKey && e.shiftKey && e.key === 'J') || 
+               (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
