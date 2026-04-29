@@ -25,40 +25,17 @@
             --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
         }
 
-        /* 🌙 Dark Mode Variables */
-        body.dark-mode {
-            --bg-bottom: #0f172a;
-            --bg-top: #1e293b;
-            --dark-card: #1e293b;
-            --text-dark: #f8fafc;
-            --text-gray: #94a3b8;
-            --border-color: #334155;
-            --primary-light: rgba(59, 73, 223, 0.2);
-        }
-        body.dark-mode .card, body.dark-mode header, body.dark-mode aside, body.dark-mode .auth-box, body.dark-mode .faq-item, body.dark-mode footer, body.dark-mode .landing-footer, body.dark-mode .promo-card {
-            background-color: #1e293b;
-            border-color: #334155;
-        }
-        body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
-            background-color: #0f172a; color: #f8fafc; border-color: #334155;
-        }
-        body.dark-mode table th { background-color: #0f172a; color: #cbd5e1; border-color: #334155;}
-        body.dark-mode table td { border-color: #334155; }
-        body.dark-mode .custom-select-options, body.dark-mode #search-suggestions { background-color: #1e293b; border-color: #334155; }
-        body.dark-mode .custom-option { color: #f8fafc; }
-        body.dark-mode .custom-option:hover { background-color: #334155; }
-        body.dark-mode .wave-bg { background: #0f172a; }
-        body.dark-mode .step-circle { background: #1e293b; border-color: #3b49df; }
-        body.dark-mode .landing-hero { background: #0f172a; }
-        body.dark-mode .hero-text h1 { color: #f8fafc; }
+        
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
         html, body { background-color: var(--bg-bottom); color: var(--text-dark); overflow-x: hidden; height: 100%; display: flex; flex-direction: column; transition: background-color 0.3s, color 0.3s; }
 
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { padding: 10px 18px; border-radius: 50px; color: white; font-weight: 600; font-size: 13px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); backdrop-filter: blur(5px);}
-        .toast.show { transform: translateX(0); }
-        .toast-success { background: rgba(16, 185, 129, 0.95); } .toast-error { background: rgba(239, 68, 68, 0.95); } .toast-info { background: rgba(59, 130, 246, 0.95); }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
+        .toast { padding: 14px 20px; border-radius: 12px; color: white; font-weight: 600; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateY(-150%); opacity: 0; transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); } 
+        .toast-error { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); } 
+        .toast-info { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
 
         .floating-wa { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: white; width: 55px; height: 55px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 32px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); z-index: 1000; text-decoration: none; transition: 0.3s; }
         .floating-wa:hover { transform: scale(1.1); }
@@ -71,8 +48,18 @@
         .landing-content { flex: 1 0 auto; display: flex; flex-direction: column; width: 100%; position: relative; }
         
         .landing-header { padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; position: absolute; top: 0; width: 100%; z-index: 10; }
-        .landing-logo { font-size: 24px; font-weight: 800; color: var(--primary); font-style: italic; letter-spacing: -1px; }
-        .landing-logo span { color: #28a745; }
+        .brand-glow span { display: inline-block; animation: textGlow 1.5s infinite alternate; font-weight: 800; font-style: italic; font-size: 24px; color: var(--primary); letter-spacing: -1px; }
+        .brand-glow span:nth-child(1) { animation-delay: 0.1s; }
+        .brand-glow span:nth-child(2) { animation-delay: 0.2s; }
+        .brand-glow span:nth-child(3) { animation-delay: 0.3s; }
+        .brand-glow span:nth-child(4) { animation-delay: 0.4s; color: #28a745; }
+        .brand-glow span:nth-child(5) { animation-delay: 0.5s; color: #28a745; }
+        .brand-glow span:nth-child(6) { animation-delay: 0.6s; color: #28a745; }
+        .brand-glow span:nth-child(7) { animation-delay: 0.7s; color: #28a745; }
+        @keyframes textGlow { 
+            0% { text-shadow: 0 0 5px rgba(59,73,223,0.2); transform: translateY(0); } 
+            100% { text-shadow: 0 0 10px rgba(59,73,223,0.8), 0 0 20px rgba(40,167,69,0.6); transform: translateY(-2px); } 
+        }
         
         .landing-hero { background: var(--bg-bottom); padding: 100px 5% 40px 5%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 40px; position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; width: 100%;}
         .hero-text { flex: 1; min-width: 300px; }
@@ -155,8 +142,7 @@
            ========================================= */
         #app-layout { display: none; flex-direction: column; width: 100%; min-height: 100vh; }
         header { background: var(--bg-top); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 10; width: 100%; border-bottom: 2px solid var(--border-color); flex-shrink: 0;}
-        .header-logo { font-size: 24px; font-weight: 800; color: var(--text-dark); font-style: italic; letter-spacing: -1px; text-transform: uppercase; }
-        .header-logo span { color: #28a745; } 
+        .header-logo { display: flex; align-items: center; }
         .menu-btn { font-size: 24px; color: var(--primary); cursor: pointer; padding: 5px; }
 
         /* SMOOTH CSS AUTO-SCROLLING TICKER */
@@ -228,9 +214,22 @@
         .custom-option { color: var(--text-dark); padding: 12px 15px; cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 13px; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
         .custom-option i { font-size: 16px; width: 20px; text-align: center;}
         .custom-option:hover { background-color: var(--primary-light); color: var(--primary); }
+        
+        /* Modern Filter UI Styles */
+        .filter-trigger { background: linear-gradient(135deg, #2a9d8f 0%, #264653 100%); color: white; border: none; box-shadow: 0 4px 15px rgba(42, 157, 143, 0.4); border-radius: 50px; padding: 12px 20px; justify-content: center; gap: 10px; transition: all 0.3s ease; }
+        .filter-trigger:hover { box-shadow: 0 6px 20px rgba(42, 157, 143, 0.6); transform: translateY(-1px); }
+        .filter-trigger:active { background: linear-gradient(135deg, #264653 0%, #2a9d8f 100%); }
+        .filter-trigger i { font-size: 16px; }
+        .colorful-dropdown { background: var(--bg-top); border: 2px solid #2a9d8f; border-radius: 16px; box-shadow: 0 15px 35px rgba(42, 157, 143, 0.2); overflow-y: auto !important; overflow-x: hidden; padding: 0; min-width: 100%; width: max-content; max-width: 350px; max-height: 350px; z-index: 1000; }
+        .colorful-dropdown::-webkit-scrollbar { width: 6px; }
+        .colorful-dropdown::-webkit-scrollbar-thumb { background: #2a9d8f; border-radius: 10px; }
+        .colorful-dropdown .custom-option { border-bottom: 1px solid var(--border-color); border-radius: 0; padding: 14px 20px; font-size: 14px; transition: all 0.3s ease; white-space: normal; line-height: 1.4; }
+        .colorful-dropdown .custom-option:last-child { border-bottom: none; }
+        .colorful-dropdown .custom-option:hover { background: linear-gradient(90deg, rgba(42, 157, 143, 0.1) 0%, rgba(233, 196, 106, 0.1) 100%); color: #2a9d8f; padding-left: 25px; }
 
-        .glowing-warning { border: 2px solid #ff4d4d; box-shadow: 0 0 15px rgba(255, 77, 77, 0.4); border-radius: 12px; padding: 20px; background: var(--bg-top); margin-top: 20px; text-align: center; }
-        .glowing-warning h4 { color: #ff4d4d; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 16px; text-transform: uppercase;}
+        .glowing-warning { border: 2px solid #ef4444; border-radius: 12px; padding: 20px; background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); margin-top: 20px; text-align: center; animation: boxGlowRed 1.2s infinite alternate; color: white; }
+        @keyframes boxGlowRed { 0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); transform: scale(1); } 100% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.9), 0 0 40px rgba(239, 68, 68, 0.4); transform: scale(1.02); } }
+        .glowing-warning h4 { color: #ffffff; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 16px; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);}
         
         #order-form-card input[type="url"], #order-form-card input[type="number"], #order-form-card input[type="text"] { background-color: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: white; }
         #order-form-card input:focus { background-color: rgba(255,255,255,0.25); border-color: white; box-shadow: 0 0 0 3px rgba(255,255,255,0.2); }
@@ -304,7 +303,7 @@
         
         <div class="landing-content">
             <header class="landing-header">
-                <div class="landing-logo">PERFECT<span>SMM</span></div>
+                <div class="landing-logo brand-glow"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
             </header>
 
             <section class="landing-hero">
@@ -327,11 +326,18 @@
                                 <label id="email-label">Email Address</label>
                                 <input type="email" id="auth-email" placeholder="Enter your email" required>
                             </div>
-                            <div class="input-group" style="margin-bottom: 20px;">
+                            <div class="input-group" style="margin-bottom: 15px;">
                                 <label>Password</label>
                                 <div style="position: relative;">
                                     <input type="password" id="auth-password" placeholder="••••••••" style="padding-right: 45px; width: 100%;" required>
                                     <i class="fa-solid fa-eye" onclick="window.togglePassword('auth-password', this)" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-gray); font-size: 16px; z-index: 10;"></i>
+                                </div>
+                            </div>
+                            <div class="input-group auth-confirm-row" id="auth-confirm-row" style="margin-bottom: 20px; display: none;">
+                                <label>Confirm Password</label>
+                                <div style="position: relative;">
+                                    <input type="password" id="auth-confirm-password" placeholder="••••••••" style="padding-right: 45px; width: 100%;">
+                                    <i class="fa-solid fa-eye" onclick="window.togglePassword('auth-confirm-password', this)" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-gray); font-size: 16px; z-index: 10;"></i>
                                 </div>
                             </div>
 
@@ -480,9 +486,9 @@
     <div id="app-layout">
         
         <header>
-            <div class="header-logo">PERFECT<span>SMM</span></div>
+            <div class="header-logo brand-glow"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
             <div style="display:flex; align-items:center; gap: 20px;">
-                <i class="fa-solid fa-moon" id="theme-toggle" onclick="window.toggleTheme()" style="font-size:22px; cursor:pointer; color:var(--text-gray); transition: 0.3s;" title="Toggle Dark Mode"></i>
+                
                 <i class="fa-solid fa-bars menu-btn" onclick="window.toggleDrawer()"></i>
             </div>
         </header>
@@ -501,7 +507,7 @@
             <aside id="drawer">
                 <div class="drawer-header">
                     <i class="fa-solid fa-user-astronaut avatar-icon"></i>
-                    <div class="email-box"><span id="drawer-email">user</span> <i class="fa-solid fa-circle-check verified-tick"></i></div>
+                    <div class="email-box"><span id="drawer-email">user</span> <img src="bluetick.jpg" alt="Verified" style="width: 16px; height: 16px; vertical-align: text-bottom; margin-left: 4px; border-radius: 50%;"></div>
                 </div>
                 <div class="nav-links">
                     <div class="nav-item new-order active" onclick="window.switchView('new-order')"><i class="fa-solid fa-rocket"></i> New Order</div>
@@ -509,6 +515,7 @@
                     <div class="nav-item orders-history" onclick="window.switchView('orders-history')"><i class="fa-solid fa-clock-rotate-left"></i> Order History</div>
                     <div class="nav-item add-funds" onclick="window.switchView('add-funds')"><i class="fa-solid fa-money-bill-transfer"></i> Add Funds</div>
                     <div class="nav-item deposit-history" onclick="window.switchView('deposit-history')"><i class="fa-solid fa-file-invoice-dollar"></i> Deposit History</div>
+                                        <div class="nav-item transactions" onclick="window.switchView('transactions')"><i class="fa-solid fa-money-bill-transfer"></i> Transactions</div>
                     <div class="nav-item support" onclick="window.switchView('support')"><i class="fa-solid fa-headset"></i> Support</div>
                     
                     <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
@@ -538,7 +545,7 @@
                             <div class="stat-email">
                                 <span id="stat-username">user</span>
                                 <i class="fa-solid fa-pen" onclick="window.openUsernameModal()" style="cursor:pointer; font-size:12px; color:#3b82f6; margin-left:5px;" title="Edit Username"></i> 
-                                <i class="fa-solid fa-circle-check verified-tick"></i>
+                                <img src="bluetick.jpg" alt="Verified" style="width: 16px; height: 16px; vertical-align: text-bottom; margin-left: 4px; border-radius: 50%;">
                             </div>
                             <div class="stat-desc" style="color: var(--text-dark);">Your social dashboard.</div>
                         </div>
@@ -649,10 +656,22 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
                             <h1 class="page-title" style="margin: 0;">Services List</h1>
                             
-                            <div class="live-search-wrapper">
-                                <i class="fa-solid fa-magnifying-glass live-search-icon"></i>
-                                <input type="text" id="service-search" class="live-search-input" placeholder="Search for a service..." onkeyup="window.searchServicesDropdown()" autocomplete="off">
-                                <div id="search-suggestions"></div>
+                            <div style="display: flex; gap: 15px; flex-wrap: wrap; width: 100%; max-width: 650px; align-items: center;">
+                                
+                                <div class="custom-select-wrapper" style="flex: 1; min-width: 200px;" onclick="window.toggleDropdown('filter-cat-options', event)">
+                                    <div class="custom-select-trigger filter-trigger" id="filter-cat-trigger">
+                                        <i class="fa-solid fa-filter"></i> Filter Categories
+                                    </div>
+                                    <div class="custom-select-options colorful-dropdown" id="filter-cat-options">
+                                        <div class="custom-option" onclick="window.selectFilterCategory('all', 'All Categories', event)"><i class="fa-solid fa-list-ol"></i> All Categories</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="service-cat-filter" value="all">
+                                
+                                <div class="live-search-wrapper" style="flex: 1.5; min-width: 200px;">
+                                    <i class="fa-solid fa-magnifying-glass live-search-icon"></i>
+                                    <input type="text" id="service-search" class="live-search-input" placeholder="Live search..." onkeyup="window.filterServicesTable()" autocomplete="off">
+                                </div>
                             </div>
                         </div>
                         
@@ -710,7 +729,7 @@
                                 
                                 <div class="glowing-warning">
                                     <h4><i class="fa-solid fa-triangle-exclamation"></i> Important Warning</h4>
-                                    <p id="payment-instructions" style="font-size: 13px; color: var(--text-dark); white-space: pre-wrap; font-weight: 500;"></p>
+                                    <p id="payment-instructions" style="font-size: 13.5px; color: #ffffff; white-space: pre-wrap; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"></p>
                                 </div>
                             </div>
 
@@ -742,6 +761,25 @@
                                 <table>
                                     <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>Txn ID</th><th>Status</th></tr></thead>
                                     <tbody id="deposit-history-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="transactions" class="view">
+                    <div class="page-content">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h1 class="page-title" style="margin: 0;">Transactions</h1>
+                            <div style="background: var(--primary-light); color: var(--primary); padding: 8px 16px; border-radius: 50px; font-weight: 600; font-size: 13px;">
+                                Total: <span id="stat-total-transactions">0</span>
+                            </div>
+                        </div>
+                        <div class="card" style="padding: 10px;">
+                            <div class="table-wrapper" style="border: none;">
+                                <table>
+                                    <thead><tr><th>Date & Time</th><th>Sender / Receiver</th><th>Amount (₹)</th><th>Status</th></tr></thead>
+                                    <tbody id="transactions-table"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -792,21 +830,6 @@
             setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 2500);
         };
 
-        // Dark Mode Logic
-        window.toggleTheme = function() {
-            const isDark = document.body.classList.toggle('dark-mode');
-            const icon = document.getElementById('theme-toggle');
-            if(icon) icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-            localStorage.setItem('perfectsmm_theme', isDark ? 'dark' : 'light');
-        };
-        
-        if (localStorage.getItem('perfectsmm_theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-            window.addEventListener('DOMContentLoaded', () => {
-                const icon = document.getElementById('theme-toggle');
-                if(icon) icon.className = 'fa-solid fa-sun';
-            });
-        }
 
         // Toggle FAQ
         window.toggleFaq = function(element) {
@@ -835,6 +858,8 @@
             document.getElementById('tab-register').classList.toggle('active', isSignupMode);
             document.getElementById('auth-submit-btn').innerText = isSignupMode ? "Register Account" : "Login Securely";
             document.getElementById('auth-actions-row').style.display = isSignupMode ? 'none' : 'flex';
+            document.getElementById('auth-confirm-row').style.display = isSignupMode ? 'block' : 'none';
+            document.getElementById('auth-confirm-password').required = isSignupMode;
         };
 
         window.openResetModal = function() {
@@ -969,6 +994,10 @@
             const btn = document.getElementById('auth-submit-btn');
             
             if(!email || !pass) return window.showToast("Fill all fields", "error");
+            if(isSignupMode) {
+                const confirmPass = document.getElementById('auth-confirm-password').value;
+                if(pass !== confirmPass) return window.showToast("Passwords do not match", "error");
+            }
             btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Working...';
             
             try {
@@ -976,7 +1005,8 @@
                 
                 if(isSignupMode) {
                     const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                    const username = email.split('@')[0];
+                    const baseWords = email.split('@')[0].replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
                     await set(ref(db, `users/${cred.user.uid}`), { email: email, username: username, balance: 0, suspended: false, createdAt: Date.now() });
                     window.showToast("Account Created! Logging in...");
                 } else { 
@@ -1009,10 +1039,12 @@
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
                 if (!snapshot.exists()) {
-                    const username = window.safeHTML(result.user.email.split('@')[0]);
+                    const baseWords = window.safeHTML(result.user.email.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
                     await set(userRef, { email: window.safeHTML(result.user.email), username: username, balance: 0, suspended: false, createdAt: Date.now() });
                 }
                 window.showToast("Google Login Successful!");
+                setTimeout(() => window.location.reload(), 1000); // FIX: Forces UI to transition instantly
             } catch (error) { 
                 console.error("Google Auth Error:", error);
                 if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
@@ -1031,10 +1063,12 @@
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
                 if (!snapshot.exists()) {
-                    const username = window.safeHTML(result.user.email.split('@')[0]);
+                    const baseWords = window.safeHTML(result.user.email.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
                     await set(userRef, { email: window.safeHTML(result.user.email), username: username, balance: 0, suspended: false, createdAt: Date.now() });
                 }
                 window.showToast("Google Login Successful!");
+                setTimeout(() => window.location.reload(), 1000); // FIX: Forces UI to transition instantly
             }
         }).catch((error) => console.error("Redirect Result Error:", error));
 
@@ -1124,58 +1158,37 @@
             window.updateServiceDetails();
         };
 
-        window.searchServicesDropdown = function() {
-            const input = document.getElementById('service-search').value.toLowerCase();
-            const suggestionsBox = document.getElementById('search-suggestions');
-            suggestionsBox.innerHTML = '';
+        window.selectFilterCategory = function(catId, catName, event) {
+            if(event) event.stopPropagation();
+            document.querySelectorAll('.custom-select-options').forEach(el => el.classList.remove('show'));
+            
+            let icon = catId === 'all' ? '<i class="fa-solid fa-filter"></i>' : window.getCatIcon(catName);
+            document.getElementById('service-cat-filter').value = window.safeHTML(catId);
+            document.getElementById('filter-cat-trigger').innerHTML = `${icon} ${window.safeHTML(catName)}`;
+            
+            window.filterServicesTable();
+        };
 
-            if (input.length < 2) {
-                suggestionsBox.style.display = 'none';
-                renderServices(); 
-                return;
-            }
-
-            let matches = [];
-            for (let id in globalServices) {
-                let s = globalServices[id];
-                if (s.active && (s.name.toLowerCase().includes(input) || (globalCategories[s.categoryId] && globalCategories[s.categoryId].name.toLowerCase().includes(input)))) {
-                    matches.push({id: id, ...s});
-                }
-            }
-
-            if (matches.length > 0) {
-                matches.slice(0, 15).forEach(s => { 
-                    let catName = globalCategories[s.categoryId]?.name || 'Unknown';
-                    let div = document.createElement('div');
-                    div.className = 'search-suggestion-item';
-                    
-                    let htmlContent = `<span class="search-suggestion-cat">${window.getCatIcon(catName)} ${window.safeHTML(catName)}</span>
-                                       <span class="search-suggestion-name">${window.safeHTML(s.name)}</span>
-                                       <span class="search-suggestion-price">₹${parseFloat(s.price).toFixed(2)} per 1000</span>`;
-                    div.innerHTML = htmlContent;
-                    
-                    div.onclick = () => {
-                        window.switchView('new-order');
-                        window.selectCategory(s.categoryId, null);
-                        setTimeout(() => { window.selectService(s.id, null); }, 100);
-                        suggestionsBox.style.display = 'none';
-                        document.getElementById('service-search').value = '';
-                    };
-                    suggestionsBox.appendChild(div);
-                });
-                suggestionsBox.style.display = 'block';
-            } else {
-                suggestionsBox.innerHTML = '<div style="padding:15px; font-size:12px; color:var(--text-gray); text-align:center;">No services found.</div>';
-                suggestionsBox.style.display = 'block';
-            }
-
+        window.filterServicesTable = function() {
+            const catId = document.getElementById('service-cat-filter') ? document.getElementById('service-cat-filter').value : 'all';
+            const searchInput = document.getElementById('service-search').value.toLowerCase();
             const tableBody = document.getElementById('app-services-table');
             const rows = tableBody.getElementsByTagName('tr');
+            
             for (let i = 0; i < rows.length; i++) {
-                let text = rows[i].innerText.toLowerCase();
-                rows[i].style.display = text.includes(input) ? "" : "none";
+                let catCell = rows[i].getElementsByTagName('td')[0].innerText.toLowerCase();
+                let nameCell = rows[i].getElementsByTagName('td')[1].innerText.toLowerCase();
+                
+                let matchesCat = true;
+                if (catId !== 'all' && globalCategories[catId]) {
+                    matchesCat = catCell.includes(globalCategories[catId].name.toLowerCase());
+                }
+                let matchesSearch = nameCell.includes(searchInput) || catCell.includes(searchInput);
+                
+                rows[i].style.display = (matchesCat && matchesSearch) ? "" : "none";
             }
         };
+
 
         window.selectPayment = function(payId, event) {
             if(event) event.stopPropagation();
@@ -1211,7 +1224,19 @@
                     catHtml += `<div class="custom-option" onclick="window.selectCategory('${cat.id}', event)">${icon} ${catName}</div>`;
                 });
                 
+                // FIX: This line puts the categories into the New Order dropdown
                 document.getElementById('cat-options').innerHTML = catHtml || '<div class="custom-option">No categories yet</div>';
+                
+                // POPULATE THE NEW COLORFUL SERVICES FILTER
+                let filterHtml = `<div class="custom-option" onclick="window.selectFilterCategory('all', 'All Categories', event)"><i class="fa-solid fa-list-ol"></i> All Categories</div>`;
+                sortedCats.forEach(cat => { 
+                    let safeName = window.safeHTML(cat.name);
+                    let icon = window.getCatIcon(safeName);
+                    // We escape single quotes in name to prevent breaking the onclick function
+                    filterHtml += `<div class="custom-option" onclick="window.selectFilterCategory('${cat.id}', '${safeName.replace(/'/g, "\\'")}', event)">${icon} ${safeName}</div>`; 
+                });
+                const filterEl = document.getElementById('filter-cat-options');
+                if(filterEl) filterEl.innerHTML = filterHtml;
             });
             
             onValue(ref(db, 'services'), (snap) => { globalServices = snap.val() || {}; renderServices(); });
@@ -1308,7 +1333,10 @@
             });
             
             onValue(ref(db, 'payment_proofs'), (snap) => {
-                const proofs = snap.val() || {}; const userDepositsList = Object.keys(proofs).map(k => ({id: k, ...proofs[k]})).filter(p => p.userId === currentUser.uid).sort((a, b) => b.timestamp - a.timestamp);
+                const proofs = snap.val() || {}; 
+                const userDepositsList = Object.keys(proofs).map(k => ({id: k, ...proofs[k]})).filter(p => p.userId === currentUser.uid).sort((a, b) => b.timestamp - a.timestamp);
+                
+                // DEPOSIT HISTORY LOGIC
                 let html = '';
                 userDepositsList.forEach(p => {
                     let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
@@ -1316,6 +1344,29 @@
                     html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td>${badge}</td></tr>`;
                 });
                 document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="4" align="center">No deposit history found.</td></tr>';
+
+                // NEW: TRANSACTIONS HISTORY LOGIC
+                const transElement = document.getElementById('stat-total-transactions');
+                if (transElement) transElement.innerText = userDepositsList.length;
+                
+                let transHtml = '';
+                userDepositsList.forEach(p => {
+                    let badge = '<span class="badge bg-pending">⏳ Pending</span>'; 
+                    let statusText = p.status || 'Pending';
+                    if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">✅ Successful</span>'; 
+                    if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">❌ Rejected</span>';
+                    
+                    let senderReceiverInfo = `Sender: ${window.safeHTML(p.email)}<br><small style="color:var(--text-gray);">Receiver: Admin Wallet</small>`;
+                    
+                    transHtml += `<tr>
+                        <td><small>${new Date(p.timestamp).toLocaleString()}</small></td>
+                        <td>${senderReceiverInfo}</td>
+                        <td style="color:var(--success); font-weight:700;">+₹${parseFloat(p.amount).toFixed(2)}</td>
+                        <td>${badge}</td>
+                    </tr>`;
+                });
+                const transTable = document.getElementById('transactions-table');
+                if(transTable) transTable.innerHTML = transHtml || '<tr><td colspan="4" align="center">No transactions found.</td></tr>';
             });
             
             onValue(ref(db, 'tickets'), (snap) => {
@@ -1325,7 +1376,7 @@
                 else {
                     myTickets.forEach(t => {
                         html += `<div class="chat-bubble chat-user"><span class="chat-topic">${window.safeHTML(t.subject)}</span>${window.safeHTML(t.message)}</div>`;
-                        if(t.reply) { html += `<div class="chat-bubble chat-admin"><span class="chat-topic" style="color: var(--primary);">Support Agent <i class="fa-solid fa-circle-check"></i></span>${window.safeHTML(t.reply)}</div>`; }
+                        if(t.reply) { html += `<div class="chat-bubble chat-admin"><span class="chat-topic" style="color: var(--primary);">Support Agent <img src="bluetick.jpg" style="width: 14px; height: 14px; vertical-align: middle; border-radius: 50%;"></span>${window.safeHTML(t.reply)}</div>`; }
                     });
                 }
                 const container = document.getElementById('chat-history-container');
