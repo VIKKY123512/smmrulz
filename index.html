@@ -1192,7 +1192,7 @@
                     await set(userRef, { email: window.safeHTML(result.user.email), username: username, balance: 0, suspended: false, createdAt: Date.now() });
                 }
                 window.showToast("Google Login Successful!");
-                setTimeout(() => window.location.reload(), 1000); // FIX: Forces UI to transition instantly
+                // Let Firebase onAuthStateChanged handle the transition instantly without a page reload
             } catch (error) { 
                 console.error("Google Auth Error:", error);
                 if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
@@ -1216,7 +1216,6 @@
                     await set(userRef, { email: window.safeHTML(result.user.email), username: username, balance: 0, suspended: false, createdAt: Date.now() });
                 }
                 window.showToast("Google Login Successful!");
-                setTimeout(() => window.location.reload(), 1000); // FIX: Forces UI to transition instantly
             }
         }).catch((error) => console.error("Redirect Result Error:", error));
 
@@ -1236,15 +1235,9 @@
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             if (user) {
-                let lastSignIn = Date.now();
-                if (user.metadata.lastLoginAt) lastSignIn = parseInt(user.metadata.lastLoginAt);
-                else if (user.metadata.lastSignInTime) lastSignIn = new Date(user.metadata.lastSignInTime).getTime();
-
-                if (Date.now() - lastSignIn > 24 * 60 * 60 * 1000) {
-                    window.showToast("Session expired. Please log in again.", "info");
-                    signOut(auth); return;
-                }
-
+                // Firebase natively handles session security and token refreshing. 
+                // Removing the custom 24-hour strict check to prevent false-positive logouts during Google Auth.
+                
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
                 
