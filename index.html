@@ -134,6 +134,19 @@
         .faq-item.open .faq-answer { padding: 0 20px 18px 20px; max-height: 200px; opacity: 1; }
         .faq-item.open .faq-question i { transform: rotate(45deg); transition: 0.3s;}
 
+        /* Auto Scrolling Reviews Section */
+        .reviews-section { background: linear-gradient(135deg, #42998b 0%, #2b7a6f 100%); padding: 60px 0; position: relative; overflow: hidden; margin: 40px 0 0 0; }
+        .reviews-slider-wrapper { width: 100%; overflow: hidden; position: relative; z-index: 2; padding: 20px 0;}
+        .reviews-track { display: flex; gap: 25px; width: max-content; animation: scrollReviews 25s linear infinite; padding: 0 20px; }
+        .reviews-track:hover { animation-play-state: paused; }
+        .review-slide-card { background: white; border-radius: 16px; padding: 30px; width: 340px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); flex-shrink: 0; text-align: left; }
+        .review-slide-card p { color: var(--text-dark); font-size: 13.5px; line-height: 1.6; margin-top: 15px; }
+        .review-user-info { display: flex; align-items: center; gap: 12px; }
+        .review-user-info img { border-radius: 50%; width: 45px; height: 45px; }
+        .review-user-details h4 { color: var(--text-dark); margin: 0; font-size: 15px; display: flex; align-items: center; gap: 5px; font-weight: 700; }
+        @keyframes scrollReviews { 0% { transform: translateX(0); } 100% { transform: translateX(calc(-50% - 12.5px)); } }
+        .floating-dot { position: absolute; border-radius: 50%; background: #00ff88; opacity: 0.8; }
+
         /* FIXED LANDING FOOTER */
         .landing-footer { flex-shrink: 0; text-align: center; padding: 20px; color: var(--text-gray); font-size: 12px; background: var(--bg-bottom); border-top: 1px solid var(--border-color); margin-top: auto; width: 100%;}
 
@@ -310,7 +323,7 @@
                 <div class="hero-text">
                     <h1>The most trustworthy SMM panel online</h1>
                     <p>Fully automated & cheap SMM services with super fast delivery. Join thousands of happy users boosting their social presence today.</p>
-                    <p style="font-size: 13px; font-weight: 500;"><i class="fa-solid fa-envelope"></i> Contact: perfectsmmpanel@gmail.com</p>
+                    <p style="font-size: 13px; font-weight: 500;"><i class="fa-solid fa-envelope"></i> Contact: smmrulzofficial@gmail.com</p>
                 </div>
                 
                 <div class="auth-wrapper">
@@ -464,12 +477,101 @@
                         <div class="faq-question" onclick="window.toggleFaq(this)">Is it safe to order SMM services sold here? <i class="fa-solid fa-plus"></i></div>
                         <div class="faq-answer">Yes! We strictly use highly secure and safe methods to deliver stats without asking for your social media passwords.</div>
                     </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="window.toggleFaq(this)">What is your Refund Policy? <i class="fa-solid fa-plus"></i></div>
+                        <div class="faq-answer">If an order fails to deliver or gets canceled by the server, the funds are automatically refunded to your SMMRulz wallet. For partial deliveries, you are only charged for what you received!</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reviews-section">
+                <div class="floating-dot" style="width:10px; height:10px; top:15%; left:10%;"></div>
+                <div class="floating-dot" style="width:14px; height:14px; top:20%; right:20%;"></div>
+                <div class="floating-dot" style="width:8px; height:8px; bottom:25%; left:15%;"></div>
+                <div class="floating-dot" style="width:12px; height:12px; bottom:15%; right:10%;"></div>
+
+                <div class="section-title" style="margin-bottom: 40px; position: relative; z-index: 2;">
+                    <h2 style="color: white; font-size: 28px;">Customer reviews</h2>
+                    <p style="color: rgba(255,255,255,0.9); font-size: 14px; max-width: 600px; margin: 0 auto;">Don't know what to expect when placing orders on our panel? See our customers' reviews below!!</p>
+                </div>
+                
+                <div class="reviews-slider-wrapper">
+                    <div class="reviews-track">
+                        <div class="review-slide-card">
+                            <div class="review-user-info">
+                                <img src="https://ui-avatars.com/api/?name=Asil+Kocak&background=e0f2fe&color=0284c7&rounded=true" alt="User">
+                                <div class="review-user-details">
+                                    <h4>Asil Kocak <img src="bluetick.jpg" style="width: 14px; height: 14px; border-radius: 50%;" alt="Verified"></h4>
+                                    <div style="color: #f59e0b; font-size: 12px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                                </div>
+                            </div>
+                            <p>"I do SMM promotions for different businesses and this panel has been such a great discovery for me! I used to spend lots of time doing some tasks that can be done super quickly now because SMM services here are delivered so fast. Thank you guys!!"</p>
+                        </div>
+                        <div class="review-slide-card">
+                            <div class="review-user-info">
+                                <img src="https://ui-avatars.com/api/?name=Rahul+D&background=dcfce7&color=16a34a&rounded=true" alt="User">
+                                <div class="review-user-details">
+                                    <h4>Rahul D. <img src="bluetick.jpg" style="width: 14px; height: 14px; border-radius: 50%;" alt="Verified"></h4>
+                                    <div style="color: #f59e0b; font-size: 12px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                                </div>
+                            </div>
+                            <p>"Fastest delivery I've ever seen. The API backend integration works flawlessly for my agency. Zero drops on Premium followers. Highly recommended to anyone looking to grow securely!"</p>
+                        </div>
+                        <div class="review-slide-card">
+                            <div class="review-user-info">
+                                <img src="https://ui-avatars.com/api/?name=Sarah+M&background=fce7f3&color=db2777&rounded=true" alt="User">
+                                <div class="review-user-details">
+                                    <h4>Sarah M. <img src="bluetick.jpg" style="width: 14px; height: 14px; border-radius: 50%;" alt="Verified"></h4>
+                                    <div style="color: #f59e0b; font-size: 12px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                                </div>
+                            </div>
+                            <p>"The refund policy is completely transparent. If a service drops or gets canceled by the server, the funds are instantly refunded to the wallet. Extremely trustworthy panel and great UI."</p>
+                        </div>
+                        
+                        <div class="review-slide-card">
+                            <div class="review-user-info">
+                                <img src="https://ui-avatars.com/api/?name=Asil+Kocak&background=e0f2fe&color=0284c7&rounded=true" alt="User">
+                                <div class="review-user-details">
+                                    <h4>Asil Kocak <img src="bluetick.jpg" style="width: 14px; height: 14px; border-radius: 50%;" alt="Verified"></h4>
+                                    <div style="color: #f59e0b; font-size: 12px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                                </div>
+                            </div>
+                            <p>"I do SMM promotions for different businesses and this panel has been such a great discovery for me! I used to spend lots of time doing some tasks that can be done super quickly now because SMM services here are delivered so fast. Thank you guys!!"</p>
+                        </div>
+                        <div class="review-slide-card">
+                            <div class="review-user-info">
+                                <img src="https://ui-avatars.com/api/?name=Rahul+D&background=dcfce7&color=16a34a&rounded=true" alt="User">
+                                <div class="review-user-details">
+                                    <h4>Rahul D. <img src="bluetick.jpg" style="width: 14px; height: 14px; border-radius: 50%;" alt="Verified"></h4>
+                                    <div style="color: #f59e0b; font-size: 12px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                                </div>
+                            </div>
+                            <p>"Fastest delivery I've ever seen. The API backend integration works flawlessly for my agency. Zero drops on Premium followers. Highly recommended to anyone looking to grow securely!"</p>
+                        </div>
+                        <div class="review-slide-card">
+                            <div class="review-user-info">
+                                <img src="https://ui-avatars.com/api/?name=Sarah+M&background=fce7f3&color=db2777&rounded=true" alt="User">
+                                <div class="review-user-details">
+                                    <h4>Sarah M. <img src="bluetick.jpg" style="width: 14px; height: 14px; border-radius: 50%;" alt="Verified"></h4>
+                                    <div style="color: #f59e0b; font-size: 12px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                                </div>
+                            </div>
+                            <p>"The refund policy is completely transparent. If a service drops or gets canceled by the server, the funds are instantly refunded to the wallet. Extremely trustworthy panel and great UI."</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="landing-footer">
-            &copy; 2024 Perfect SMM. All Rights Reserved.
+            <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+                <a href="javascript:void(0)" onclick="window.openInfoModal('about')" style="color: var(--text-gray); text-decoration: none; font-weight: 600;">About Us</a>
+                <a href="javascript:void(0)" onclick="window.openInfoModal('contact')" style="color: var(--text-gray); text-decoration: none; font-weight: 600;">Contact Support</a>
+                <a href="javascript:void(0)" onclick="window.openInfoModal('terms')" style="color: var(--text-gray); text-decoration: none; font-weight: 600;">Terms of Service</a>
+                <a href="javascript:void(0)" onclick="window.openInfoModal('privacy')" style="color: var(--text-gray); text-decoration: none; font-weight: 600;">Privacy Policy</a>
+                <a href="javascript:void(0)" onclick="window.openInfoModal('refund')" style="color: var(--text-gray); text-decoration: none; font-weight: 600;">Refund Policy</a>
+            </div>
+            &copy; 2026 SMMRulz. All Rights Reserved.
         </div>
     </div>
     <div id="username-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
@@ -480,6 +582,15 @@
                 <button class="btn btn-success" onclick="window.saveNewUsername()" style="flex:1;">Save Name</button>
                 <button class="btn btn-danger" onclick="window.closeUsernameModal()" style="flex:1; background:var(--danger);">Cancel</button>
             </div>
+        </div>
+    </div>
+
+    <div id="info-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:5000; align-items:center; justify-content:center; backdrop-filter:blur(3px); padding: 20px;">
+        <div class="card" style="max-width:650px; width:100%; max-height: 85vh; overflow-y: auto; animation: fadeIn 0.3s ease; padding: 30px; margin:0; position: relative;">
+            <i class="fa-solid fa-xmark" onclick="window.closeInfoModal()" style="position: absolute; top: 20px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-gray); transition: 0.2s;"></i>
+            <h2 id="info-modal-title" style="margin-bottom:15px; color:var(--primary); font-size: 22px;">Title</h2>
+            <div id="info-modal-content" style="font-size: 14px; color: var(--text-dark); line-height: 1.7;"></div>
+            <button class="btn" onclick="window.closeInfoModal()" style="margin-top: 20px; width: 100%;">I Understand & Accept</button>
         </div>
     </div>
 
@@ -809,8 +920,17 @@
                     </div>
                 </div>
 
-                <footer>
-                    <i class="fa-regular fa-copyright"></i>  Copyright. All Rights Reserved.
+                <footer style="padding: 20px; background: var(--bg-top); border-top: 1px solid var(--border-color); text-align: center;">
+                    <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 12px; flex-wrap: wrap; font-size: 12px;">
+                        <a href="javascript:void(0)" onclick="window.openInfoModal('about')" style="color: var(--text-gray); text-decoration: none; font-weight: 500;">About Us</a>
+                        <a href="javascript:void(0)" onclick="window.openInfoModal('contact')" style="color: var(--text-gray); text-decoration: none; font-weight: 500;">Contact</a>
+                        <a href="javascript:void(0)" onclick="window.openInfoModal('terms')" style="color: var(--text-gray); text-decoration: none; font-weight: 500;">Terms</a>
+                        <a href="javascript:void(0)" onclick="window.openInfoModal('privacy')" style="color: var(--text-gray); text-decoration: none; font-weight: 500;">Privacy Policy</a>
+                        <a href="javascript:void(0)" onclick="window.openInfoModal('refund')" style="color: var(--text-gray); text-decoration: none; font-weight: 500;">Refunds</a>
+                    </div>
+                    <div style="color: var(--text-gray); font-size: 11px;">
+                        <i class="fa-regular fa-copyright"></i> 2026 SMMRulz. All Rights Reserved.
+                    </div>
                 </footer>
             </main>
         </div>
@@ -878,6 +998,34 @@
 
         window.closeUsernameModal = function() {
             document.getElementById('username-modal').style.display = 'none';
+        };
+
+        window.openInfoModal = function(type) {
+            const title = document.getElementById('info-modal-title');
+            const content = document.getElementById('info-modal-content');
+            
+            if (type === 'terms') {
+                title.innerHTML = '<i class="fa-solid fa-file-contract"></i> Terms of Service';
+                content.innerHTML = "<b>1. Acceptance:</b> By using SMMRulz, you automatically agree to these terms.<br><br><b>2. Service Delivery:</b> We deliver social media marketing services. Delivery times are estimates and depend on the platform's current algorithm.<br><br><b>3. Liabilities:</b> We are not responsible for account suspensions or picture deletions by third-party platforms (Instagram, YouTube, TikTok, etc.). Use services at your own risk.<br><br><b>4. Guarantee:</b> Services labeled 'Refill' or 'Guaranteed' will be refilled if a drop occurs within the specified period. 'No Refill' services are final.<br><br><b>5. Changes:</b> Services and pricing may change without prior notice to reflect market conditions.";
+            } else if (type === 'privacy') {
+                title.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Privacy Policy';
+                content.innerHTML = "<b>1. Data Collection:</b> We only collect the email address used for registration and the public URLs/links you provide for processing orders.<br><br><b>2. Data Protection:</b> Your data is securely encrypted. We never sell, rent, or share your personal information with third parties.<br><br><b>3. Cookies:</b> We use essential cookies strictly to maintain your secure login session.<br><br><b>4. Payment Data:</b> All payments are processed via highly secure, verified third-party payment gateways. We do not store your credit card or bank credentials on our servers.";
+            } else if (type === 'refund') {
+                title.innerHTML = '<i class="fa-solid fa-money-bill-transfer"></i> Refund Policy';
+                content.innerHTML = "<b>1. Auto-Refunds:</b> If an order status becomes 'Canceled' or 'Partial', the remaining unspent funds are automatically refunded back to your SMMRulz Wallet.<br><br><b>2. Non-Refundable:</b> Completed orders cannot be refunded. Funds successfully deposited into your SMMRulz wallet are non-refundable to your original payment method (Bank/Card); they must be used for panel services.<br><br><b>3. Private Accounts:</b> Orders placed on private/locked accounts will not be refunded. Please ensure your account is public before ordering.<br><br><b>4. Disputed Deposits:</b> Filing a fraudulent chargeback or dispute will result in immediate account termination and IP banning.";
+            } else if (type === 'about') {
+                title.innerHTML = '<i class="fa-solid fa-building"></i> About SMMRulz';
+                content.innerHTML = "<b>SMMRulz</b> is the industry-leading Social Media Marketing panel.<br><br>We provide automated, high-quality, and affordable social media boosts for resellers, influencers, and agencies globally. Our mission is to provide the most reliable API, zero-drop services, and a seamless user experience.";
+            } else if (type === 'contact') {
+                title.innerHTML = '<i class="fa-solid fa-headset"></i> Contact & Support';
+                content.innerHTML = "<b>Need Help?</b> Our dedicated team is here to assist you.<br><br><b>1. Support Tickets (Recommended):</b> The fastest way to get help is by opening a Support Ticket directly inside your user dashboard. Our agents prioritize internal tickets.<br><br><b>2. Email Support:</b> Reach us directly at <i>smmrulzofficial@gmail.com</i><br><br><b>3. Working Hours:</b> Our automated order processing works 24/7. Support agents typically reply within 1-12 hours during standard business days.";
+            }
+            
+            document.getElementById('info-modal').style.display = 'flex';
+        };
+
+        window.closeInfoModal = function() {
+            document.getElementById('info-modal').style.display = 'none';
         };
 
         window.toggleDrawer = function() {
