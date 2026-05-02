@@ -1180,7 +1180,6 @@
             const btn = document.getElementById('btn-google');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
             
-            // FIRE INSTANTLY: No 'await' allowed before this line, otherwise Mobile Chrome blocks it!
             signInWithPopup(auth, provider)
                 .then(async (result) => {
                     const user = result.user;
@@ -1201,19 +1200,19 @@
                     
                     window.showToast("Google Login Successful!");
                     
-                    // CRITICAL FIX: Explicit Hard Redirect to Dashboard
                     document.getElementById('auth-container').style.display = 'none';
                     document.getElementById('app-layout').style.display = 'flex';
                     window.location.href = window.location.pathname + '#new-order';
                     
-                    // Force page reload to ensure Firebase Session is deeply locked in
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 500); 
+                    setTimeout(() => { window.location.reload(); }, 500); 
                 })
                 .catch((error) => {
-                    console.error("Google Auth Error:", error);
-                    window.showToast("Login Cancelled or Failed.", "error");
+                    console.error("Google Auth Full Error:", error);
+                    
+                    // 🔍 DIAGNOSTIC ALERT: This will show us the exact hidden problem!
+                    alert("GOOGLE ERROR CODE:\n" + error.code + "\n\nMESSAGE:\n" + error.message);
+                    
+                    window.showToast("Failed: " + error.code, "error");
                     btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
                 });
         };
