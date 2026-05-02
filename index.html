@@ -1194,11 +1194,7 @@
                 }
                 
                 window.showToast("Google Login Successful!");
-                
-                // FORCE UI TRANSITION INSTANTLY
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                setTimeout(() => window.location.reload(), 1500); // Failsafe hydration reload
+                // Let Firebase onAuthStateChanged handle the UI transition naturally without interrupting it
                 
             } catch (error) { 
                 console.error("Google Auth Error:", error);
@@ -1225,9 +1221,7 @@
                 }
                 
                 window.showToast("Google Login Successful!");
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                setTimeout(() => window.location.reload(), 1500);
+                // Let Firebase onAuthStateChanged handle the UI transition naturally without interrupting it
             }
         }).catch((error) => console.error("Redirect Result Error:", error));
 
