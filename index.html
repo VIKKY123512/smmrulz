@@ -1176,66 +1176,47 @@
             }
         };
 
-        // Universal Handler for both Desktop and Mobile Success
-        window.handleGoogleSuccess = async function(user) {
-            try {
-                const userRef = ref(db, `users/${user.uid}`);
-                const snapshot = await get(userRef);
-                const safeEmail = user.email || 'user@smmrulz.com';
-                
-                if (!snapshot.exists()) {
-                    let baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                    if(!baseWords) baseWords = 'user'; // Failsafe
-                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
-                }
-                
-                // Instantly swap out of the login screen
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                window.showToast("Google Login Successful!");
-                
-            } catch (err) {
-                console.error("Database Save Error:", err);
-            }
-        };
-
-        window.googleSignIn = async function() {
+        window.googleSignIn = function() {
             const btn = document.getElementById('btn-google');
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
             
-            try {
-                // SMART FIX: Detect Mobile Browsers
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                
-                if (isMobile) {
-                    // Mobile requires a full-page redirect to prevent silent Chrome blocking
-                    await signInWithRedirect(auth, provider);
-                    return; // Stop execution here, the browser will navigate away
-                } else {
-                    // Desktop safely uses the popup
-                    const result = await signInWithPopup(auth, provider);
-                    await window.handleGoogleSuccess(result.user);
-                }
-            } catch (error) { 
-                console.error("Google Auth Error:", error);
-                if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                    window.showToast("Google Login Cancelled.", "error"); 
-                } else {
-                    window.showToast("Popup blocked. Trying secure redirect...", "info");
-                    signInWithRedirect(auth, provider); 
-                }
-            } finally {
-                btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
-            }
+            // FIRE INSTANTLY: No 'await' allowed before this line, otherwise Mobile Chrome blocks it!
+            signInWithPopup(auth, provider)
+                .then(async (result) => {
+                    const user = result.user;
+                    const safeEmail = user.email || 'user@smmrulz.com';
+                    const userRef = ref(db, `users/${user.uid}`);
+                    
+                    try {
+                        const snapshot = await get(userRef);
+                        if (!snapshot.exists()) {
+                            let baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                            if(!baseWords) baseWords = 'user';
+                            const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
+                            await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                        }
+                    } catch (dbErr) {
+                        console.error("DB Save Error:", dbErr);
+                    }
+                    
+                    window.showToast("Google Login Successful!");
+                    
+                    // CRITICAL FIX: Explicit Hard Redirect to Dashboard
+                    document.getElementById('auth-container').style.display = 'none';
+                    document.getElementById('app-layout').style.display = 'flex';
+                    window.location.href = window.location.pathname + '#new-order';
+                    
+                    // Force page reload to ensure Firebase Session is deeply locked in
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500); 
+                })
+                .catch((error) => {
+                    console.error("Google Auth Error:", error);
+                    window.showToast("Login Cancelled or Failed.", "error");
+                    btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
+                });
         };
-
-        // This catches the user when they return from Mobile Google Login
-        getRedirectResult(auth).then(async (result) => {
-            if (result && result.user) {
-                await window.handleGoogleSuccess(result.user);
-            }
-        }).catch((error) => console.error("Redirect Result Error:", error));
 
         window.logout = function() {
             signOut(auth); window.showToast("Logged Out", "info");
