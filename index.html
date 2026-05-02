@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
     <title>SMMRulz | Secure, Automated & Reliable SMM Services</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -1186,13 +1186,20 @@
                 
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
+                const safeEmail = result.user.email || 'user@smmrulz.com';
                 if (!snapshot.exists()) {
-                    const baseWords = window.safeHTML(result.user.email.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
                     const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(userRef, { email: window.safeHTML(result.user.email), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
                 }
+                
                 window.showToast("Google Login Successful!");
-                // Let Firebase onAuthStateChanged handle the transition instantly without a page reload
+                
+                // FORCE UI TRANSITION INSTANTLY
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                setTimeout(() => window.location.reload(), 1500); // Failsafe hydration reload
+                
             } catch (error) { 
                 console.error("Google Auth Error:", error);
                 if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
@@ -1210,12 +1217,17 @@
             if (result) {
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
+                const safeEmail = result.user.email || 'user@smmrulz.com';
                 if (!snapshot.exists()) {
-                    const baseWords = window.safeHTML(result.user.email.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
                     const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(userRef, { email: window.safeHTML(result.user.email), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
                 }
+                
                 window.showToast("Google Login Successful!");
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                setTimeout(() => window.location.reload(), 1500);
             }
         }).catch((error) => console.error("Redirect Result Error:", error));
 
@@ -1241,7 +1253,10 @@
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
                 
-                const defaultName = window.safeHTML(user.email.split('@')[0]);
+                // SAFE EMAIL PARSING (Prevents silent background crash if Google email is hidden)
+                const safeEmail = user.email || 'user@smmrulz.com';
+                const defaultName = window.safeHTML(safeEmail.split('@')[0]);
+                
                 document.getElementById('drawer-email').innerHTML = defaultName;
                 document.getElementById('stat-username').innerHTML = defaultName;
                 
@@ -1271,9 +1286,17 @@
             if(n.includes('youtube') || n.includes('yt')) return '<i class="fa-brands fa-youtube" style="color:#FF0000; font-size:16px;"></i>';
             if(n.includes('telegram') || n.includes('tg')) return '<i class="fa-brands fa-telegram" style="color:#0088cc; font-size:16px;"></i>';
             if(n.includes('facebook') || n.includes('fb')) return '<i class="fa-brands fa-facebook" style="color:#1877F2; font-size:16px;"></i>';
-            if(n.includes('twitter') || n.includes('x')) return '<i class="fa-brands fa-x-twitter" style="font-size:16px;"></i>';
-            if(n.includes('tiktok')) return '<i class="fa-brands fa-tiktok" style="font-size:16px;"></i>';
+            if(n.includes('twitter') || n.includes('x ')) return '<i class="fa-brands fa-x-twitter" style="color:#000000; font-size:16px;"></i>';
+            if(n.includes('tiktok')) return '<i class="fa-brands fa-tiktok" style="color:#000000; font-size:16px;"></i>';
             if(n.includes('spotify')) return '<i class="fa-brands fa-spotify" style="color:#1DB954; font-size:16px;"></i>';
+            if(n.includes('threads')) return '<i class="fa-brands fa-threads" style="color:#000000; font-size:16px;"></i>';
+            if(n.includes('discord')) return '<i class="fa-brands fa-discord" style="color:#5865F2; font-size:16px;"></i>';
+            if(n.includes('twitch')) return '<i class="fa-brands fa-twitch" style="color:#9146FF; font-size:16px;"></i>';
+            if(n.includes('linkedin')) return '<i class="fa-brands fa-linkedin" style="color:#0A66C2; font-size:16px;"></i>';
+            if(n.includes('pinterest')) return '<i class="fa-brands fa-pinterest" style="color:#E60023; font-size:16px;"></i>';
+            if(n.includes('snapchat')) return '<i class="fa-brands fa-snapchat" style="color:#FFFC00; font-size:16px;"></i>';
+            if(n.includes('reddit')) return '<i class="fa-brands fa-reddit" style="color:#FF4500; font-size:16px;"></i>';
+            if(n.includes('traffic') || n.includes('website')) return '<i class="fa-solid fa-globe" style="color:#3b82f6; font-size:16px;"></i>';
             return '📌'; 
         };
 
