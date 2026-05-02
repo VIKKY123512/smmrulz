@@ -1180,10 +1180,14 @@
             const btn = document.getElementById('btn-google');
             try {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
-                await setPersistence(auth, browserLocalPersistence);
-                
+                // FIX: Removed setPersistence delay here to prevent popup blockers on mobile apps like HopWeb
+
                 const result = await signInWithPopup(auth, provider);
                 
+                // FIX: Manually transition the UI instantly, bypassing the frozen state
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
                 const safeEmail = result.user.email || 'user@smmrulz.com';
@@ -1194,12 +1198,11 @@
                 }
                 
                 window.showToast("Google Login Successful!");
-                // Let Firebase onAuthStateChanged handle the UI transition naturally without interrupting it
                 
             } catch (error) { 
                 console.error("Google Auth Error:", error);
                 if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                    window.showToast("Popup blocked. Redirecting securely...", "info");
+                    window.showToast("Redirecting securely...", "info");
                     signInWithRedirect(auth, provider); 
                 } else {
                     window.showToast("Google Login Cancelled.", "error"); 
@@ -1211,6 +1214,10 @@
 
         getRedirectResult(auth).then(async (result) => {
             if (result) {
+                // FIX: Manually transition the UI instantly upon returning from a redirect
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
                 const safeEmail = result.user.email || 'user@smmrulz.com';
@@ -1221,7 +1228,6 @@
                 }
                 
                 window.showToast("Google Login Successful!");
-                // Let Firebase onAuthStateChanged handle the UI transition naturally without interrupting it
             }
         }).catch((error) => console.error("Redirect Result Error:", error));
 
