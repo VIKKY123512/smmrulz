@@ -1200,19 +1200,14 @@
                     
                     window.showToast("Google Login Successful!");
                     
-                    document.getElementById('auth-container').style.display = 'none';
-                    document.getElementById('app-layout').style.display = 'flex';
-                    window.location.href = window.location.pathname + '#new-order';
+                    // Firebase's 'onAuthStateChanged' listener will now automatically and smoothly slide you into the dashboard!
                     
-                    setTimeout(() => { window.location.reload(); }, 500); 
                 })
                 .catch((error) => {
-                    console.error("Google Auth Full Error:", error);
-                    
-                    // 🔍 DIAGNOSTIC ALERT: This will show us the exact hidden problem!
-                    alert("GOOGLE ERROR CODE:\n" + error.code + "\n\nMESSAGE:\n" + error.message);
-                    
-                    window.showToast("Failed: " + error.code, "error");
+                    console.error("Google Auth Error:", error);
+                    if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                        window.showToast("Google Login Failed.", "error");
+                    }
                     btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
                 });
         };
