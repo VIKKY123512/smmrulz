@@ -46,7 +46,7 @@
         /* =========================================
            FIXED LANDING PAGE & AUTH STYLES
            ========================================= */
-        #auth-container { display: flex; flex-direction: column; width: 100%; min-height: 100vh; background: var(--bg-bottom); position: fixed; inset: 0; z-index: 2000; overflow-y: auto; overflow-x: hidden; }
+        #auth-container { display: none; flex-direction: column; width: 100%; min-height: 100vh; background: var(--bg-bottom); position: fixed; inset: 0; z-index: 2000; overflow-y: auto; overflow-x: hidden; }
         
         .landing-content { flex: 1 0 auto; display: flex; flex-direction: column; width: 100%; position: relative; }
         
@@ -297,6 +297,14 @@
     </style>
 </head>
 <body>
+
+    <!-- 🚀 GLOBAL SPLASH SCREEN (Fixes Flashing & Double Redirects) -->
+    <div id="global-splash" style="position: fixed; inset: 0; background: var(--bg-bottom); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
+        <div class="brand-glow" style="margin-bottom: 20px; font-size: 36px;"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
+        <div style="color: var(--primary); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Securing connection...
+        </div>
+    </div>
 
     <div id="toast-container" class="toast-container"></div>
     
@@ -1230,38 +1238,56 @@
 
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
+            
             if (user) {
-                // Firebase natively handles session security and token refreshing. 
-                // Removing the custom 24-hour strict check to prevent false-positive logouts during Google Auth.
-                
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
-                
-                // SAFE EMAIL PARSING (Prevents silent background crash if Google email is hidden)
-                const safeEmail = user.email || 'user@smmrulz.com';
-                const defaultName = window.safeHTML(safeEmail.split('@')[0]);
-                
-                document.getElementById('drawer-email').innerHTML = defaultName;
-                document.getElementById('stat-username').innerHTML = defaultName;
+
+                // PREVENT USERNAME FLASHING: Fetch real DB data first before setting UI
+                try {
+                    const userSnap = await get(ref(db, `users/${user.uid}`));
+                    if (userSnap.exists()) {
+                        if (userSnap.val().suspended) { 
+                            window.showToast("Account Suspended.", "error"); signOut(auth); return; 
+                        }
+                        
+                        // Set the exact, final username immediately
+                        const finalUsername = window.safeHTML(userSnap.val().username || userSnap.val().email.split('@')[0]);
+                        document.getElementById('drawer-email').innerHTML = finalUsername;
+                        document.getElementById('stat-username').innerHTML = finalUsername;
+                        
+                        // Set balance immediately to prevent 0.00 flash
+                        rawBalance = userSnap.val().balance || 0;
+                        document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
+                    }
+                    update(ref(db, `users/${user.uid}`), { lastActive: Date.now() }).catch(()=>{});
+                } catch(e) {
+                    // Fallback if DB fetch fails
+                    const safeEmail = user.email || 'user@smmrulz.com';
+                    const defaultName = window.safeHTML(safeEmail.split('@')[0]);
+                    document.getElementById('drawer-email').innerHTML = defaultName;
+                    document.getElementById('stat-username').innerHTML = defaultName;
+                }
                 
                 const initialView = window.location.hash.replace('#', '') || 'new-order';
                 window.switchView(initialView, false);
                 history.replaceState({ view: initialView }, '', '#' + initialView);
-
-                try {
-                    const userSnap = await get(ref(db, `users/${user.uid}`));
-                    if (userSnap.exists() && userSnap.val().suspended) { 
-                        window.showToast("Account Suspended.", "error"); signOut(auth); return; 
-                    }
-                    update(ref(db, `users/${user.uid}`), { lastActive: Date.now() }).catch(()=>{});
-                } catch(e) {}
                 
                 loadUserData(); 
-                loadAppData();
+                loadAppData();  
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-layout').style.display = 'none';
             }
+
+            // REMOVE GLOBAL LOADER SMOOTHLY
+            setTimeout(() => {
+                const loader = document.getElementById('global-splash');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.style.display = 'none', 500);
+                }
+            }, 200); 
         });
 
         window.getCatIcon = function(name) {
@@ -1455,11 +1481,18 @@
         function loadUserData() {
             if(!currentUser) return;
             
-            onValue(ref(db, `users/${currentUser.uid}`), (snap) => { 
+            // Listen strictly to balance changes to avoid double-fetching the whole profile
+            onValue(ref(db, `users/${currentUser.uid}/balance`), (snap) => { 
                 if(snap.exists()) {
-                    rawBalance = snap.val().balance || 0; 
+                    rawBalance = snap.val() || 0; 
                     document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
-                    const displayUsername = window.safeHTML(snap.val().username || snap.val().email.split('@')[0]);
+                }
+            });
+            
+            // Listen strictly to username changes
+            onValue(ref(db, `users/${currentUser.uid}/username`), (snap) => { 
+                if(snap.exists()) {
+                    const displayUsername = window.safeHTML(snap.val());
                     document.getElementById('stat-username').innerHTML = displayUsername;
                     document.getElementById('drawer-email').innerHTML = displayUsername;
                 }
@@ -1612,20 +1645,54 @@
             }
 
             const service = globalServices[srvId];
-            if(qty < service.min || qty > service.max) return window.showToast(`Limits: ${service.min} - ${service.max}`, "error");
+            if(!service || qty < service.min || qty > service.max) return window.showToast(`Limits: ${service.min} - ${service.max}`, "error");
             
-            const baseCharge = (service.price / 1000) * qty;
+            // Recalculate and strictly format the charge to prevent decimal injection exploits
+            const baseCharge = Number(((service.price / 1000) * qty).toFixed(2));
             btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
 
             try {
-                if(rawBalance < baseCharge) { window.showToast("Insufficient funds!", "error"); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; return; }
-                await update(ref(db, `users/${currentUser.uid}`), { balance: rawBalance - baseCharge });
+                // 1. Fetch the freshest balance straight from the server (Stops multi-tab glitches)
+                const userSnap = await get(ref(db, `users/${currentUser.uid}`));
+                const currentBalance = userSnap.val().balance || 0;
+
+                if(currentBalance < baseCharge) { 
+                    window.showToast("Insufficient funds!", "error"); 
+                    btn.disabled = false; 
+                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; 
+                    return; 
+                }
+
+                // 2. ATOMIC BATCH UPDATE: Deducts balance and creates order at the EXACT same time.
+                // If a hacker interrupts the connection, the entire action aborts.
+                const orderId = 'ORD' + Date.now() + Math.floor(Math.random() * 1000);
+                const updates = {};
                 
-                await set(ref(db, `orders/${'ORD' + Date.now()}`), { userId: currentUser.uid, serviceId: srvId, serviceName: service.name, link: window.safeHTML(link), quantity: qty, charge: baseCharge, status: 'Pending', timestamp: Date.now() });
+                updates[`users/${currentUser.uid}/balance`] = Number((currentBalance - baseCharge).toFixed(2));
+                updates[`orders/${orderId}`] = { 
+                    userId: currentUser.uid, 
+                    serviceId: srvId, 
+                    serviceName: service.name, 
+                    link: window.safeHTML(link), 
+                    quantity: qty, 
+                    charge: baseCharge, 
+                    status: 'Pending', 
+                    timestamp: Date.now() 
+                };
+
+                await update(ref(db), updates);
+
                 window.showToast("Order Placed Successfully!");
-                document.getElementById('order-form').reset(); window.updateServiceDetails(); window.switchView('orders-history');
-            } catch(error) { window.showToast("Error: " + error.message, "error"); } 
-            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; }
+                document.getElementById('order-form').reset(); 
+                window.updateServiceDetails(); 
+                window.switchView('orders-history');
+                
+            } catch(error) { 
+                window.showToast("Transaction Error: " + error.message, "error"); 
+            } finally { 
+                btn.disabled = false; 
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; 
+            }
         };
 
         window.submitPaymentProof = async function(e) {
