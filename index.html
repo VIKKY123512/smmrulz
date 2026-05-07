@@ -1292,11 +1292,12 @@
 
         window.getCatIcon = function(name) {
             const n = name.toLowerCase();
-            if(n.includes('instagram') || n.includes('ig')) return '<i class="fa-brands fa-instagram" style="color:#E1306C; font-size:16px;"></i>';
-            if(n.includes('youtube') || n.includes('yt')) return '<i class="fa-brands fa-youtube" style="color:#FF0000; font-size:16px;"></i>';
-            if(n.includes('telegram') || n.includes('tg')) return '<i class="fa-brands fa-telegram" style="color:#0088cc; font-size:16px;"></i>';
-            if(n.includes('facebook') || n.includes('fb')) return '<i class="fa-brands fa-facebook" style="color:#1877F2; font-size:16px;"></i>';
-            if(n.includes('twitter') || n.includes('x ')) return '<i class="fa-brands fa-x-twitter" style="color:#000000; font-size:16px;"></i>';
+            // Use Regex word boundaries (\b) so "high" doesn't trigger "ig", and "byte" doesn't trigger "yt"
+            if(n.includes('instagram') || /\big\b/.test(n)) return '<i class="fa-brands fa-instagram" style="color:#E1306C; font-size:16px;"></i>';
+            if(n.includes('youtube') || /\byt\b/.test(n)) return '<i class="fa-brands fa-youtube" style="color:#FF0000; font-size:16px;"></i>';
+            if(n.includes('telegram') || /\btg\b/.test(n)) return '<i class="fa-brands fa-telegram" style="color:#0088cc; font-size:16px;"></i>';
+            if(n.includes('facebook') || /\bfb\b/.test(n)) return '<i class="fa-brands fa-facebook" style="color:#1877F2; font-size:16px;"></i>';
+            if(n.includes('twitter') || /\bx\b/.test(n)) return '<i class="fa-brands fa-x-twitter" style="color:#000000; font-size:16px;"></i>';
             if(n.includes('tiktok')) return '<i class="fa-brands fa-tiktok" style="color:#000000; font-size:16px;"></i>';
             if(n.includes('spotify')) return '<i class="fa-brands fa-spotify" style="color:#1DB954; font-size:16px;"></i>';
             if(n.includes('threads')) return '<i class="fa-brands fa-threads" style="color:#000000; font-size:16px;"></i>';
