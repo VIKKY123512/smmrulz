@@ -4,15 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data:; connect-src 'self' https: wss:; frame-src 'self' https:;">
-    <meta name="referrer" content="no-referrer-when-downgrade">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.firebaseio.com https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseio.com https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com;">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <script>if (window.top !== window.self) window.top.location.replace(window.self.location.href);</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
     <title>SMMRulz | Secure, Automated & Reliable SMM Services</title>
     
+    <meta name="description" content="SMMRulz is a trusted and cheapest SMM panel offering fully automated Instagram, YouTube, TikTok & Facebook services with super fast delivery worldwide.">
+    <meta name="keywords" content="SMM panel, cheapest SMM panel, Indian SMM panel, buy Instagram followers, buy YouTube views, SMMRulz">
+    <meta name="robots" content="index, follow">
+    
+    <meta property="og:title" content="SMMRulz | Secure, Automated & Reliable SMM Services">
+    <meta property="og:description" content="Fully automated & cheap SMM services with super fast delivery. Join thousands of happy users today.">
+    <meta property="og:image" content="https://smmrulz.xyz/favicon.png">
+    <meta property="og:url" content="https://smmrulz.xyz">
+    <meta property="og:type" content="website">
+
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
     <link rel="apple-touch-icon" href="/favicon.png">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -46,7 +57,7 @@
         /* =========================================
            FIXED LANDING PAGE & AUTH STYLES
            ========================================= */
-        #auth-container { display: none; flex-direction: column; width: 100%; min-height: 100vh; background: var(--bg-bottom); position: fixed; inset: 0; z-index: 2000; overflow-y: auto; overflow-x: hidden; }
+        #auth-container { display: flex; flex-direction: column; width: 100%; min-height: 100vh; background: var(--bg-bottom); position: fixed; inset: 0; z-index: 2000; overflow-y: auto; overflow-x: hidden; }
         
         .landing-content { flex: 1 0 auto; display: flex; flex-direction: column; width: 100%; position: relative; }
         
@@ -297,14 +308,6 @@
     </style>
 </head>
 <body>
-
-    <!-- 🚀 GLOBAL SPLASH SCREEN (Fixes Flashing & Double Redirects) -->
-    <div id="global-splash" style="position: fixed; inset: 0; background: var(--bg-bottom); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease;">
-        <div class="brand-glow" style="margin-bottom: 20px; font-size: 36px;"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
-        <div style="color: var(--primary); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-            <i class="fa-solid fa-circle-notch fa-spin"></i> Securing connection...
-        </div>
-    </div>
 
     <div id="toast-container" class="toast-container"></div>
     
@@ -1187,41 +1190,60 @@
             }
         };
 
-        window.googleSignIn = function() {
+        window.googleSignIn = async function() {
             const btn = document.getElementById('btn-google');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
-            
-            signInWithPopup(auth, provider)
-                .then(async (result) => {
-                    const user = result.user;
-                    const safeEmail = user.email || 'user@smmrulz.com';
-                    const userRef = ref(db, `users/${user.uid}`);
-                    
-                    try {
-                        const snapshot = await get(userRef);
-                        if (!snapshot.exists()) {
-                            let baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                            if(!baseWords) baseWords = 'user';
-                            const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                            await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
-                        }
-                    } catch (dbErr) {
-                        console.error("DB Save Error:", dbErr);
-                    }
-                    
-                    window.showToast("Google Login Successful!");
-                    
-                    // Firebase's 'onAuthStateChanged' listener will now automatically and smoothly slide you into the dashboard!
-                    
-                })
-                .catch((error) => {
-                    console.error("Google Auth Error:", error);
-                    if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                        window.showToast("Google Login Failed.", "error");
-                    }
-                    btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
-                });
+            try {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
+                await setPersistence(auth, browserLocalPersistence);
+                
+                const result = await signInWithPopup(auth, provider);
+                
+                const userRef = ref(db, `users/${result.user.uid}`);
+                const snapshot = await get(userRef);
+                const safeEmail = result.user.email || 'user@smmrulz.com';
+                if (!snapshot.exists()) {
+                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
+                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                }
+                
+                window.showToast("Google Login Successful!");
+                
+                // FORCE UI TRANSITION INSTANTLY
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                setTimeout(() => window.location.reload(), 1500); // Failsafe hydration reload
+                
+            } catch (error) { 
+                console.error("Google Auth Error:", error);
+                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                    window.showToast("Popup blocked. Redirecting securely...", "info");
+                    signInWithRedirect(auth, provider); 
+                } else {
+                    window.showToast("Google Login Cancelled.", "error"); 
+                }
+            } finally {
+                btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
+            }
         };
+
+        getRedirectResult(auth).then(async (result) => {
+            if (result) {
+                const userRef = ref(db, `users/${result.user.uid}`);
+                const snapshot = await get(userRef);
+                const safeEmail = result.user.email || 'user@smmrulz.com';
+                if (!snapshot.exists()) {
+                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
+                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                }
+                
+                window.showToast("Google Login Successful!");
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                setTimeout(() => window.location.reload(), 1500);
+            }
+        }).catch((error) => console.error("Redirect Result Error:", error));
 
         window.logout = function() {
             signOut(auth); window.showToast("Logged Out", "info");
@@ -1238,66 +1260,47 @@
 
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
-            
             if (user) {
+                // Firebase natively handles session security and token refreshing. 
+                // Removing the custom 24-hour strict check to prevent false-positive logouts during Google Auth.
+                
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
-
-                // PREVENT USERNAME FLASHING: Fetch real DB data first before setting UI
-                try {
-                    const userSnap = await get(ref(db, `users/${user.uid}`));
-                    if (userSnap.exists()) {
-                        if (userSnap.val().suspended) { 
-                            window.showToast("Account Suspended.", "error"); signOut(auth); return; 
-                        }
-                        
-                        // Set the exact, final username immediately
-                        const finalUsername = window.safeHTML(userSnap.val().username || userSnap.val().email.split('@')[0]);
-                        document.getElementById('drawer-email').innerHTML = finalUsername;
-                        document.getElementById('stat-username').innerHTML = finalUsername;
-                        
-                        // Set balance immediately to prevent 0.00 flash
-                        rawBalance = userSnap.val().balance || 0;
-                        document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
-                    }
-                    update(ref(db, `users/${user.uid}`), { lastActive: Date.now() }).catch(()=>{});
-                } catch(e) {
-                    // Fallback if DB fetch fails
-                    const safeEmail = user.email || 'user@smmrulz.com';
-                    const defaultName = window.safeHTML(safeEmail.split('@')[0]);
-                    document.getElementById('drawer-email').innerHTML = defaultName;
-                    document.getElementById('stat-username').innerHTML = defaultName;
-                }
+                
+                // SAFE EMAIL PARSING (Prevents silent background crash if Google email is hidden)
+                const safeEmail = user.email || 'user@smmrulz.com';
+                const defaultName = window.safeHTML(safeEmail.split('@')[0]);
+                
+                document.getElementById('drawer-email').innerHTML = defaultName;
+                document.getElementById('stat-username').innerHTML = defaultName;
                 
                 const initialView = window.location.hash.replace('#', '') || 'new-order';
                 window.switchView(initialView, false);
                 history.replaceState({ view: initialView }, '', '#' + initialView);
+
+                try {
+                    const userSnap = await get(ref(db, `users/${user.uid}`));
+                    if (userSnap.exists() && userSnap.val().suspended) { 
+                        window.showToast("Account Suspended.", "error"); signOut(auth); return; 
+                    }
+                    update(ref(db, `users/${user.uid}`), { lastActive: Date.now() }).catch(()=>{});
+                } catch(e) {}
                 
                 loadUserData(); 
-                loadAppData();  
+                loadAppData();
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-layout').style.display = 'none';
             }
-
-            // REMOVE GLOBAL LOADER SMOOTHLY
-            setTimeout(() => {
-                const loader = document.getElementById('global-splash');
-                if (loader) {
-                    loader.style.opacity = '0';
-                    setTimeout(() => loader.style.display = 'none', 500);
-                }
-            }, 200); 
         });
 
         window.getCatIcon = function(name) {
             const n = name.toLowerCase();
-            // Use Regex word boundaries (\b) so "high" doesn't trigger "ig", and "byte" doesn't trigger "yt"
-            if(n.includes('instagram') || /\big\b/.test(n)) return '<i class="fa-brands fa-instagram" style="color:#E1306C; font-size:16px;"></i>';
-            if(n.includes('youtube') || /\byt\b/.test(n)) return '<i class="fa-brands fa-youtube" style="color:#FF0000; font-size:16px;"></i>';
-            if(n.includes('telegram') || /\btg\b/.test(n)) return '<i class="fa-brands fa-telegram" style="color:#0088cc; font-size:16px;"></i>';
-            if(n.includes('facebook') || /\bfb\b/.test(n)) return '<i class="fa-brands fa-facebook" style="color:#1877F2; font-size:16px;"></i>';
-            if(n.includes('twitter') || /\bx\b/.test(n)) return '<i class="fa-brands fa-x-twitter" style="color:#000000; font-size:16px;"></i>';
+            if(n.includes('instagram') || n.includes('ig')) return '<i class="fa-brands fa-instagram" style="color:#E1306C; font-size:16px;"></i>';
+            if(n.includes('youtube') || n.includes('yt')) return '<i class="fa-brands fa-youtube" style="color:#FF0000; font-size:16px;"></i>';
+            if(n.includes('telegram') || n.includes('tg')) return '<i class="fa-brands fa-telegram" style="color:#0088cc; font-size:16px;"></i>';
+            if(n.includes('facebook') || n.includes('fb')) return '<i class="fa-brands fa-facebook" style="color:#1877F2; font-size:16px;"></i>';
+            if(n.includes('twitter') || n.includes('x ')) return '<i class="fa-brands fa-x-twitter" style="color:#000000; font-size:16px;"></i>';
             if(n.includes('tiktok')) return '<i class="fa-brands fa-tiktok" style="color:#000000; font-size:16px;"></i>';
             if(n.includes('spotify')) return '<i class="fa-brands fa-spotify" style="color:#1DB954; font-size:16px;"></i>';
             if(n.includes('threads')) return '<i class="fa-brands fa-threads" style="color:#000000; font-size:16px;"></i>';
@@ -1482,18 +1485,11 @@
         function loadUserData() {
             if(!currentUser) return;
             
-            // Listen strictly to balance changes to avoid double-fetching the whole profile
-            onValue(ref(db, `users/${currentUser.uid}/balance`), (snap) => { 
+            onValue(ref(db, `users/${currentUser.uid}`), (snap) => { 
                 if(snap.exists()) {
-                    rawBalance = snap.val() || 0; 
+                    rawBalance = snap.val().balance || 0; 
                     document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
-                }
-            });
-            
-            // Listen strictly to username changes
-            onValue(ref(db, `users/${currentUser.uid}/username`), (snap) => { 
-                if(snap.exists()) {
-                    const displayUsername = window.safeHTML(snap.val());
+                    const displayUsername = window.safeHTML(snap.val().username || snap.val().email.split('@')[0]);
                     document.getElementById('stat-username').innerHTML = displayUsername;
                     document.getElementById('drawer-email').innerHTML = displayUsername;
                 }
@@ -1646,54 +1642,20 @@
             }
 
             const service = globalServices[srvId];
-            if(!service || qty < service.min || qty > service.max) return window.showToast(`Limits: ${service.min} - ${service.max}`, "error");
+            if(qty < service.min || qty > service.max) return window.showToast(`Limits: ${service.min} - ${service.max}`, "error");
             
-            // Recalculate and strictly format the charge to prevent decimal injection exploits
-            const baseCharge = Number(((service.price / 1000) * qty).toFixed(2));
+            const baseCharge = (service.price / 1000) * qty;
             btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
 
             try {
-                // 1. Fetch the freshest balance straight from the server (Stops multi-tab glitches)
-                const userSnap = await get(ref(db, `users/${currentUser.uid}`));
-                const currentBalance = userSnap.val().balance || 0;
-
-                if(currentBalance < baseCharge) { 
-                    window.showToast("Insufficient funds!", "error"); 
-                    btn.disabled = false; 
-                    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; 
-                    return; 
-                }
-
-                // 2. ATOMIC BATCH UPDATE: Deducts balance and creates order at the EXACT same time.
-                // If a hacker interrupts the connection, the entire action aborts.
-                const orderId = 'ORD' + Date.now() + Math.floor(Math.random() * 1000);
-                const updates = {};
+                if(rawBalance < baseCharge) { window.showToast("Insufficient funds!", "error"); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; return; }
+                await update(ref(db, `users/${currentUser.uid}`), { balance: rawBalance - baseCharge });
                 
-                updates[`users/${currentUser.uid}/balance`] = Number((currentBalance - baseCharge).toFixed(2));
-                updates[`orders/${orderId}`] = { 
-                    userId: currentUser.uid, 
-                    serviceId: srvId, 
-                    serviceName: service.name, 
-                    link: window.safeHTML(link), 
-                    quantity: qty, 
-                    charge: baseCharge, 
-                    status: 'Pending', 
-                    timestamp: Date.now() 
-                };
-
-                await update(ref(db), updates);
-
+                await set(ref(db, `orders/${'ORD' + Date.now()}`), { userId: currentUser.uid, serviceId: srvId, serviceName: service.name, link: window.safeHTML(link), quantity: qty, charge: baseCharge, status: 'Pending', timestamp: Date.now() });
                 window.showToast("Order Placed Successfully!");
-                document.getElementById('order-form').reset(); 
-                window.updateServiceDetails(); 
-                window.switchView('orders-history');
-                
-            } catch(error) { 
-                window.showToast("Transaction Error: " + error.message, "error"); 
-            } finally { 
-                btn.disabled = false; 
-                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; 
-            }
+                document.getElementById('order-form').reset(); window.updateServiceDetails(); window.switchView('orders-history');
+            } catch(error) { window.showToast("Error: " + error.message, "error"); } 
+            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; }
         };
 
         window.submitPaymentProof = async function(e) {
