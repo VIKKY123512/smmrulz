@@ -319,24 +319,29 @@
         .flex-row { display: flex; gap: 15px; flex-wrap: wrap; width: 100%; }
         .flex-row > div { flex: 1; min-width: 140px; }
 
-        /* 🌟 COLORFUL ANIMATED PLATFORM ICONS */
-        .platform-icon { font-size: 18px; display: inline-block; vertical-align: middle; animation: floatIcon 3s ease-in-out infinite; margin-right: 4px; }
-        @keyframes floatIcon { 0% { transform: translateY(0px) scale(1); } 50% { transform: translateY(-2px) scale(1.15); } 100% { transform: translateY(0px) scale(1); } }
+        /* 🌟 COLORFUL ANIMATED PLATFORM ICONS (ALWAYS GLOWING) */
+        .platform-icon { font-size: 18px; display: inline-block; vertical-align: middle; animation: floatAndGlow 2.5s ease-in-out infinite; margin-right: 4px; }
         
-        .ig-icon { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 3px 5px rgba(214, 36, 159, 0.4)); }
-        .yt-icon { color: #FF0000; filter: drop-shadow(0 3px 5px rgba(255, 0, 0, 0.4)); }
-        .fb-icon { color: #1877F2; filter: drop-shadow(0 3px 5px rgba(24, 119, 242, 0.4)); }
-        .tg-icon { color: #0088cc; filter: drop-shadow(0 3px 5px rgba(0, 136, 204, 0.4)); }
-        .x-icon { color: #0f1419; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.2)); }
-        .tt-icon { color: #111111; text-shadow: 1.5px 1.5px 0px #ff0050, -1.5px -1.5px 0px #00f2fe; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.2)); }
-        .sp-icon { color: #1DB954; filter: drop-shadow(0 3px 5px rgba(29, 185, 84, 0.4)); }
-        .dc-icon { color: #5865F2; filter: drop-shadow(0 3px 5px rgba(88, 101, 242, 0.4)); }
-        .tw-icon { color: #9146FF; filter: drop-shadow(0 3px 5px rgba(145, 70, 255, 0.4)); }
-        .li-icon { color: #0A66C2; filter: drop-shadow(0 3px 5px rgba(10, 102, 194, 0.4)); }
-        .pi-icon { color: #E60023; filter: drop-shadow(0 3px 5px rgba(230, 0, 35, 0.4)); }
-        .sc-icon { color: #FFFC00; filter: drop-shadow(0 3px 5px rgba(255, 252, 0, 0.6)); text-shadow: 0 0 1px rgba(0,0,0,0.2); }
-        .rd-icon { color: #FF4500; filter: drop-shadow(0 3px 5px rgba(255, 69, 0, 0.4)); }
-        .web-icon { color: #3b82f6; filter: drop-shadow(0 3px 5px rgba(59, 130, 246, 0.4)); }
+        @keyframes floatAndGlow { 
+            0% { transform: translateY(0px) scale(1); filter: brightness(1) drop-shadow(0 0 2px currentColor); } 
+            50% { transform: translateY(-3px) scale(1.15); filter: brightness(1.3) drop-shadow(0 0 8px currentColor); } 
+            100% { transform: translateY(0px) scale(1); filter: brightness(1) drop-shadow(0 0 2px currentColor); } 
+        }
+        
+        .ig-icon { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 4px rgba(214, 36, 159, 0.8)); }
+        .yt-icon { color: #FF0000; filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.8)); }
+        .fb-icon { color: #1877F2; filter: drop-shadow(0 0 4px rgba(24, 119, 242, 0.8)); }
+        .tg-icon { color: #0088cc; filter: drop-shadow(0 0 4px rgba(0, 136, 204, 0.8)); }
+        .x-icon { color: #0f1419; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5)); }
+        .tt-icon { color: #111111; text-shadow: 1.5px 1.5px 0px #ff0050, -1.5px -1.5px 0px #00f2fe; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5)); }
+        .sp-icon { color: #1DB954; filter: drop-shadow(0 0 4px rgba(29, 185, 84, 0.8)); }
+        .dc-icon { color: #5865F2; filter: drop-shadow(0 0 4px rgba(88, 101, 242, 0.8)); }
+        .tw-icon { color: #9146FF; filter: drop-shadow(0 0 4px rgba(145, 70, 255, 0.8)); }
+        .li-icon { color: #0A66C2; filter: drop-shadow(0 0 4px rgba(10, 102, 194, 0.8)); }
+        .pi-icon { color: #E60023; filter: drop-shadow(0 0 4px rgba(230, 0, 35, 0.8)); }
+        .sc-icon { color: #FFFC00; filter: drop-shadow(0 0 4px rgba(255, 252, 0, 0.9)); text-shadow: 0 0 1px rgba(0,0,0,0.2); }
+        .rd-icon { color: #FF4500; filter: drop-shadow(0 0 4px rgba(255, 69, 0, 0.8)); }
+        .web-icon { color: #3b82f6; filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.8)); }
 
         @media (min-width: 769px) { .menu-btn { display: none; } aside { position: relative; left: 0; transform: none; width: 260px; border-right: 1px solid var(--border-color); box-shadow: none; z-index: 1; } #drawer-overlay { display: none !important; } }
     </style>
@@ -1353,13 +1358,20 @@
 
         window.getCatIcon = function(name) {
             const n = name.toLowerCase();
-            // STRICT REGEX MATCHING (\b ensures it only matches whole words, preventing "High" from triggering "ig")
-            if(/instagram|\big\b|\breels\b/i.test(n)) return '<i class="fa-brands fa-instagram platform-icon ig-icon"></i>';
-            if(/youtube|\byt\b|\bshorts\b/i.test(n)) return '<i class="fa-brands fa-youtube platform-icon yt-icon"></i>';
+            
+            // 1. PRIMARY PRIORITY: If the platform is explicitly named, lock it in immediately.
             if(/facebook|\bfb\b/i.test(n)) return '<i class="fa-brands fa-facebook platform-icon fb-icon"></i>';
+            if(/youtube|\byt\b/i.test(n)) return '<i class="fa-brands fa-youtube platform-icon yt-icon"></i>';
+            if(/instagram|\big\b/i.test(n)) return '<i class="fa-brands fa-instagram platform-icon ig-icon"></i>';
             if(/telegram|\btg\b/i.test(n)) return '<i class="fa-brands fa-telegram platform-icon tg-icon"></i>';
             if(/twitter|\bx\b/i.test(n)) return '<i class="fa-brands fa-x-twitter platform-icon x-icon"></i>';
             if(/tiktok|\btt\b/i.test(n)) return '<i class="fa-brands fa-tiktok platform-icon tt-icon"></i>';
+            
+            // 2. SECONDARY PRIORITY: Only triggers if the service has no explicit platform name above.
+            if(/\breels\b/i.test(n)) return '<i class="fa-brands fa-instagram platform-icon ig-icon"></i>'; 
+            if(/\bshorts\b/i.test(n)) return '<i class="fa-brands fa-youtube platform-icon yt-icon"></i>';
+            
+            // 3. OTHER PLATFORMS
             if(/spotify/i.test(n)) return '<i class="fa-brands fa-spotify platform-icon sp-icon"></i>';
             if(/threads/i.test(n)) return '<i class="fa-brands fa-threads platform-icon x-icon"></i>';
             if(/discord/i.test(n)) return '<i class="fa-brands fa-discord platform-icon dc-icon"></i>';
