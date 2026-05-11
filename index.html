@@ -319,29 +319,31 @@
         .flex-row { display: flex; gap: 15px; flex-wrap: wrap; width: 100%; }
         .flex-row > div { flex: 1; min-width: 140px; }
 
-        /* 🌟 COLORFUL ANIMATED PLATFORM ICONS (ALWAYS GLOWING) */
-        .platform-icon { font-size: 18px; display: inline-block; vertical-align: middle; animation: floatAndGlow 2.5s ease-in-out infinite; margin-right: 4px; }
+        /* ✨ CLEAN SHINING PLATFORM ICONS (No Blurry Glow) */
+        .platform-icon { font-size: 18px; display: inline-block; vertical-align: middle; margin-right: 4px; animation: floatAndShine 3s infinite linear; background-size: 200% auto !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
         
-        @keyframes floatAndGlow { 
-            0% { transform: translateY(0px) scale(1); filter: brightness(1) drop-shadow(0 0 2px currentColor); } 
-            50% { transform: translateY(-3px) scale(1.15); filter: brightness(1.3) drop-shadow(0 0 8px currentColor); } 
-            100% { transform: translateY(0px) scale(1); filter: brightness(1) drop-shadow(0 0 2px currentColor); } 
+        @keyframes floatAndShine { 
+            0% { transform: translateY(0px) scale(1); background-position: 200% center; } 
+            25% { transform: translateY(-3px) scale(1.15); } 
+            50% { transform: translateY(0px) scale(1); background-position: -200% center; } 
+            100% { transform: translateY(0px) scale(1); background-position: -200% center; } 
         }
         
-        .ig-icon { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 4px rgba(214, 36, 159, 0.8)); }
-        .yt-icon { color: #FF0000; filter: drop-shadow(0 0 4px rgba(255, 0, 0, 0.8)); }
-        .fb-icon { color: #1877F2; filter: drop-shadow(0 0 4px rgba(24, 119, 242, 0.8)); }
-        .tg-icon { color: #0088cc; filter: drop-shadow(0 0 4px rgba(0, 136, 204, 0.8)); }
-        .x-icon { color: #0f1419; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5)); }
-        .tt-icon { color: #111111; text-shadow: 1.5px 1.5px 0px #ff0050, -1.5px -1.5px 0px #00f2fe; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5)); }
-        .sp-icon { color: #1DB954; filter: drop-shadow(0 0 4px rgba(29, 185, 84, 0.8)); }
-        .dc-icon { color: #5865F2; filter: drop-shadow(0 0 4px rgba(88, 101, 242, 0.8)); }
-        .tw-icon { color: #9146FF; filter: drop-shadow(0 0 4px rgba(145, 70, 255, 0.8)); }
-        .li-icon { color: #0A66C2; filter: drop-shadow(0 0 4px rgba(10, 102, 194, 0.8)); }
-        .pi-icon { color: #E60023; filter: drop-shadow(0 0 4px rgba(230, 0, 35, 0.8)); }
-        .sc-icon { color: #FFFC00; filter: drop-shadow(0 0 4px rgba(255, 252, 0, 0.9)); text-shadow: 0 0 1px rgba(0,0,0,0.2); }
-        .rd-icon { color: #FF4500; filter: drop-shadow(0 0 4px rgba(255, 69, 0, 0.8)); }
-        .web-icon { color: #3b82f6; filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.8)); }
+        /* Each icon has its base color with a sweeping bright white shine in the middle */
+        .ig-icon { background: linear-gradient(120deg, #d6249f 20%, #fd5949 35%, #ffffff 50%, #fdf497 65%, #285AEB 80%); }
+        .yt-icon { background: linear-gradient(120deg, #FF0000 40%, #ffffff 50%, #FF0000 60%); }
+        .fb-icon { background: linear-gradient(120deg, #1877F2 40%, #ffffff 50%, #1877F2 60%); }
+        .tg-icon { background: linear-gradient(120deg, #0088cc 40%, #ffffff 50%, #0088cc 60%); }
+        .x-icon { background: linear-gradient(120deg, #0f1419 40%, #888888 50%, #0f1419 60%); }
+        .tt-icon { background: linear-gradient(120deg, #111111 35%, #ff0050 45%, #ffffff 50%, #00f2fe 55%, #111111 65%); }
+        .sp-icon { background: linear-gradient(120deg, #1DB954 40%, #ffffff 50%, #1DB954 60%); }
+        .dc-icon { background: linear-gradient(120deg, #5865F2 40%, #ffffff 50%, #5865F2 60%); }
+        .tw-icon { background: linear-gradient(120deg, #9146FF 40%, #ffffff 50%, #9146FF 60%); }
+        .li-icon { background: linear-gradient(120deg, #0A66C2 40%, #ffffff 50%, #0A66C2 60%); }
+        .pi-icon { background: linear-gradient(120deg, #E60023 40%, #ffffff 50%, #E60023 60%); }
+        .sc-icon { background: linear-gradient(120deg, #d4d100 40%, #ffffff 50%, #d4d100 60%); }
+        .rd-icon { background: linear-gradient(120deg, #FF4500 40%, #ffffff 50%, #FF4500 60%); }
+        .web-icon { background: linear-gradient(120deg, #3b82f6 40%, #ffffff 50%, #3b82f6 60%); }
 
         @media (min-width: 769px) { .menu-btn { display: none; } aside { position: relative; left: 0; transform: none; width: 260px; border-right: 1px solid var(--border-color); box-shadow: none; z-index: 1; } #drawer-overlay { display: none !important; } }
     </style>
