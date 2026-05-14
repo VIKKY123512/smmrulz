@@ -1243,7 +1243,15 @@
             const btn = document.getElementById('btn-google');
             try {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
+                await setPersistence(auth, browserLocalPersistence);
                 
+                // 🚀 MOBILE FIX: Detect mobile phones and use reliable Redirect instead of Popup
+                if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                    await signInWithRedirect(auth, provider);
+                    return; // Stop code here, browser will safely navigate to Google
+                }
+                
+                // Desktop Computers will still use the smooth Popup
                 const result = await signInWithPopup(auth, provider);
                 
                 const userRef = ref(db, `users/${result.user.uid}`);
@@ -1268,7 +1276,7 @@
             } catch (error) { 
                 console.error("Google Auth Error:", error);
                 if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                    window.showToast("Popup blocked. Redirecting securely...", "info");
+                    window.showToast("Switching to secure mobile redirect...", "info");
                     signInWithRedirect(auth, provider); 
                 } else {
                     window.showToast("Google Login Cancelled.", "error"); 
