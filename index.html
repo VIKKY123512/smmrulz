@@ -1163,7 +1163,8 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
-            authDomain: "smm-panel-c1821.firebaseapp.com",
+            // 🚀 BYPASS COOKIE BLOCKERS: Dynamically uses your exact domain to securely handle tokens!
+            authDomain: window.location.hostname, 
             databaseURL: "https://smm-panel-c1821-default-rtdb.firebaseio.com",
             projectId: "smm-panel-c1821",
             storageBucket: "smm-panel-c1821.firebasestorage.app",
@@ -1259,24 +1260,24 @@
                 
                 window.showToast("Google Login Successful!");
                 
-                // BEST PRACTICE FIX: Do NOT reload the page here.
-                // The onAuthStateChanged listener will automatically pull the dashboard up instantly!
+                // FORCE UI TRANSITION INSTANTLY (No reloading to prevent token loss)
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                const initialView = window.location.hash.replace('#', '') || 'new-order';
+                window.switchView(initialView, false);
+                history.replaceState({ view: initialView }, '', '#' + initialView);
+                loadUserData();
+                loadAppData();
                 
             } catch (error) { 
                 console.error("Google Auth Error:", error);
-                
-                // 🚀 NEW: Catch the exact Domain Error so you aren't left guessing!
                 if (error.code === 'auth/unauthorized-domain') {
-                    window.showToast("DOMAIN BLOCKED! Add this website to Firebase Authorized Domains.", "error");
-                    return;
-                }
-                
-                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                    // Only fallback to redirect if the browser literally blocked the popup window
-                    window.showToast("Popup error. Attempting secure redirect...", "info");
+                    window.showToast("DOMAIN ERROR: Please add to Firebase.", "error");
+                } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                    window.showToast("Popup blocked. Redirecting securely...", "info");
                     signInWithRedirect(auth, provider); 
                 } else {
-                    window.showToast("Google Login Cancelled by User.", "error"); 
+                    window.showToast("Google Login Cancelled.", "error"); 
                 }
             } finally {
                 btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
@@ -1295,9 +1296,19 @@
                 }
                 
                 window.showToast("Google Login Successful!");
-                // BEST PRACTICE FIX: Let onAuthStateChanged handle the UI automatically. No forced reloads.
+                // FORCE UI TRANSITION INSTANTLY (No reloading to prevent token loss)
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                const initialView = window.location.hash.replace('#', '') || 'new-order';
+                window.switchView(initialView, false);
+                history.replaceState({ view: initialView }, '', '#' + initialView);
+                loadUserData();
+                loadAppData();
             }
-        }).catch((error) => console.error("Redirect Result Error:", error));
+        }).catch((error) => {
+            console.error("Redirect Result Error:", error);
+            if(error.code) window.showToast("Login Error: " + error.code, "error");
+        });
 
         window.logout = function() {
             signOut(auth); window.showToast("Logged Out", "info");
