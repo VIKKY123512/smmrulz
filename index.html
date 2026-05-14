@@ -1264,11 +1264,19 @@
                 
             } catch (error) { 
                 console.error("Google Auth Error:", error);
+                
+                // 🚀 NEW: Catch the exact Domain Error so you aren't left guessing!
+                if (error.code === 'auth/unauthorized-domain') {
+                    window.showToast("DOMAIN BLOCKED! Add this website to Firebase Authorized Domains.", "error");
+                    return;
+                }
+                
                 if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                    window.showToast("Popup blocked. Redirecting securely...", "info");
+                    // Only fallback to redirect if the browser literally blocked the popup window
+                    window.showToast("Popup error. Attempting secure redirect...", "info");
                     signInWithRedirect(auth, provider); 
                 } else {
-                    window.showToast("Google Login Cancelled.", "error"); 
+                    window.showToast("Google Login Cancelled by User.", "error"); 
                 }
             } finally {
                 btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
