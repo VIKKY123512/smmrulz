@@ -1163,8 +1163,7 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
-            // 🚀 BYPASS COOKIE BLOCKERS: Dynamically uses your exact domain to securely handle tokens!
-            authDomain: window.location.hostname, 
+            authDomain: "smm-panel-c1821.firebaseapp.com", 
             databaseURL: "https://smm-panel-c1821-default-rtdb.firebaseio.com",
             projectId: "smm-panel-c1821",
             storageBucket: "smm-panel-c1821.firebasestorage.app",
@@ -1244,11 +1243,9 @@
             const btn = document.getElementById('btn-google');
             try {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
-                await setPersistence(auth, browserLocalPersistence);
                 
                 const result = await signInWithPopup(auth, provider);
                 
-                // Firebase Auth is successful! Ensure they exist in the Database
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
                 const safeEmail = result.user.email || 'user@smmrulz.com';
@@ -1260,7 +1257,6 @@
                 
                 window.showToast("Google Login Successful!");
                 
-                // FORCE UI TRANSITION INSTANTLY (No reloading to prevent token loss)
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
                 const initialView = window.location.hash.replace('#', '') || 'new-order';
@@ -1271,9 +1267,7 @@
                 
             } catch (error) { 
                 console.error("Google Auth Error:", error);
-                if (error.code === 'auth/unauthorized-domain') {
-                    window.showToast("DOMAIN ERROR: Please add to Firebase.", "error");
-                } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
                     window.showToast("Popup blocked. Redirecting securely...", "info");
                     signInWithRedirect(auth, provider); 
                 } else {
