@@ -1780,7 +1780,14 @@
     </script>
     
     <script>
-        document.addEventListener('contextmenu', event => event.preventDefault());
+        // Allow context menu (Right-Click/Long-Press) ONLY on input fields so users can Paste links!
+        document.addEventListener('contextmenu', event => {
+            if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+                event.preventDefault();
+            }
+        });
+        
+        // Keep the keyboard shortcuts blocked for security
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || 
                (e.ctrlKey && e.shiftKey && e.key === 'I') || 
