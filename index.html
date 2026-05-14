@@ -1721,20 +1721,42 @@
             }
 
             const service = globalServices[srvId];
-            if(qty < service.min || qty > service.max) return window.showToast(`Limits: ${service.min} - ${service.max}`, "error");
+            if(!service || qty < service.min || qty > service.max) return window.showToast(`Limits: ${service.min} - ${service.max}`, "error");
             
-            const baseCharge = (service.price / 1000) * qty;
-            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true; 
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing Securely...';
 
             try {
-                if(rawBalance < baseCharge) { window.showToast("Insufficient funds!", "error"); btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; return; }
-                await update(ref(db, `users/${currentUser.uid}`), { balance: rawBalance - baseCharge });
+                // Send a highly secure request to your hidden Vercel Backend
+                const response = await fetch('https://smmrulzad77.vercel.app/api/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        uid: currentUser.uid,
+                        srvId: srvId,
+                        link: link,
+                        qty: qty
+                    })
+                });
                 
-                await set(ref(db, `orders/${'ORD' + Date.now()}`), { userId: currentUser.uid, serviceId: srvId, serviceName: service.name, link: window.safeHTML(link), quantity: qty, charge: baseCharge, status: 'Pending', timestamp: Date.now() });
-                window.showToast("Order Placed Successfully!");
-                document.getElementById('order-form').reset(); window.updateServiceDetails(); window.switchView('orders-history');
-            } catch(error) { window.showToast("Error: " + error.message, "error"); } 
-            finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; }
+                const data = await response.json();
+                
+                if (response.ok) {
+                    window.showToast("Order Placed Successfully!");
+                    document.getElementById('order-form').reset(); 
+                    window.updateServiceDetails(); 
+                    window.switchView('orders-history');
+                } else {
+                    // This catches hackers trying to buy without funds!
+                    window.showToast(data.error || "Transaction Failed", "error");
+                }
+            } catch(error) { 
+                window.showToast("Connection Error. Please try again.", "error"); 
+            } 
+            finally { 
+                btn.disabled = false; 
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; 
+            }
         };
 
         window.submitPaymentProof = async function(e) {
