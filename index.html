@@ -1241,11 +1241,15 @@
 
         window.googleSignIn = async function() {
             const btn = document.getElementById('btn-google');
+            
+            // 🛑 ANTI-SPAM FIX: Prevent multiple clicks while loading
+            if (btn.disabled) return; 
+            
             try {
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
                 
-                // 🚀 ULTIMATE FIX: Open the popup IMMEDIATELY with absolutely zero delay.
-                // This stops mobile Chrome from blocking it, bypassing the broken redirect entirely!
                 const result = await signInWithPopup(auth, provider);
                 
                 const userRef = ref(db, `users/${result.user.uid}`);
@@ -1271,11 +1275,15 @@
                 console.error("Google Auth Error:", error);
                 if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
                     window.showToast("Google Login Cancelled.", "error"); 
+                } else if (error.code === 'auth/internal-error') {
+                    // Cleaner error message pointing to the exact backend issue
+                    window.showToast("SERVER BLOCK: Check Google Cloud API Key Restrictions.", "error"); 
                 } else {
-                    // Show the exact error if something else blocks it
-                    window.showToast("Error: " + error.message, "error"); 
+                    window.showToast("Connection Error. Please try again.", "error"); 
                 }
             } finally {
+                btn.disabled = false;
+                btn.style.opacity = '1';
                 btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
             }
         };
