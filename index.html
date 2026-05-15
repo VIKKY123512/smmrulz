@@ -1250,6 +1250,9 @@
                 btn.style.opacity = '0.7';
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
                 
+                // Force account selection to clear any dead browser sessions
+                provider.setCustomParameters({ prompt: 'select_account' });
+                
                 const result = await signInWithPopup(auth, provider);
                 
                 const userRef = ref(db, `users/${result.user.uid}`);
@@ -1275,11 +1278,10 @@
                 console.error("Google Auth Error:", error);
                 if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
                     window.showToast("Google Login Cancelled.", "error"); 
-                } else if (error.code === 'auth/internal-error') {
-                    // Cleaner error message pointing to the exact backend issue
-                    window.showToast("SERVER BLOCK: Check Google Cloud API Key Restrictions.", "error"); 
                 } else {
-                    window.showToast("Connection Error. Please try again.", "error"); 
+                    // 🚨 DIAGNOSTIC FIX: Show the raw Google error message so we stop guessing!
+                    alert("GOOGLE CLOUD ERROR DETAILS:\n\n" + error.message + "\n\nCode: " + error.code);
+                    window.showToast("Login Blocked. Check Alert Box.", "error"); 
                 }
             } finally {
                 btn.disabled = false;
