@@ -1241,24 +1241,17 @@
 
         window.googleSignIn = async function() {
             const btn = document.getElementById('btn-google');
-            
             if (btn.disabled) return; 
             
             try {
+                // 🚀 THE FIX: Call popup INSTANTLY. No button animations or awaits first!
+                // This forces mobile browsers to accept the popup as a direct user action.
+                const result = await signInWithPopup(auth, provider);
+                
+                // Now that the popup is open securely, we can animate the button
                 btn.disabled = true;
                 btn.style.opacity = '0.7';
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
-                
-                await setPersistence(auth, browserLocalPersistence);
-                provider.setCustomParameters({ prompt: 'select_account' });
-                
-                // 🚀 MOBILE FIX: Bypass Chrome's strict tracking blockers by using Redirect instead of Popup
-                if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                    await signInWithRedirect(auth, provider);
-                    return; // Stop code here, browser navigates to Google securely
-                }
-                
-                const result = await signInWithPopup(auth, provider);
                 
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
@@ -1284,8 +1277,7 @@
                 if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
                     window.showToast("Google Login Cancelled.", "error"); 
                 } else {
-                    alert("GOOGLE CLOUD ERROR DETAILS:\n\n" + error.message + "\n\nCode: " + error.code);
-                    window.showToast("Login Blocked. Check Alert Box.", "error"); 
+                    window.showToast("Login Error: " + error.code, "error"); 
                 }
             } finally {
                 btn.disabled = false;
@@ -1294,31 +1286,7 @@
             }
         };
 
-        getRedirectResult(auth).then(async (result) => {
-            if (result) {
-                const userRef = ref(db, `users/${result.user.uid}`);
-                const snapshot = await get(userRef);
-                const safeEmail = result.user.email || 'user@smmrulz.com';
-                if (!snapshot.exists()) {
-                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
-                }
-                
-                window.showToast("Google Login Successful!");
-                // FORCE UI TRANSITION INSTANTLY (No reloading to prevent token loss)
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                const initialView = window.location.hash.replace('#', '') || 'new-order';
-                window.switchView(initialView, false);
-                history.replaceState({ view: initialView }, '', '#' + initialView);
-                loadUserData();
-                loadAppData();
-            }
-        }).catch((error) => {
-            console.error("Redirect Result Error:", error);
-            if(error.code) window.showToast("Login Error: " + error.code, "error");
-        });
+        // 🚀 Ghost Error Generator Removed. All logins handled instantly via Popup.
 
         window.logout = function() {
             signOut(auth); window.showToast("Logged Out", "info");
