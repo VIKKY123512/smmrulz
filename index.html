@@ -1163,7 +1163,8 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
-            authDomain: "smm-panel-c1821.firebaseapp.com", 
+            // 🚀 THE ULTIMATE FIX: This makes Mobile Chrome treat Google Login as a safe "1st-Party" action!
+            authDomain: window.location.hostname, 
             databaseURL: "https://smm-panel-c1821-default-rtdb.firebaseio.com",
             projectId: "smm-panel-c1821",
             storageBucket: "smm-panel-c1821.firebasestorage.app",
@@ -1244,14 +1245,18 @@
             if (btn.disabled) return; 
             
             try {
-                // 🚀 THE FIX: Call popup INSTANTLY. No button animations or awaits first!
-                // This forces mobile browsers to accept the popup as a direct user action.
-                const result = await signInWithPopup(auth, provider);
-                
-                // Now that the popup is open securely, we can animate the button
                 btn.disabled = true;
                 btn.style.opacity = '0.7';
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
+                
+                // 🚀 MOBILE DETECT: Safely redirect mobile users, bypassing popup blockers entirely.
+                if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                    await signInWithRedirect(auth, provider);
+                    return; 
+                }
+                
+                // Desktop uses instant popup
+                const result = await signInWithPopup(auth, provider);
                 
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
@@ -1279,14 +1284,35 @@
                 } else {
                     window.showToast("Login Error: " + error.code, "error"); 
                 }
-            } finally {
                 btn.disabled = false;
                 btn.style.opacity = '1';
                 btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
             }
         };
 
-        // 🚀 Ghost Error Generator Removed. All logins handled instantly via Popup.
+        // 🚀 CATCH THE MOBILE REDIRECT: Securely logs in the user after the redirect finishes!
+        getRedirectResult(auth).then(async (result) => {
+            if (result) {
+                const userRef = ref(db, `users/${result.user.uid}`);
+                const snapshot = await get(userRef);
+                const safeEmail = result.user.email || 'user@smmrulz.com';
+                if (!snapshot.exists()) {
+                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
+                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                }
+                window.showToast("Google Login Successful!");
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                const initialView = window.location.hash.replace('#', '') || 'new-order';
+                window.switchView(initialView, false);
+                history.replaceState({ view: initialView }, '', '#' + initialView);
+                loadUserData();
+                loadAppData();
+            }
+        }).catch((error) => {
+            console.error("Redirect Result Error:", error);
+        });
 
         window.logout = function() {
             signOut(auth); window.showToast("Logged Out", "info");
