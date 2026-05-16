@@ -1163,8 +1163,7 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
-            // 🚀 THE ULTIMATE FIX: This makes Mobile Chrome treat Google Login as a safe "1st-Party" action!
-            authDomain: window.location.hostname, 
+            authDomain: "smm-panel-c1821.firebaseapp.com", 
             databaseURL: "https://smm-panel-c1821-default-rtdb.firebaseio.com",
             projectId: "smm-panel-c1821",
             storageBucket: "smm-panel-c1821.firebasestorage.app",
@@ -1245,18 +1244,12 @@
             if (btn.disabled) return; 
             
             try {
+                // Instantly open the secure popup without delays to bypass mobile blockers
+                const result = await signInWithPopup(auth, provider);
+                
                 btn.disabled = true;
                 btn.style.opacity = '0.7';
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Connecting...';
-                
-                // 🚀 MOBILE DETECT: Safely redirect mobile users, bypassing popup blockers entirely.
-                if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                    await signInWithRedirect(auth, provider);
-                    return; 
-                }
-                
-                // Desktop uses instant popup
-                const result = await signInWithPopup(auth, provider);
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
                 
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
@@ -1269,13 +1262,7 @@
                 
                 window.showToast("Google Login Successful!");
                 
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                const initialView = window.location.hash.replace('#', '') || 'new-order';
-                window.switchView(initialView, false);
-                history.replaceState({ view: initialView }, '', '#' + initialView);
-                loadUserData();
-                loadAppData();
+                // Let the automated onAuthStateChanged listener handle sliding the dashboard open!
                 
             } catch (error) { 
                 console.error("Google Auth Error:", error);
@@ -1284,35 +1271,13 @@
                 } else {
                     window.showToast("Login Error: " + error.code, "error"); 
                 }
+            } finally {
                 btn.disabled = false;
                 btn.style.opacity = '1';
                 btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
             }
         };
-
-        // 🚀 CATCH THE MOBILE REDIRECT: Securely logs in the user after the redirect finishes!
-        getRedirectResult(auth).then(async (result) => {
-            if (result) {
-                const userRef = ref(db, `users/${result.user.uid}`);
-                const snapshot = await get(userRef);
-                const safeEmail = result.user.email || 'user@smmrulz.com';
-                if (!snapshot.exists()) {
-                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
-                }
-                window.showToast("Google Login Successful!");
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                const initialView = window.location.hash.replace('#', '') || 'new-order';
-                window.switchView(initialView, false);
-                history.replaceState({ view: initialView }, '', '#' + initialView);
-                loadUserData();
-                loadAppData();
-            }
-        }).catch((error) => {
-            console.error("Redirect Result Error:", error);
-        });
+        // 🚀 Ghost Error Generator & Redirects removed. All logins handled instantly via Popup.
 
         window.logout = function() {
             signOut(auth); window.showToast("Logged Out", "info");
