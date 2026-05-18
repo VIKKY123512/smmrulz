@@ -1239,37 +1239,54 @@
             }
         };
 
+        // 🚀 PRO-GRADE AUTHENTICATION SYSTEM
         window.googleSignIn = async function() {
             const btn = document.getElementById('btn-google');
-            if (btn.disabled) return; 
-            
+            if (btn.disabled) return;
+
             try {
-                // Instantly open the secure popup without delays to bypass mobile blockers
-                const result = await signInWithPopup(auth, provider);
-                
                 btn.disabled = true;
                 btn.style.opacity = '0.7';
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-                
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
+
+                // 1. Force Local Session Persistence (Fixes session loss on refresh)
+                await setPersistence(auth, browserLocalPersistence);
+
+                // 2. Open Popup securely
+                const result = await signInWithPopup(auth, provider);
+
+                // 3. Ensure user data exists
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
                 const safeEmail = result.user.email || 'user@smmrulz.com';
+
                 if (!snapshot.exists()) {
                     const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
                     const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
                     await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
                 }
-                
+
                 window.showToast("Google Login Successful!");
+
+                // 4. Force Dashboard Redirect immediately (Fixes "Stuck on Login Page" issue)
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                const initialView = window.location.hash.replace('#', '') || 'new-order';
+                window.switchView(initialView, false);
                 
-                // Let the automated onAuthStateChanged listener handle sliding the dashboard open!
-                
-            } catch (error) { 
+                loadUserData();
+                loadAppData();
+
+            } catch (error) {
                 console.error("Google Auth Error:", error);
                 if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                    window.showToast("Google Login Cancelled.", "error"); 
+                    window.showToast("Login Cancelled. Try again.", "warning");
+                } else if (error.code === 'auth/popup-blocked') {
+                    // Fallback for extremely strict mobile browsers
+                    window.showToast("Popup blocked. Switching to secure redirect...", "info");
+                    await signInWithRedirect(auth, provider);
                 } else {
-                    window.showToast("Login Error: " + error.code, "error"); 
+                    window.showToast("Authentication Error: " + error.message, "error");
                 }
             } finally {
                 btn.disabled = false;
@@ -1277,10 +1294,46 @@
                 btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
             }
         };
-        // 🚀 Ghost Error Generator & Redirects removed. All logins handled instantly via Popup.
 
-        window.logout = function() {
-            signOut(auth); window.showToast("Logged Out", "info");
+        // 🚀 SMART MOBILE REDIRECT HANDLER (Fixes mobile browser failures silently)
+        getRedirectResult(auth).then(async (result) => {
+            if (result) {
+                const userRef = ref(db, `users/${result.user.uid}`);
+                const snapshot = await get(userRef);
+                const safeEmail = result.user.email || 'user@smmrulz.com';
+                
+                if (!snapshot.exists()) {
+                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
+                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                }
+                
+                // Force transition safely
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                const initialView = window.location.hash.replace('#', '') || 'new-order';
+                window.switchView(initialView, false);
+                
+                loadUserData();
+                loadAppData();
+            }
+        }).catch((error) => {
+            // Silently log redirect errors without interrupting the user experience with toast spam
+            console.warn("Redirect handler log:", error);
+        });
+
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                window.showToast("Logged Out Successfully", "success");
+                
+                // Hard reset UI state to prevent ghost sessions
+                document.getElementById('auth-container').style.display = 'flex';
+                document.getElementById('app-layout').style.display = 'none';
+                window.location.hash = ''; 
+            } catch (error) {
+                window.showToast("Logout failed. Please try again.", "error");
+            }
         };
 
         window.saveNewUsername = async function() {
@@ -1292,55 +1345,74 @@
             } else { window.showToast("Name cannot be empty", "error"); }
         };
 
+        // 🚀 MASTER AUTHENTICATION LISTENER
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             if (user) {
+                // Instantly show the dashboard
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
-                
+
                 try {
-                    const userSnap = await get(ref(db, `users/${user.uid}`));
-                    if (userSnap.exists() && userSnap.val().suspended) { 
-                        window.showToast("Account Suspended.", "error"); signOut(auth); 
+                    const userRef = ref(db, `users/${user.uid}`);
+                    const userSnap = await get(userRef);
+
+                    if (userSnap.exists() && userSnap.val().suspended) {
+                        window.showToast("Account Suspended. Contact Support.", "error");
+                        await signOut(auth);
                         document.getElementById('global-loader').style.display = 'none';
-                        return; 
+                        return;
                     }
-                    // Fetch real DB data first before setting UI to prevent flashing names/balance
-                    if (userSnap.exists()) {
+
+                    // Failsafe: Create DB entry if it was missed during popup/redirect
+                    if (!userSnap.exists()) {
+                        const safeEmail = user.email || 'user@smmrulz.com';
+                        const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                        const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
+                        await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+
+                        document.getElementById('drawer-email').innerHTML = username;
+                        document.getElementById('stat-username').innerHTML = username;
+                        rawBalance = 0;
+                    } else {
                         const finalUsername = window.safeHTML(userSnap.val().username || userSnap.val().email.split('@')[0]);
                         document.getElementById('drawer-email').innerHTML = finalUsername;
                         document.getElementById('stat-username').innerHTML = finalUsername;
-                        
                         rawBalance = userSnap.val().balance || 0;
-                        document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
                     }
-                    update(ref(db, `users/${user.uid}`), { lastActive: Date.now() }).catch(()=>{});
+
+                    document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
+                    update(userRef, { lastActive: Date.now() }).catch(()=>{});
+
                 } catch(e) {
+                    console.error("DB Fetch Error:", e);
                     const safeEmail = user.email || 'user@smmrulz.com';
                     const defaultName = window.safeHTML(safeEmail.split('@')[0]);
                     document.getElementById('drawer-email').innerHTML = defaultName;
                     document.getElementById('stat-username').innerHTML = defaultName;
                 }
-                
+
+                // Force layout update safely
                 const initialView = window.location.hash.replace('#', '') || 'new-order';
                 window.switchView(initialView, false);
                 history.replaceState({ view: initialView }, '', '#' + initialView);
-                
-                loadUserData(); 
+
+                loadUserData();
                 loadAppData();
             } else {
+                // Ensure auth screen is visible if logged out
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-layout').style.display = 'none';
             }
 
-            // 🚀 REMOVE GLOBAL LOADER SMOOTHLY (Delay ensures UI is fully painted without lag)
+            // Smoothly dismiss the loading screen
             setTimeout(() => {
                 const loader = document.getElementById('global-loader');
                 if (loader) {
                     loader.style.opacity = '0';
                     setTimeout(() => loader.style.display = 'none', 500);
                 }
-            }, 500); 
+            }, 500);
         });
 
         window.getCatIcon = function(name) {
