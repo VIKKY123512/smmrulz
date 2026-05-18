@@ -1239,65 +1239,12 @@
             }
         };
 
-        // 🚀 PRO-GRADE AUTHENTICATION SYSTEM
-        window.googleSignIn = async function() {
-            const btn = document.getElementById('btn-google');
-            if (btn.disabled) return;
+        // 🚀 MASTER HYBRID AUTHENTICATION SYSTEM
+        let isAuthProcessing = false; // HARD LOCK: Prevents stacked spam errors
 
-            try {
-                btn.disabled = true;
-                btn.style.opacity = '0.7';
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
-
-                // 1. Force Local Session Persistence (Fixes session loss on refresh)
-                await setPersistence(auth, browserLocalPersistence);
-
-                // 2. Open Popup securely
-                const result = await signInWithPopup(auth, provider);
-
-                // 3. Ensure user data exists
-                const userRef = ref(db, `users/${result.user.uid}`);
-                const snapshot = await get(userRef);
-                const safeEmail = result.user.email || 'user@smmrulz.com';
-
-                if (!snapshot.exists()) {
-                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
-                }
-
-                window.showToast("Google Login Successful!");
-
-                // 4. Force Dashboard Redirect immediately (Fixes "Stuck on Login Page" issue)
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                const initialView = window.location.hash.replace('#', '') || 'new-order';
-                window.switchView(initialView, false);
-                
-                loadUserData();
-                loadAppData();
-
-            } catch (error) {
-                console.error("Google Auth Error:", error);
-                if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                    window.showToast("Login Cancelled. Try again.", "warning");
-                } else if (error.code === 'auth/popup-blocked') {
-                    // Fallback for extremely strict mobile browsers
-                    window.showToast("Popup blocked. Switching to secure redirect...", "info");
-                    await signInWithRedirect(auth, provider);
-                } else {
-                    window.showToast("Authentication Error: " + error.message, "error");
-                }
-            } finally {
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
-            }
-        };
-
-        // 🚀 SMART MOBILE REDIRECT HANDLER (Fixes mobile browser failures silently)
+        // 1. Process Mobile Redirects Safely on Page Load
         getRedirectResult(auth).then(async (result) => {
-            if (result) {
+            if (result && result.user) {
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
                 const safeEmail = result.user.email || 'user@smmrulz.com';
@@ -1308,7 +1255,9 @@
                     await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
                 }
                 
-                // Force transition safely
+                window.showToast("Google Login Successful!");
+                
+                // Force UI transition manually to bypass stuck login pages
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
                 const initialView = window.location.hash.replace('#', '') || 'new-order';
@@ -1318,21 +1267,81 @@
                 loadAppData();
             }
         }).catch((error) => {
-            // Silently log redirect errors without interrupting the user experience with toast spam
-            console.warn("Redirect handler log:", error);
+            // Silently log redirect errors so users don't see random popups
+            console.warn("Redirect handled:", error);
         });
+
+        window.googleSignIn = async function() {
+            const btn = document.getElementById('btn-google');
+            
+            // ABSOLUTE BUTTON LOCK: If it is already processing, ignore the click!
+            if (isAuthProcessing || btn.disabled) return; 
+            
+            isAuthProcessing = true;
+            btn.disabled = true;
+
+            try {
+                btn.style.opacity = '0.7';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing Connection...';
+
+                await setPersistence(auth, browserLocalPersistence);
+                provider.setCustomParameters({ prompt: 'select_account' });
+
+                // Strictly detect if the user is on a Mobile Phone
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                if (isMobile) {
+                    // MOBILE OVERRIDE: Redirect immediately. This completely bypasses Chrome's strict tracker blocks.
+                    await signInWithRedirect(auth, provider);
+                    return; // CRITICAL: Stop the code here so the button stays locked while the browser redirects.
+                } 
+                
+                // DESKTOP ONLY: Smooth Popup Window
+                const result = await signInWithPopup(auth, provider);
+                
+                const userRef = ref(db, `users/${result.user.uid}`);
+                const snapshot = await get(userRef);
+                const safeEmail = result.user.email || 'user@smmrulz.com';
+
+                if (!snapshot.exists()) {
+                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
+                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                }
+                
+                window.showToast("Google Login Successful!");
+
+            } catch (error) {
+                console.error("Google Auth Error:", error);
+                
+                if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                    window.showToast("Login Cancelled.", "warning");
+                } else if (error.code === 'auth/internal-error' || error.code === 'auth/popup-blocked') {
+                    // Ultimate Fallback: If popup fails on Desktop, force redirect safely
+                    window.showToast("Secure connection required. Redirecting...", "info");
+                    await signInWithRedirect(auth, provider).catch(() => {});
+                    return; 
+                } else {
+                    window.showToast("Authentication Error. Please try again.", "error");
+                }
+                
+                // ONLY unlock the button if login completely failed and didn't redirect
+                btn.disabled = false;
+                isAuthProcessing = false;
+                btn.style.opacity = '1';
+                btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
+            }
+        };
 
         window.logout = async function() {
             try {
                 await signOut(auth);
                 window.showToast("Logged Out Successfully", "success");
-                
-                // Hard reset UI state to prevent ghost sessions
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-layout').style.display = 'none';
                 window.location.hash = ''; 
             } catch (error) {
-                window.showToast("Logout failed. Please try again.", "error");
+                window.showToast("Logout failed.", "error");
             }
         };
 
@@ -1349,7 +1358,7 @@
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             if (user) {
-                // Instantly show the dashboard
+                // Hard transition to prevent getting stuck
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
 
@@ -1364,7 +1373,7 @@
                         return;
                     }
 
-                    // Failsafe: Create DB entry if it was missed during popup/redirect
+                    // Backup Database Registration (Prevents empty UI if connection dropped)
                     if (!userSnap.exists()) {
                         const safeEmail = user.email || 'user@smmrulz.com';
                         const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
@@ -1392,7 +1401,6 @@
                     document.getElementById('stat-username').innerHTML = defaultName;
                 }
 
-                // Force layout update safely
                 const initialView = window.location.hash.replace('#', '') || 'new-order';
                 window.switchView(initialView, false);
                 history.replaceState({ view: initialView }, '', '#' + initialView);
@@ -1400,12 +1408,10 @@
                 loadUserData();
                 loadAppData();
             } else {
-                // Ensure auth screen is visible if logged out
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-layout').style.display = 'none';
             }
 
-            // Smoothly dismiss the loading screen
             setTimeout(() => {
                 const loader = document.getElementById('global-loader');
                 if (loader) {
