@@ -1239,65 +1239,27 @@
             }
         };
 
-        // 🚀 MASTER HYBRID AUTHENTICATION SYSTEM
-        let isAuthProcessing = false; // HARD LOCK: Prevents stacked spam errors
-
-        // 1. Process Mobile Redirects Safely on Page Load
-        getRedirectResult(auth).then(async (result) => {
-            if (result && result.user) {
-                const userRef = ref(db, `users/${result.user.uid}`);
-                const snapshot = await get(userRef);
-                const safeEmail = result.user.email || 'user@smmrulz.com';
-                
-                if (!snapshot.exists()) {
-                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
-                }
-                
-                window.showToast("Google Login Successful!");
-                
-                // Aggressive UI transition to bypass stuck login pages
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                const initialView = window.location.hash.replace('#', '') || 'new-order';
-                window.switchView(initialView, false);
-                
-                loadUserData();
-                loadAppData();
-            }
-        }).catch((error) => {
-            console.warn("Redirect handled:", error);
-        });
+        // 🚀 MASTER INSTANT POPUP SYSTEM (Bypasses Storage Partitioning Errors)
+        let isAuthProcessing = false;
 
         window.googleSignIn = async function() {
             const btn = document.getElementById('btn-google');
-            
-            // ABSOLUTE BUTTON LOCK: If it is already processing, ignore the click!
             if (isAuthProcessing || btn.disabled) return; 
             
             isAuthProcessing = true;
-            btn.disabled = true;
+            
+            // Visual feedback
+            btn.style.opacity = '0.7';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing Connection...';
 
             try {
-                btn.style.opacity = '0.7';
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing Connection...';
-
-                await setPersistence(auth, browserLocalPersistence);
+                // CRITICAL FIX: We MUST call signInWithPopup instantly without awaiting anything else first.
+                // Mobile browsers will allow popups ONLY if they are the direct, immediate result of a click!
                 provider.setCustomParameters({ prompt: 'select_account' });
-
-                // Strictly detect if the user is on a Mobile Phone
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-                if (isMobile) {
-                    // MOBILE OVERRIDE: Redirect immediately. This completely bypasses Chrome's strict tracker blocks.
-                    await signInWithRedirect(auth, provider);
-                    return; // CRITICAL: Stop the code here so the button stays locked while the browser redirects.
-                } 
-                
-                // DESKTOP ONLY: Smooth Popup Window
                 const result = await signInWithPopup(auth, provider);
                 
+                // Once popup succeeds, do the background database work securely
+                btn.disabled = true;
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
                 const safeEmail = result.user.email || 'user@smmrulz.com';
@@ -1310,7 +1272,7 @@
                 
                 window.showToast("Google Login Successful!");
                 
-                // 🚀 FIX: Aggressively force Dashboard open after popup success
+                // Aggressive UI transition to guarantee user is pushed to dashboard
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
                 window.switchView('new-order', false);
@@ -1323,16 +1285,11 @@
                 
                 if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
                     window.showToast("Login Cancelled.", "warning");
-                } else if (error.code === 'auth/internal-error' || error.code === 'auth/popup-blocked') {
-                    // Ultimate Fallback: If popup fails on Desktop, force redirect safely
-                    window.showToast("Secure connection required. Redirecting...", "info");
-                    await signInWithRedirect(auth, provider).catch(() => {});
-                    return; 
                 } else {
-                    window.showToast("Authentication Error. Please try again.", "error");
+                    window.showToast("Auth Error: " + error.code, "error");
                 }
             } finally {
-                // Unlock the button ONLY if we aren't redirecting
+                // Reset button state fully
                 btn.disabled = false;
                 isAuthProcessing = false;
                 btn.style.opacity = '1';
