@@ -1239,62 +1239,58 @@
             }
         };
 
-        // 🚀 MASTER INSTANT POPUP SYSTEM (Bypasses Storage Partitioning Errors)
-        let isAuthProcessing = false;
-
-        window.googleSignIn = async function() {
+        // 🚀 ENTERPRISE GRADE GOOGLE AUTHENTICATION
+        window.googleSignIn = function() {
             const btn = document.getElementById('btn-google');
-            if (isAuthProcessing || btn.disabled) return; 
+            if (btn.disabled) return; 
             
-            isAuthProcessing = true;
+            // 1. Instantly lock the button to prevent spam clicks
+            btn.disabled = true;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing...';
+
+            // 2. CRITICAL: Do NOT use async/await here. Mobile browsers demand 
+            // the popup opens in the exact same synchronous thread as the click!
+            provider.setCustomParameters({ prompt: 'select_account' });
             
-            // Visual feedback
-            btn.style.opacity = '0.7';
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing Connection...';
+            signInWithPopup(auth, provider)
+                .then(async (result) => {
+                    const userRef = ref(db, `users/${result.user.uid}`);
+                    const snapshot = await get(userRef);
+                    const safeEmail = result.user.email || 'user@smmrulz.com';
 
-            try {
-                // CRITICAL FIX: We MUST call signInWithPopup instantly without awaiting anything else first.
-                // Mobile browsers will allow popups ONLY if they are the direct, immediate result of a click!
-                provider.setCustomParameters({ prompt: 'select_account' });
-                const result = await signInWithPopup(auth, provider);
-                
-                // Once popup succeeds, do the background database work securely
-                btn.disabled = true;
-                const userRef = ref(db, `users/${result.user.uid}`);
-                const snapshot = await get(userRef);
-                const safeEmail = result.user.email || 'user@smmrulz.com';
-
-                if (!snapshot.exists()) {
-                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
-                }
-                
-                window.showToast("Google Login Successful!");
-                
-                // Aggressive UI transition to guarantee user is pushed to dashboard
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                window.switchView('new-order', false);
-                
-                loadUserData();
-                loadAppData();
-
-            } catch (error) {
-                console.error("Google Auth Error:", error);
-                
-                if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                    window.showToast("Login Cancelled.", "warning");
-                } else {
-                    window.showToast("Auth Error: " + error.code, "error");
-                }
-            } finally {
-                // Reset button state fully
-                btn.disabled = false;
-                isAuthProcessing = false;
-                btn.style.opacity = '1';
-                btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
-            }
+                    if (!snapshot.exists()) {
+                        const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
+                        const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
+                        await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                    }
+                    
+                    window.showToast("Google Login Successful!");
+                    
+                    // 3. Absolute Force UI Transition to Dashboard
+                    document.getElementById('auth-container').style.display = 'none';
+                    document.getElementById('app-layout').style.display = 'flex';
+                    window.switchView('new-order', false);
+                    
+                    loadUserData();
+                    loadAppData();
+                })
+                .catch((error) => {
+                    console.error("Google Auth Error:", error);
+                    
+                    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                        window.showToast("Login Cancelled.", "warning");
+                    } else if (error.code === 'auth/internal-error' || error.code === 'auth/popup-blocked') {
+                        window.showToast("Error: Please open the site in a standard browser tab.", "error");
+                    } else {
+                        window.showToast("Auth Error: " + error.message, "error");
+                    }
+                })
+                .finally(() => {
+                    // 4. Reset Button State Safely
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                });
         };
 
         window.logout = async function() {
