@@ -8,6 +8,7 @@
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <script>if (window.top !== window.self) window.top.location.replace(window.self.location.href);</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <title>SMMRulz | Secure, Automated & Reliable SMM Services</title>
     
@@ -429,9 +430,7 @@
 
                         <div class="divider">Or</div>
                         
-                        <button class="btn btn-google" id="btn-google" onclick="window.googleSignIn()">
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google
-                        </button>
+                        <div id="google-btn-wrapper" style="margin-top: 15px; width: 100%; display: flex; justify-content: center; min-height: 44px;"></div>
 
                         <div class="promo-cards-container" style="margin-top: 30px;">
                             <div class="promo-card">
@@ -1158,7 +1157,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { getDatabase, ref, get, set, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
         const firebaseConfig = {
@@ -1239,60 +1238,22 @@
             }
         };
 
-        // 🚀 FINAL FORCED-REDIRECT AUTHENTICATION
-        let isAuthProcessing = false;
-
-        // 1. Force the dashboard to open immediately if a mobile redirect was successful
-        getRedirectResult(auth).then(async (result) => {
-            if (result && result.user) {
-                // FORCE UI TRANSITION INSTANTLY
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                window.switchView('new-order', false);
-                
-                const userRef = ref(db, `users/${result.user.uid}`);
-                const snapshot = await get(userRef);
-                const safeEmail = result.user.email || 'user@smmrulz.com';
-                
-                if (!snapshot.exists()) {
-                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
-                }
-                
-                window.showToast("Google Login Successful!");
-                loadUserData();
-                loadAppData();
-            }
-        }).catch(() => {
-            // Silently ignore tracking errors on mobile so they don't break the UI
-        });
-
-        window.googleSignIn = async function() {
-            const btn = document.getElementById('btn-google');
-            if (isAuthProcessing || btn.disabled) return; 
-
-            isAuthProcessing = true;
-            btn.disabled = true;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing...';
-
+        // 🚀 ADVANCED ENTERPRISE GOOGLE IDENTITY SYSTEM
+        // This bypasses ALL mobile popup blockers and storage partition errors.
+        
+        window.handleGoogleCredentialResponse = async function(response) {
             try {
+                // Instantly trigger loading screen
+                document.getElementById('global-loader').style.display = 'flex';
+                document.querySelector('.loader-text').innerText = 'Authenticating...';
+
                 await setPersistence(auth, browserLocalPersistence);
-                provider.setCustomParameters({ prompt: 'select_account' });
-
-                if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                    await signInWithRedirect(auth, provider);
-                    return; 
-                } 
                 
-                const result = await signInWithPopup(auth, provider);
+                // 1. Exchange the Google Identity JWT Token for a Firebase Session securely
+                const credential = GoogleAuthProvider.credential(response.credential);
+                const result = await signInWithCredential(auth, credential);
                 
-                // 2. FORCE UI TRANSITION INSTANTLY ON DESKTOP
-                document.getElementById('auth-container').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                window.switchView('new-order', false);
-
+                // 2. Synchronize the User Database
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
                 const safeEmail = result.user.email || 'user@smmrulz.com';
@@ -1304,25 +1265,48 @@
                 }
                 
                 window.showToast("Google Login Successful!");
+                
+                // 3. ABSOLUTE FORCED DASHBOARD TRANSITION (No more getting stuck)
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                window.switchView('new-order', false);
+                history.replaceState({ view: 'new-order' }, '', '#new-order');
+                
                 loadUserData();
                 loadAppData();
-
+                
             } catch (error) {
-                console.error("Auth Error:", error);
-                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                    if (error.code === 'auth/internal-error' || error.code === 'auth/popup-blocked') {
-                        await signInWithRedirect(auth, provider).catch(()=>{});
-                        return;
-                    } else {
-                        window.showToast("Auth Error: " + error.message, "error");
-                    }
-                }
+                console.error("Google Auth Error:", error);
+                window.showToast("Authentication Failed.", "error");
             } finally {
-                btn.disabled = false;
-                isAuthProcessing = false;
-                btn.innerHTML = originalText;
+                // Smoothly remove loading screen
+                setTimeout(() => {
+                    const loader = document.getElementById('global-loader');
+                    if (loader) {
+                        loader.style.opacity = '0';
+                        setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 500);
+                    }
+                }, 500);
             }
         };
+
+        // 4. Initialize the Official Google API Using your Cloud Client ID
+        function initGoogleIdentity() {
+            if (window.google && window.google.accounts) {
+                window.google.accounts.id.initialize({
+                    client_id: "399872773449-rdsiqffror9qjjb1915eja3k6c403n6b.apps.googleusercontent.com",
+                    callback: window.handleGoogleCredentialResponse,
+                    cancel_on_tap_outside: false
+                });
+                window.google.accounts.id.renderButton(
+                    document.getElementById("google-btn-wrapper"),
+                    { theme: "outline", size: "large", shape: "rectangular", width: "350", text: "continue_with" }
+                );
+            } else {
+                setTimeout(initGoogleIdentity, 100); // Wait for Google script to load
+            }
+        }
+        initGoogleIdentity();
 
         window.logout = async function() {
             try {
