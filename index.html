@@ -1747,9 +1747,15 @@
             if(srvId && globalServices[srvId] && qty && !isNaN(qty) && qty > 0) { const baseCharge = (globalServices[srvId].price / 1000) * qty; document.getElementById('order-charge').value = baseCharge.toFixed(2); } else { document.getElementById('order-charge').value = '0.00'; }
         };
 
+        let isOrderProcessing = false; // 🚀 HARD LOCK: Prevents stacked spam errors
+
         window.submitOrder = async function(e) {
             e.preventDefault();
             const btn = document.getElementById('order-btn'); 
+            
+            // Absolute lock to prevent double-clicking
+            if (isOrderProcessing || btn.disabled) return;
+
             const srvId = document.getElementById('order-srv').value; 
             let link = document.getElementById('order-link').value.trim(); 
             const qty = parseInt(document.getElementById('order-qty').value);
@@ -1767,6 +1773,7 @@
             const service = globalServices[srvId];
             if(!service || qty < service.min || qty > service.max) return window.showToast(`Limits: ${service.min} - ${service.max}`, "error");
             
+            isOrderProcessing = true;
             btn.disabled = true; 
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing Securely...';
 
@@ -1795,9 +1802,12 @@
                     window.showToast(data.error || "Transaction Failed", "error");
                 }
             } catch(error) { 
-                window.showToast("Connection Error. Please try again.", "error"); 
+                console.error("Vercel Connection Error:", error);
+                // 🚀 DIAGNOSTIC FIX: Tell the user exactly why Vercel blocked it
+                window.showToast("Vercel Blocked Connection (Check CORS)", "error"); 
             } 
             finally { 
+                isOrderProcessing = false;
                 btn.disabled = false; 
                 btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost'; 
             }
