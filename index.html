@@ -1257,7 +1257,7 @@
                 
                 window.showToast("Google Login Successful!");
                 
-                // Force UI transition manually to bypass stuck login pages
+                // Aggressive UI transition to bypass stuck login pages
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
                 const initialView = window.location.hash.replace('#', '') || 'new-order';
@@ -1267,7 +1267,6 @@
                 loadAppData();
             }
         }).catch((error) => {
-            // Silently log redirect errors so users don't see random popups
             console.warn("Redirect handled:", error);
         });
 
@@ -1310,6 +1309,14 @@
                 }
                 
                 window.showToast("Google Login Successful!");
+                
+                // 🚀 FIX: Aggressively force Dashboard open after popup success
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                window.switchView('new-order', false);
+                
+                loadUserData();
+                loadAppData();
 
             } catch (error) {
                 console.error("Google Auth Error:", error);
@@ -1324,8 +1331,8 @@
                 } else {
                     window.showToast("Authentication Error. Please try again.", "error");
                 }
-                
-                // ONLY unlock the button if login completely failed and didn't redirect
+            } finally {
+                // Unlock the button ONLY if we aren't redirecting
                 btn.disabled = false;
                 isAuthProcessing = false;
                 btn.style.opacity = '1';
