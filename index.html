@@ -1239,58 +1239,53 @@
             }
         };
 
-        // 🚀 ENTERPRISE GRADE GOOGLE AUTHENTICATION
-        window.googleSignIn = function() {
+        // 🚀 BULLETPROOF GOOGLE AUTHENTICATION
+        let isAuthProcessing = false;
+
+        // Silently catch browser storage partitioning errors. 
+        // The master listener below will still securely log the user in!
+        getRedirectResult(auth).catch(() => {});
+
+        window.googleSignIn = async function() {
             const btn = document.getElementById('btn-google');
-            if (btn.disabled) return; 
-            
-            // 1. Instantly lock the button to prevent spam clicks
+            if (isAuthProcessing || btn.disabled) return; 
+
+            isAuthProcessing = true;
             btn.disabled = true;
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing...';
 
-            // 2. CRITICAL: Do NOT use async/await here. Mobile browsers demand 
-            // the popup opens in the exact same synchronous thread as the click!
-            provider.setCustomParameters({ prompt: 'select_account' });
-            
-            signInWithPopup(auth, provider)
-                .then(async (result) => {
-                    const userRef = ref(db, `users/${result.user.uid}`);
-                    const snapshot = await get(userRef);
-                    const safeEmail = result.user.email || 'user@smmrulz.com';
+            try {
+                await setPersistence(auth, browserLocalPersistence);
+                provider.setCustomParameters({ prompt: 'select_account' });
 
-                    if (!snapshot.exists()) {
-                        const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                        const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                        await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
-                    }
-                    
-                    window.showToast("Google Login Successful!");
-                    
-                    // 3. Absolute Force UI Transition to Dashboard
-                    document.getElementById('auth-container').style.display = 'none';
-                    document.getElementById('app-layout').style.display = 'flex';
-                    window.switchView('new-order', false);
-                    
-                    loadUserData();
-                    loadAppData();
-                })
-                .catch((error) => {
-                    console.error("Google Auth Error:", error);
-                    
-                    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-                        window.showToast("Login Cancelled.", "warning");
-                    } else if (error.code === 'auth/internal-error' || error.code === 'auth/popup-blocked') {
-                        window.showToast("Error: Please open the site in a standard browser tab.", "error");
+                // Mobile browsers MUST use redirect to bypass Anti-Tracker popup blockers
+                if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                    await signInWithRedirect(auth, provider);
+                    return; // Crucial: Stop here, the page will navigate away.
+                } 
+                
+                // Desktop browsers can smoothly use popup
+                await signInWithPopup(auth, provider);
+                
+                // 🛑 CRITICAL DECOUPLING: We do NOT write to the DB or change UI here.
+                // We let the highly secure onAuthStateChanged listener handle it automatically!
+
+            } catch (error) {
+                console.error("Auth Error:", error);
+                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                    if (error.code === 'auth/internal-error' || error.code === 'auth/popup-blocked') {
+                        // Ultimate Fallback: Force a redirect if a weird desktop browser blocks the popup
+                        await signInWithRedirect(auth, provider).catch(()=>{});
+                        return;
                     } else {
                         window.showToast("Auth Error: " + error.message, "error");
                     }
-                })
-                .finally(() => {
-                    // 4. Reset Button State Safely
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                });
+                }
+                btn.disabled = false;
+                isAuthProcessing = false;
+                btn.innerHTML = originalText;
+            }
         };
 
         window.logout = async function() {
@@ -1314,11 +1309,20 @@
             } else { window.showToast("Name cannot be empty", "error"); }
         };
 
-        // 🚀 MASTER AUTHENTICATION LISTENER
+        // 🚀 THE MASTER LISTENER (Decoupled UI & Database Logic)
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
+            
+            // Always unlock the button if auth state resolves successfully or fails
+            const btn = document.getElementById('btn-google');
+            if (btn) {
+                btn.disabled = false;
+                isAuthProcessing = false;
+                btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
+            }
+
             if (user) {
-                // Hard transition to prevent getting stuck
+                // Instantly force UI to dashboard, preventing users from ever getting stuck!
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
 
@@ -1333,7 +1337,7 @@
                         return;
                     }
 
-                    // Backup Database Registration (Prevents empty UI if connection dropped)
+                    // Securely register the user in the database if they are new
                     if (!userSnap.exists()) {
                         const safeEmail = user.email || 'user@smmrulz.com';
                         const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
@@ -1343,11 +1347,13 @@
                         document.getElementById('drawer-email').innerHTML = username;
                         document.getElementById('stat-username').innerHTML = username;
                         rawBalance = 0;
+                        window.showToast("Welcome! Login Successful.");
                     } else {
                         const finalUsername = window.safeHTML(userSnap.val().username || userSnap.val().email.split('@')[0]);
                         document.getElementById('drawer-email').innerHTML = finalUsername;
                         document.getElementById('stat-username').innerHTML = finalUsername;
                         rawBalance = userSnap.val().balance || 0;
+                        window.showToast("Welcome back!");
                     }
 
                     document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
