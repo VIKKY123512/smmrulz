@@ -1,3 +1,18 @@
+export default async function handler(req, res) {
+    // 🚀 THE CORS FIX: This explicitly allows your website to bypass the browser block!
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Allows all domains
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Handle initial browser security check
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    // ... your normal order processing code below ...
+}
+
 const admin = require('firebase-admin');
 
 // 1. Wake up the Firebase Backend securely using Vercel Vault keys
