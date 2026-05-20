@@ -1747,19 +1747,19 @@
             if(srvId && globalServices[srvId] && qty && !isNaN(qty) && qty > 0) { const baseCharge = (globalServices[srvId].price / 1000) * qty; document.getElementById('order-charge').value = baseCharge.toFixed(2); } else { document.getElementById('order-charge').value = '0.00'; }
         };
 
-        // 🚀 BULLETPROOF FRONTEND LOCK
+        // 🚀 BULLETPROOF FRONTEND LOCK (WITH COOLDOWN)
         let isOrderProcessing = false;
 
         window.submitOrder = async function(e) {
             e.preventDefault();
             
-            // Absolute Top-Level Lock: Stops spam before anything else runs!
             if (isOrderProcessing) return;
             isOrderProcessing = true; 
 
             const btn = document.getElementById('order-btn'); 
             const originalText = btn.innerHTML;
             btn.disabled = true; 
+            btn.style.opacity = "0.7";
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
 
             try {
@@ -1767,31 +1767,26 @@
                 let link = document.getElementById('order-link').value.trim(); 
                 const qty = parseInt(document.getElementById('order-qty').value);
                 
-                if(!srvId || !link || !qty) {
-                    window.showToast("Missing fields", "error");
-                    return;
-                }
-                if(qty <= 0) {
-                    window.showToast("Quantity must be greater than 0", "error");
-                    return;
-                }
+                if(!srvId || !link || !qty) { window.showToast("Missing fields", "error"); throw new Error("Validation"); }
+                if(qty <= 0) { window.showToast("Quantity must be greater than 0", "error"); throw new Error("Validation"); }
                 
                 try {
                     new URL(link.startsWith('http') ? link : 'https://' + link);
                     if(!link.startsWith('http')) link = 'https://' + link;
                 } catch(err) {
-                    window.showToast("Please enter a valid URL", "error");
-                    return;
+                    window.showToast("Please enter a valid URL", "error"); throw new Error("Validation");
                 }
 
                 const service = globalServices[srvId];
                 if(!service || qty < service.min || qty > service.max) {
-                    window.showToast(`Limits: ${service.min} - ${service.max}`, "error");
-                    return;
+                    window.showToast(`Limits: ${service.min} - ${service.max}`, "error"); throw new Error("Validation");
                 }
 
-                // Send a highly secure request to your hidden Vercel Backend
-                const response = await fetch('https://smmrulzad77.vercel.app/api/order', {
+                // 🛑 CRITICAL FIX: THIS MUST MATCH YOUR EXACT VERCEL DOMAIN
+                // You deployed to perfect-smm-backend, so the URL should likely be this:
+                const API_URL = 'https://perfect-smm-backend.vercel.app/api/order';
+
+                const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
@@ -1816,13 +1811,20 @@
                     window.showToast(data.error || "Transaction Failed by Server", "error");
                 }
             } catch(error) { 
-                console.error("Vercel Connection Error:", error);
-                window.showToast("Server Connection Failed. Check API.", "error"); 
+                if (error.message !== "Validation") {
+                    console.error("Vercel Connection Error:", error);
+                    window.showToast("Server Connection Failed.", "error"); 
+                    // This alert tells you exactly what is failing!
+                    alert("API NETWORK ERROR:\n\nThe website cannot reach your Vercel server. Make sure the API_URL inside index.html matches your real Vercel project domain exactly!");
+                }
             } finally { 
-                // UNLOCK ONLY AFTER EVERYTHING IS 100% DONE
-                isOrderProcessing = false;
-                btn.disabled = false; 
-                btn.innerHTML = originalText; 
+                // 🛑 ANTI-SPAM COOLDOWN: Locks the button strictly for 3 seconds even if the network fails instantly!
+                setTimeout(() => {
+                    isOrderProcessing = false;
+                    btn.disabled = false; 
+                    btn.style.opacity = "1";
+                    btn.innerHTML = originalText; 
+                }, 3000);
             }
         };
 
