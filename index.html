@@ -1747,12 +1747,13 @@
             if(srvId && globalServices[srvId] && qty && !isNaN(qty) && qty > 0) { const baseCharge = (globalServices[srvId].price / 1000) * qty; document.getElementById('order-charge').value = baseCharge.toFixed(2); } else { document.getElementById('order-charge').value = '0.00'; }
         };
 
+        // 🚀 BULLETPROOF FRONTEND LOCK
         let isOrderProcessing = false;
 
         window.submitOrder = async function(e) {
             e.preventDefault();
             
-            // 🚀 ABSOLUTE TOP-LEVEL LOCK: Stops spam before anything else runs!
+            // Absolute Top-Level Lock: Stops spam before anything else runs!
             if (isOrderProcessing) return;
             isOrderProcessing = true; 
 
@@ -1816,7 +1817,7 @@
                 }
             } catch(error) { 
                 console.error("Vercel Connection Error:", error);
-                window.showToast("Server Blocked Connection (Check Vercel CORS)", "error"); 
+                window.showToast("Server Connection Failed. Check API.", "error"); 
             } finally { 
                 // UNLOCK ONLY AFTER EVERYTHING IS 100% DONE
                 isOrderProcessing = false;
