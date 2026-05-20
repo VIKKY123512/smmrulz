@@ -1782,9 +1782,8 @@
                     window.showToast(`Limits: ${service.min} - ${service.max}`, "error"); throw new Error("Validation");
                 }
 
-                // 🛑 CRITICAL FIX: THIS MUST MATCH YOUR EXACT VERCEL DOMAIN
-                // You deployed to perfect-smm-backend, so the URL should likely be this:
-                const API_URL = 'https://perfect-smm-backend.vercel.app/api/order';
+                // 🚀 FINAL FIX: Pointing strictly to your REAL working Vercel server!
+                const API_URL = 'https://smmrulzad77.vercel.app/api/order';
 
                 const response = await fetch(API_URL, {
                     method: 'POST',
