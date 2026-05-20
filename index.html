@@ -1599,36 +1599,37 @@
         }
 
         function loadUserData() {
-            if(!currentUser) return;
-            
-            // Listen strictly to balance changes to avoid double-fetching the whole profile
-            onValue(ref(db, `users/${currentUser.uid}/balance`), (snap) => { 
+            if (!currentUser) return;
+            const uid = currentUser.uid;
+
+            // 1. Balance Listener
+            onValue(ref(db, `users/${uid}/balance`), (snap) => { 
                 if(snap.exists()) {
-                    rawBalance = snap.val() || 0; 
-                    document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
+                    document.getElementById('stat-balance').innerText = parseFloat(snap.val()).toFixed(2);
                 }
             });
             
-            // Listen strictly to username changes
-            onValue(ref(db, `users/${currentUser.uid}/username`), (snap) => { 
-                if(snap.exists()) {
-                    const displayUsername = window.safeHTML(snap.val());
-                    document.getElementById('stat-username').innerHTML = displayUsername;
-                    document.getElementById('drawer-email').innerHTML = displayUsername;
-                }
-            });
-            
+            // 2. Orders Listener (Optimized & Defensive)
             onValue(ref(db, 'orders'), (snap) => {
-                const orders = snap.val() || {}; const userOrdersList = Object.keys(orders).map(k => ({id:k, ...orders[k]})).filter(o => o.userId === currentUser.uid).reverse();
+                const orders = snap.val() || {};
+                const userOrdersList = [];
+                
+                Object.keys(orders).forEach(k => {
+                    if (orders[k].userId === uid) {
+                        userOrdersList.push({ id: k, ...orders[k] });
+                    }
+                });
+                userOrdersList.reverse();
+
                 document.getElementById('stat-total-orders').innerText = userOrdersList.length; 
                 let html = '';
                 userOrdersList.forEach(o => {
-                    let badge = '<span class="badge bg-pending">Pending</span>'; if(o.status === 'Processing') badge = '<span class="badge bg-processing">Processing</span>'; if(o.status === 'Completed') badge = '<span class="badge bg-completed">Completed</span>'; if(o.status === 'Canceled' || o.status === 'Refunded') badge = '<span class="badge bg-canceled">Refunded</span>';
+                    let badge = '<span class="badge bg-pending">Pending</span>'; 
+                    if(o.status === 'Processing') badge = '<span class="badge bg-processing">Processing</span>'; 
+                    else if(o.status === 'Completed') badge = '<span class="badge bg-completed">Completed</span>'; 
+                    else if(o.status === 'Canceled' || o.status === 'Refunded') badge = '<span class="badge bg-canceled">Refunded</span>';
                     
-                    let safeServiceName = window.safeHTML(o.serviceName);
-                    let safeLink = (o.link && (o.link.startsWith('http://') || o.link.startsWith('https://'))) ? window.safeHTML(o.link) : '#';
-                    
-                    html += `<tr><td><small>${o.id.slice(-6)}</small></td><td style="font-weight:600;">${safeServiceName}</td><td><a href="${safeLink}" target="_blank" rel="noopener noreferrer" style="color:var(--primary); text-decoration:none;">View Link</a></td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
+                    html += `<tr><td><small>${o.id.slice(-6)}</small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td><a href="${window.safeHTML(o.link)}" target="_blank" style="color:var(--primary);">View</a></td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
                 });
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
             });
