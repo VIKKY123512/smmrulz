@@ -1747,7 +1747,7 @@
             if(srvId && globalServices[srvId] && qty && !isNaN(qty) && qty > 0) { const baseCharge = (globalServices[srvId].price / 1000) * qty; document.getElementById('order-charge').value = baseCharge.toFixed(2); } else { document.getElementById('order-charge').value = '0.00'; }
         };
 
-        // 🚀 BULLETPROOF FRONTEND LOCK (WITH COOLDOWN)
+        // 🚀 BULLETPROOF SECURE ORDER SYSTEM
         let isOrderProcessing = false;
 
         window.submitOrder = async function(e) {
@@ -1760,7 +1760,7 @@
             const originalText = btn.innerHTML;
             btn.disabled = true; 
             btn.style.opacity = "0.7";
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing...';
 
             try {
                 const srvId = document.getElementById('order-srv').value; 
@@ -1782,10 +1782,9 @@
                     window.showToast(`Limits: ${service.min} - ${service.max}`, "error"); throw new Error("Validation");
                 }
 
-                // 🏆 THE ULTIMATE FIX: Relative Path
                 const API_URL = '/api/order';
 
-                // 🔒 SECURITY FIX: Generate Cryptographic Firebase Token
+                // 🔒 SECURE TOKEN GENERATION
                 const idToken = await currentUser.getIdToken(true);
 
                 const response = await fetch(API_URL, {
@@ -1793,10 +1792,10 @@
                     headers: { 
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'Authorization': `Bearer ${idToken}` // 🔒 Send token securely in headers
+                        'Authorization': `Bearer ${idToken}` // Token sent securely
                     },
                     body: JSON.stringify({
-                        // 🔒 Removed 'uid'. The backend will extract it from the secure token!
+                        uid: currentUser.uid, // 💡 BACKWARDS COMPATIBILITY: Restored so old Vercel code doesn't crash!
                         srvId: srvId,
                         link: link,
                         qty: qty
@@ -1811,17 +1810,14 @@
                     window.updateServiceDetails(); 
                     window.switchView('orders-history');
                 } else {
-                    window.showToast(data.error || "Transaction Failed by Server", "error");
+                    window.showToast(data.error || "Transaction Failed", "error");
                 }
             } catch(error) { 
                 if (error.message !== "Validation") {
-                    console.error("Vercel Connection Error:", error);
+                    console.error("API Error:", error);
                     window.showToast("Server Connection Failed.", "error"); 
-                    // This alert tells you exactly what is failing!
-                    alert("API NETWORK ERROR:\n\nThe website cannot reach your Vercel server. Make sure the API_URL inside index.html matches your real Vercel project domain exactly!");
                 }
             } finally { 
-                // 🛑 ANTI-SPAM COOLDOWN: Locks the button strictly for 3 seconds even if the network fails instantly!
                 setTimeout(() => {
                     isOrderProcessing = false;
                     btn.disabled = false; 
