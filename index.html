@@ -1783,18 +1783,20 @@
                 }
 
                 // 🏆 THE ULTIMATE FIX: Relative Path
-                // Because your HTML and API are in the same GitHub repo, 
-                // this totally bypasses CORS and Network errors forever!
                 const API_URL = '/api/order';
+
+                // 🔒 SECURITY FIX: Generate Cryptographic Firebase Token
+                const idToken = await currentUser.getIdToken(true);
 
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${idToken}` // 🔒 Send token securely in headers
                     },
                     body: JSON.stringify({
-                        uid: currentUser.uid,
+                        // 🔒 Removed 'uid'. The backend will extract it from the secure token!
                         srvId: srvId,
                         link: link,
                         qty: qty
