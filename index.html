@@ -1647,11 +1647,17 @@
                 let html = '';
                 userOrdersList.forEach(o => {
                     let badge = '<span class="badge bg-pending">Pending</span>'; 
+                    let actionBtn = `<a href="${window.safeHTML(o.link)}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-link"></i> View</a>`;
+
                     if(o.status === 'Processing') badge = '<span class="badge bg-processing">Processing</span>'; 
-                    else if(o.status === 'Completed') badge = '<span class="badge bg-completed">Completed</span>'; 
+                    else if(o.status === 'Completed') {
+                        badge = '<span class="badge bg-completed">Completed</span>'; 
+                        // Automatically adds a Refill Button to completed orders!
+                        actionBtn += `<br><button onclick="window.requestRefill('${o.id}')" style="background:var(--primary-light); color:var(--primary); border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer; margin-top:5px; transition:0.2s;"><i class="fa-solid fa-rotate"></i> Request Refill</button>`;
+                    } 
                     else if(o.status === 'Canceled' || o.status === 'Refunded') badge = '<span class="badge bg-canceled">Refunded</span>';
                     
-                    html += `<tr><td><small>${o.id.slice(-6)}</small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td><a href="${window.safeHTML(o.link)}" target="_blank" style="color:var(--primary);">View</a></td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
+                    html += `<tr><td><small>${o.id.slice(-6)}</small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td>${actionBtn}</td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
                 });
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
             }, (error) => { console.error("Firebase Read Error (Orders):", error); });
@@ -1891,9 +1897,20 @@
             } catch(error) { window.showToast("Error submitting proof", "error"); }
         };
 
-        window.createTicket = async function(e) {
-            e.preventDefault();
-            const subject = window.safeHTML(document.getElementById('ticket-subject').value.trim());
+        window.requestRefill = async function(orderId) {
+            if(confirm("Send a refill request for this order? Support will check if it is eligible.")) {
+                try {
+                    await push(ref(db, 'tickets'), { 
+                        userId: currentUser.uid, 
+                        subject: `Refill Request: Order #${orderId.slice(-6)}`, 
+                        message: `Please check and refill my order ID: ${orderId}`, 
+                        status: 'Open', 
+                        timestamp: Date.now() 
+                    });
+                    window.showToast("Refill request sent to support!", "success");
+                } catch(e) { window.showToast("Error requesting refill", "error"); }
+            }
+        };
             const message = window.safeHTML(document.getElementById('ticket-message').value.trim());
             
             if(!subject || !message) return window.showToast("Don't leave fields blank", "error");
