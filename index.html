@@ -1609,11 +1609,13 @@
                 }
             });
             
-            // 2. Orders Listener (Filtered via Secure Firebase Query)
-            const ordersQ = query(ref(db, 'orders'), orderByChild('userId'), equalTo(uid));
-            onValue(ordersQ, (snap) => {
+            // 2. Orders Listener (Bulletproof Fallback Method)
+            onValue(ref(db, 'orders'), (snap) => {
                 const orders = snap.val() || {};
-                const userOrdersList = Object.keys(orders).map(k => ({ id: k, ...orders[k] })).reverse();
+                const userOrdersList = Object.keys(orders)
+                    .map(k => ({ id: k, ...orders[k] }))
+                    .filter(o => o.userId === uid)
+                    .reverse();
 
                 document.getElementById('stat-total-orders').innerText = userOrdersList.length; 
                 let html = '';
@@ -1626,13 +1628,15 @@
                     html += `<tr><td><small>${o.id.slice(-6)}</small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td><a href="${window.safeHTML(o.link)}" target="_blank" style="color:var(--primary);">View</a></td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
                 });
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
-            }, (error) => { console.error("Orders blocked by Firebase Rules:", error); });
+            }, (error) => { console.error("Firebase Blocked Read:", error); });
             
-            // 3. Payment Proofs / Deposits (Filtered via Secure Firebase Query)
-            const proofsQ = query(ref(db, 'payment_proofs'), orderByChild('userId'), equalTo(uid));
-            onValue(proofsQ, (snap) => {
+            // 3. Payment Proofs / Deposits (Bulletproof Fallback Method)
+            onValue(ref(db, 'payment_proofs'), (snap) => {
                 const proofs = snap.val() || {}; 
-                const userDepositsList = Object.keys(proofs).map(k => ({id: k, ...proofs[k]})).sort((a, b) => b.timestamp - a.timestamp);
+                const userDepositsList = Object.keys(proofs)
+                    .map(k => ({id: k, ...proofs[k]}))
+                    .filter(p => p.userId === uid)
+                    .sort((a, b) => b.timestamp - a.timestamp);
                 
                 let html = '';
                 userDepositsList.forEach(p => {
@@ -1663,13 +1667,15 @@
                 });
                 const transTable = document.getElementById('transactions-table');
                 if(transTable) transTable.innerHTML = transHtml || '<tr><td colspan="4" align="center">No transactions found.</td></tr>';
-            }, (error) => { console.error("Deposits blocked by Firebase Rules", error); });
+            }, (error) => { console.error("Firebase Blocked Read:", error); });
             
-            // 4. Tickets (Filtered via Secure Firebase Query)
-            const ticketsQ = query(ref(db, 'tickets'), orderByChild('userId'), equalTo(uid));
-            onValue(ticketsQ, (snap) => {
+            // 4. Tickets (Bulletproof Fallback Method)
+            onValue(ref(db, 'tickets'), (snap) => {
                 const tickets = snap.val() || {}; let html = '';
-                const myTickets = Object.keys(tickets).map(k => ({id:k, ...tickets[k]}));
+                const myTickets = Object.keys(tickets)
+                    .map(k => ({id:k, ...tickets[k]}))
+                    .filter(t => t.userId === uid);
+                    
                 if(myTickets.length === 0){ html = '<div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;">Send a message to start a conversation.</div>'; } 
                 else {
                     myTickets.forEach(t => {
@@ -1679,7 +1685,7 @@
                 }
                 const container = document.getElementById('chat-history-container');
                 container.innerHTML = html; container.scrollTop = container.scrollHeight;
-            }, (error) => { console.error("Tickets blocked by Firebase Rules", error); });
+            }, (error) => { console.error("Firebase Blocked Read:", error); });
         }
 
         function renderServices() {
