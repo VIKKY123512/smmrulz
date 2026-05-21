@@ -1158,7 +1158,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getDatabase, ref, get, set, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+        import { getDatabase, ref, get, set, update, onValue, push, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
@@ -1609,17 +1609,11 @@
                 }
             });
             
-            // 2. Orders Listener (Optimized & Defensive)
-            onValue(ref(db, 'orders'), (snap) => {
+            // 2. Orders Listener (Filtered via Secure Firebase Query)
+            const ordersQ = query(ref(db, 'orders'), orderByChild('userId'), equalTo(uid));
+            onValue(ordersQ, (snap) => {
                 const orders = snap.val() || {};
-                const userOrdersList = [];
-                
-                Object.keys(orders).forEach(k => {
-                    if (orders[k].userId === uid) {
-                        userOrdersList.push({ id: k, ...orders[k] });
-                    }
-                });
-                userOrdersList.reverse();
+                const userOrdersList = Object.keys(orders).map(k => ({ id: k, ...orders[k] })).reverse();
 
                 document.getElementById('stat-total-orders').innerText = userOrdersList.length; 
                 let html = '';
@@ -1632,13 +1626,14 @@
                     html += `<tr><td><small>${o.id.slice(-6)}</small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td><a href="${window.safeHTML(o.link)}" target="_blank" style="color:var(--primary);">View</a></td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
                 });
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
-            });
+            }, (error) => { console.error("Orders blocked by Firebase Rules:", error); });
             
-            onValue(ref(db, 'payment_proofs'), (snap) => {
+            // 3. Payment Proofs / Deposits (Filtered via Secure Firebase Query)
+            const proofsQ = query(ref(db, 'payment_proofs'), orderByChild('userId'), equalTo(uid));
+            onValue(proofsQ, (snap) => {
                 const proofs = snap.val() || {}; 
-                const userDepositsList = Object.keys(proofs).map(k => ({id: k, ...proofs[k]})).filter(p => p.userId === currentUser.uid).sort((a, b) => b.timestamp - a.timestamp);
+                const userDepositsList = Object.keys(proofs).map(k => ({id: k, ...proofs[k]})).sort((a, b) => b.timestamp - a.timestamp);
                 
-                // DEPOSIT HISTORY LOGIC
                 let html = '';
                 userDepositsList.forEach(p => {
                     let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
@@ -1647,7 +1642,6 @@
                 });
                 document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="4" align="center">No deposit history found.</td></tr>';
 
-                // NEW: TRANSACTIONS HISTORY LOGIC
                 const transElement = document.getElementById('stat-total-transactions');
                 if (transElement) transElement.innerText = userDepositsList.length;
                 
@@ -1669,11 +1663,13 @@
                 });
                 const transTable = document.getElementById('transactions-table');
                 if(transTable) transTable.innerHTML = transHtml || '<tr><td colspan="4" align="center">No transactions found.</td></tr>';
-            });
+            }, (error) => { console.error("Deposits blocked by Firebase Rules", error); });
             
-            onValue(ref(db, 'tickets'), (snap) => {
+            // 4. Tickets (Filtered via Secure Firebase Query)
+            const ticketsQ = query(ref(db, 'tickets'), orderByChild('userId'), equalTo(uid));
+            onValue(ticketsQ, (snap) => {
                 const tickets = snap.val() || {}; let html = '';
-                const myTickets = Object.keys(tickets).map(k => ({id:k, ...tickets[k]})).filter(t => t.userId === currentUser.uid);
+                const myTickets = Object.keys(tickets).map(k => ({id:k, ...tickets[k]}));
                 if(myTickets.length === 0){ html = '<div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;">Send a message to start a conversation.</div>'; } 
                 else {
                     myTickets.forEach(t => {
@@ -1683,7 +1679,7 @@
                 }
                 const container = document.getElementById('chat-history-container');
                 container.innerHTML = html; container.scrollTop = container.scrollHeight;
-            });
+            }, (error) => { console.error("Tickets blocked by Firebase Rules", error); });
         }
 
         function renderServices() {
