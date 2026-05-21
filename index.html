@@ -39,6 +39,17 @@
             --border-color: #dce1e8; --radius: 12px; 
             --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
         }
+        
+        /* Dark Theme Variables */
+        body.dark-mode {
+            --bg-top: #1e1e1e; 
+            --bg-bottom: #121212; 
+            --dark-card: #2d2d2d;
+            --text-dark: #f3f4f6; 
+            --text-gray: #9ca3af;
+            --border-color: #374151;
+            --primary-light: rgba(59, 73, 223, 0.15);
+        }
 
         
 
@@ -661,7 +672,7 @@
         <header>
             <div class="header-logo brand-glow"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
             <div style="display:flex; align-items:center; gap: 20px;">
-                
+                <i class="fa-solid fa-moon" id="theme-toggle" onclick="window.toggleTheme()" style="font-size: 20px; color: var(--text-gray); cursor: pointer; transition: 0.3s;"></i>
                 <i class="fa-solid fa-bars menu-btn" onclick="window.toggleDrawer()"></i>
             </div>
         </header>
@@ -1001,6 +1012,18 @@
     <script>
         // Security Wrapper
         window.safeHTML = function(text) { return DOMPurify.sanitize(text || ''); };
+        
+        // Theme Toggle Logic
+        if(localStorage.getItem('theme') === 'dark') { 
+            document.body.classList.add('dark-mode'); 
+            setTimeout(() => document.getElementById('theme-toggle').className = 'fa-solid fa-sun', 100);
+        }
+        window.toggleTheme = function() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            const icon = document.getElementById('theme-toggle');
+            icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        };
 
         window.showToast = function(msg, type = 'success') {
             const container = document.getElementById('toast-container');
