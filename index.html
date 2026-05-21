@@ -195,7 +195,7 @@
            INTERNAL APP STYLES
            ========================================= */
         #app-layout { display: none; flex-direction: column; width: 100%; min-height: 100vh; }
-        header { background: var(--bg-top); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 10; width: 100%; border-bottom: 2px solid var(--border-color); flex-shrink: 0;}
+        header { background: var(--bg-top); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); z-index: 1000; width: 100%; border-bottom: 2px solid var(--border-color); flex-shrink: 0; position: sticky; top: 0; left: 0;}
         .header-logo { display: flex; align-items: center; }
         .menu-btn { font-size: 24px; color: var(--primary); cursor: pointer; padding: 5px; }
 
@@ -1911,6 +1911,10 @@
                 } catch(e) { window.showToast("Error requesting refill", "error"); }
             }
         };
+
+        window.createTicket = async function(e) {
+            e.preventDefault();
+            const subject = window.safeHTML(document.getElementById('ticket-subject').value.trim());
             const message = window.safeHTML(document.getElementById('ticket-message').value.trim());
             
             if(!subject || !message) return window.showToast("Don't leave fields blank", "error");
