@@ -1947,22 +1947,35 @@
     </script>
     
     <script>
-        // Allow context menu (Right-Click/Long-Press) ONLY on input fields so users can Paste links!
-        document.addEventListener('contextmenu', event => {
-            if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
-                event.preventDefault();
-            }
-        });
-        
-        // Keep the keyboard shortcuts blocked for security
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'F12' || 
-               (e.ctrlKey && e.shiftKey && e.key === 'I') || 
-               (e.ctrlKey && e.shiftKey && e.key === 'J') || 
-               (e.ctrlKey && e.key === 'U')) {
-                e.preventDefault();
-            }
-        });
+        // 🛡️ ULTIMATE ANTI-CRACK & ANTI-THEFT SHIELD 🛡️
+        (function() {
+            // 1. Block Context Menu (Right-Click) EXCEPT on inputs for pasting
+            document.addEventListener('contextmenu', event => {
+                if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') event.preventDefault();
+            });
+            
+            // 2. Block Advanced Developer Tools Shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'F12' || 
+                   (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
+                   (e.ctrlKey && (e.key === 'U' || e.key === 'S' || e.key === 'P'))) {
+                    e.preventDefault();
+                }
+            });
+
+            // 3. Disable Text Selection & Dragging (Protects content copying)
+            document.addEventListener('selectstart', e => { 
+                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') e.preventDefault(); 
+            });
+            document.addEventListener('dragstart', e => e.preventDefault());
+
+            // 4. Console Warning Trap
+            setTimeout(() => {
+                console.clear();
+                console.log("%cSTOP! 🛑", "color: red; font-size: 40px; font-weight: bold; text-shadow: 2px 2px 0 #000;");
+                console.log("%cThis is a highly restricted secure environment. If someone told you to copy-paste scripts here, it is a scam and will give them access to your account and wallet balance. Attempting to scrape or inject code will result in an automatic IP and MAC Address ban.", "color: white; background: red; font-size: 14px; padding: 10px; border-radius: 5px;");
+            }, 2000);
+        })();
     </script>
 </body>
 </html>
