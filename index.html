@@ -680,7 +680,7 @@
         <div class="announcement-bar">
             <i class="fa-solid fa-bullhorn"></i>
             <div class="ticker-wrap">
-                <div class="ticker-move">
+                <div class="ticker-move" id="live-ticker-text">
                     🔥 Welcome to Perfect SMM! The fastest, most secure SMM Panel. Keep adding funds to enjoy uninterrupted service. 🚀
                 </div>
             </div>
@@ -1618,6 +1618,25 @@
                 } else {
                     document.getElementById('custom-link-box').style.display = 'none';
                 }
+                
+                // 📢 DYNAMIC LIVE TICKER
+                const tickerEl = document.getElementById('live-ticker-text');
+                if (tickerEl) {
+                    tickerEl.innerHTML = s.announcement ? window.safeHTML(s.announcement) : '🔥 Welcome to Perfect SMM! The fastest, most secure SMM Panel. Keep adding funds to enjoy uninterrupted service. 🚀';
+                }
+
+                // 🛑 GLOBAL MAINTENANCE MODE CHECK
+                window.isMaintenanceMode = s.maintenance === true;
+                const orderBtn = document.getElementById('order-btn');
+                if (window.isMaintenanceMode) {
+                    orderBtn.disabled = true;
+                    orderBtn.style.background = 'var(--danger)';
+                    orderBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> System Under Maintenance';
+                } else if (!isOrderProcessing) {
+                    orderBtn.disabled = false;
+                    orderBtn.style.background = '';
+                    orderBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost';
+                }
             });
         }
 
@@ -1795,6 +1814,7 @@
         window.submitOrder = async function(e) {
             e.preventDefault();
             
+            if (window.isMaintenanceMode) return window.showToast("Ordering is currently disabled for maintenance.", "error");
             if (isOrderProcessing) return;
             isOrderProcessing = true; 
 
