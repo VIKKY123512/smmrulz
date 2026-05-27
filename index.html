@@ -1240,7 +1240,8 @@
                     const cred = await createUserWithEmailAndPassword(auth, email, pass);
                     const baseWords = email.split('@')[0].replace(/[^a-zA-Z]/g, '').substring(0, 6);
                     const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(ref(db, `users/${cred.user.uid}`), { email: email, username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                    // 🚀 FIX: Removed balance & suspended fields so Firebase Rules don't block user creation!
+                    await set(ref(db, `users/${cred.user.uid}`), { email: email, username: username, createdAt: Date.now() });
                     window.showToast("Account Created! Logging in...");
                 } else { 
                     await signInWithEmailAndPassword(auth, email, pass); 
@@ -1284,7 +1285,8 @@
                 if (!snapshot.exists()) {
                     const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
                     const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                    // 🚀 FIX: Removed balance & suspended fields so Firebase Rules don't block user creation!
+                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, createdAt: Date.now() });
                 }
                 
                 window.showToast("Google Login Successful!");
@@ -1382,7 +1384,8 @@
                         const safeEmail = user.email || 'user@smmrulz.com';
                         const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
                         const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                        await set(userRef, { email: window.safeHTML(safeEmail), username: username, balance: 0, suspended: false, createdAt: Date.now() });
+                        // 🚀 FIX: Removed balance & suspended fields so Firebase Rules don't block user creation!
+                        await set(userRef, { email: window.safeHTML(safeEmail), username: username, createdAt: Date.now() });
 
                         document.getElementById('drawer-email').innerHTML = username;
                         document.getElementById('stat-username').innerHTML = username;
