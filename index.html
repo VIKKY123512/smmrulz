@@ -1388,10 +1388,11 @@
                         document.getElementById('stat-username').innerHTML = username;
                         rawBalance = 0;
                     } else {
-                        const finalUsername = window.safeHTML(userSnap.val().username || userSnap.val().email.split('@')[0]);
+                        const safeDbEmail = userSnap.val().email || user.email || 'user@smmrulz.com';
+                        const finalUsername = window.safeHTML(userSnap.val().username || safeDbEmail.split('@')[0]);
                         document.getElementById('drawer-email').innerHTML = finalUsername;
                         document.getElementById('stat-username').innerHTML = finalUsername;
-                        rawBalance = userSnap.val().balance || 0;
+                        rawBalance = parseFloat(userSnap.val().balance) || 0;
                     }
 
                     document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
@@ -1647,7 +1648,8 @@
             // 1. Balance Listener
             onValue(ref(db, `users/${uid}/balance`), (snap) => { 
                 if(snap.exists()) {
-                    document.getElementById('stat-balance').innerText = parseFloat(snap.val()).toFixed(2);
+                    rawBalance = parseFloat(snap.val()) || 0; // 🚀 SYNCS LIVE BALANCE TO JAVASCRIPT
+                    document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
                 }
             });
             
@@ -1842,6 +1844,14 @@
                 const service = globalServices[srvId];
                 if(!service || qty < service.min || qty > service.max) {
                     window.showToast(`Limits: ${service.min} - ${service.max}`, "error"); throw new Error("Validation");
+                }
+
+                // 🛑 MASTER FEATURE: FRONTEND BALANCE GUARD
+                const baseCharge = (service.price / 1000) * qty;
+                if (rawBalance < baseCharge) {
+                    window.showToast("Insufficient Funds! Please add money to your wallet.", "error"); 
+                    window.switchView('add-funds'); // Auto-redirect to Add Funds page
+                    throw new Error("Validation");
                 }
 
                 const API_URL = '/api/order';
