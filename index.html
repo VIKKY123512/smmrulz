@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
     <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -305,8 +305,8 @@
         .search-suggestion-price { font-size: 12px; color: var(--success); font-weight: 600; }
 
         .table-wrapper { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border-color); width: 100%; }
-        table { width: 100%; border-collapse: collapse; min-width: 600px; background: var(--bg-top); }
-        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        table { width: 100%; border-collapse: collapse; background: var(--bg-top); }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; white-space: normal; word-wrap: break-word; }
         th { background: var(--bg-bottom); color: var(--text-gray); font-weight: 600; text-transform: uppercase; font-size: 11px; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: white; }
         .bg-pending { background: #f39c12; } .bg-processing { background: #3498db; } .bg-completed { background: #2ecc71; } .bg-canceled { background: #e74c3c; }
@@ -392,7 +392,25 @@
         <div class="landing-content">
             <header class="landing-header">
                 <div class="landing-logo brand-glow"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
+                <i class="fa-solid fa-bars" style="font-size: 28px; color: var(--text-dark); cursor: pointer; z-index: 11;" onclick="document.getElementById('landing-mobile-menu').style.display='flex'"></i>
             </header>
+            
+            <div id="landing-mobile-menu" style="display:none; position:fixed; inset:0; background:var(--bg-top); z-index:9999; flex-direction:column; padding:30px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:50px;">
+                    <div class="brand-glow" style="font-size:24px;"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
+                    <i class="fa-solid fa-xmark" style="font-size:32px; color:var(--text-dark); cursor:pointer;" onclick="document.getElementById('landing-mobile-menu').style.display='none'"></i>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:25px; font-size:18px; font-weight:600;">
+                    <a href="javascript:void(0)" onclick="window.showToast('Please Login or Register to view our full services and pricing.', 'info'); document.getElementById('landing-mobile-menu').style.display='none';" style="color:var(--text-dark); text-decoration:none;"><i class="fa-solid fa-list" style="color:var(--primary); width:30px;"></i> Services List</a>
+                    <a href="javascript:void(0)" onclick="window.openInfoModal('about'); document.getElementById('landing-mobile-menu').style.display='none';" style="color:var(--text-dark); text-decoration:none;"><i class="fa-solid fa-circle-info" style="color:var(--success); width:30px;"></i> About Us</a>
+                    <a href="javascript:void(0)" onclick="window.openInfoModal('contact'); document.getElementById('landing-mobile-menu').style.display='none';" style="color:var(--text-dark); text-decoration:none;"><i class="fa-solid fa-headset" style="color:var(--danger); width:30px;"></i> Contact Support</a>
+                    <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
+                    <span style="font-size: 14px; color: var(--text-gray); text-transform: uppercase;">Join our Community</span>
+                    <a id="mobile-menu-wa" href="#" target="_blank" style="color:#25D366; text-decoration:none; display:none;"><i class="fa-brands fa-whatsapp" style="width:30px;"></i> WhatsApp</a>
+                    <a id="mobile-menu-tg" href="#" target="_blank" style="color:#0088cc; text-decoration:none; display:none;"><i class="fa-brands fa-telegram" style="width:30px;"></i> Telegram</a>
+                    <a id="mobile-menu-ig" href="#" target="_blank" style="color:#E1306C; text-decoration:none; display:none;"><i class="fa-brands fa-instagram" style="width:30px;"></i> Instagram</a>
+                </div>
+            </div>
 
             <section class="landing-hero">
                 <div class="hero-text">
@@ -1304,14 +1322,12 @@
                 console.error("Google Auth Error:", error);
                 window.showToast("Authentication Failed.", "error");
             } finally {
-                // Smoothly remove loading screen
-                setTimeout(() => {
-                    const loader = document.getElementById('global-loader');
-                    if (loader) {
-                        loader.style.opacity = '0';
-                        setTimeout(() => { loader.style.display = 'none'; loader.style.opacity = '1'; }, 500);
-                    }
-                }, 500);
+                // 🚀 INSTANT REDIRECT FIX: Removes the shuttering delay
+                const loader = document.getElementById('global-loader');
+                if (loader) {
+                    loader.style.display = 'none'; 
+                    loader.style.opacity = '1';
+                }
             }
         };
 
@@ -1420,13 +1436,12 @@
                 document.getElementById('app-layout').style.display = 'none';
             }
 
-            setTimeout(() => {
-                const loader = document.getElementById('global-loader');
-                if (loader) {
-                    loader.style.opacity = '0';
-                    setTimeout(() => loader.style.display = 'none', 500);
-                }
-            }, 500);
+            // 🚀 INSTANT REDIRECT FIX: Removes the shuttering delay
+            const loader = document.getElementById('global-loader');
+            if (loader) {
+                loader.style.display = 'none';
+                loader.style.opacity = '1';
+            }
         });
 
         window.getCatIcon = function(name) {
@@ -1599,6 +1614,8 @@
                 if(tgUrl) { 
                     document.getElementById('link-tg').href = tgUrl; 
                     document.getElementById('link-tg').style.display = 'block'; 
+                    const mMenuTg = document.getElementById('mobile-menu-tg');
+                    if(mMenuTg) { mMenuTg.href = tgUrl; mMenuTg.style.display = 'block'; }
                     
                     const authTg = document.getElementById('auth-promo-tg');
                     if(authTg) authTg.href = tgUrl;
@@ -1606,12 +1623,27 @@
                     if(ordTg) ordTg.href = tgUrl;
                 } else { 
                     document.getElementById('link-tg').style.display = 'none'; 
+                    if(document.getElementById('mobile-menu-tg')) document.getElementById('mobile-menu-tg').style.display = 'none';
                 }
                 
                 // Other Promos
                 const igUrl = checkUrl(s.instagram);
-                if(igUrl) { document.getElementById('link-ig').href = igUrl; document.getElementById('link-ig').style.display = 'block'; } 
-                else { document.getElementById('link-ig').style.display = 'none'; }
+                if(igUrl) { 
+                    document.getElementById('link-ig').href = igUrl; 
+                    document.getElementById('link-ig').style.display = 'block'; 
+                    const mMenuIg = document.getElementById('mobile-menu-ig');
+                    if(mMenuIg) { mMenuIg.href = igUrl; mMenuIg.style.display = 'block'; }
+                } else { 
+                    document.getElementById('link-ig').style.display = 'none'; 
+                    if(document.getElementById('mobile-menu-ig')) document.getElementById('mobile-menu-ig').style.display = 'none';
+                }
+                
+                if(waLink) {
+                    const mMenuWa = document.getElementById('mobile-menu-wa');
+                    if(mMenuWa) { mMenuWa.href = waLink; mMenuWa.style.display = 'block'; }
+                } else {
+                    if(document.getElementById('mobile-menu-wa')) document.getElementById('mobile-menu-wa').style.display = 'none';
+                }
                 
                 const customUrl = checkUrl(s.customUrl);
                 if(customUrl) {
@@ -1911,7 +1943,19 @@
             if(!payMethod) return window.showToast("Please select a Payment Method first", "error");
             if(typedAmount <= 0) return window.showToast("Invalid amount", "error");
 
+            // 🛑 AUTOMATIC SECURE UTR VERIFICATION SYSTEM
+            if (txid.length !== 12 || !/^\d+$/.test(txid)) {
+                return window.showToast("Invalid Transaction ID! PhonePe UTR must be exactly 12 digits.", "error");
+            }
+
             try {
+                // Check for duplicate UTRs across the database securely
+                const duplicateCheckQ = query(ref(db, 'payment_proofs'), orderByChild('txid'), equalTo(txid));
+                const duplicateSnap = await get(duplicateCheckQ);
+                if (duplicateSnap.exists()) {
+                    return window.showToast("Invalid! This Transaction ID has already been used.", "error");
+                }
+
                 await push(ref(db, 'payment_proofs'), { 
                     userId: currentUser.uid, 
                     email: currentUser.email, 
