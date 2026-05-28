@@ -936,19 +936,13 @@
                             </div>
 
                             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 25px 0;">
-                            <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--primary);">Submit Payment Details</h3>
+                            <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--primary);">Verify Transaction</h3>
                             <form id="proof-form" onsubmit="window.submitPaymentProof(event)">
-                                <div class="flex-row">
-                                    <div class="input-group">
-                                        <label>Amount Sent (₹)</label>
-                                        <input type="number" step="0.01" min="1" id="proof-amount" placeholder="e.g. 500" required>
-                                    </div>
-                                    <div class="input-group">
-                                        <label>Transaction ID / UTR</label>
-                                        <input type="text" id="proof-txid" placeholder="Paste TXN ID / UTR here" required>
-                                    </div>
+                                <div class="input-group" style="margin-bottom: 20px;">
+                                    <label>Transaction ID / UTR (12 Digits)</label>
+                                    <input type="text" id="proof-txid" placeholder="Paste 12-digit UTR here..." required>
                                 </div>
-                                <button type="submit" class="btn"><i class="fa-solid fa-check-circle"></i> Submit Payment Proof</button>
+                                <button type="submit" class="btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-shield-halved"></i> Verify & Add Funds</button>
                             </form>
                             <button class="btn" onclick="window.hidePaymentDetails()" style="background: var(--bg-bottom); color: var(--text-dark); margin-top: 15px; box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Go Back</button>
                         </div>
@@ -1535,9 +1529,13 @@
                 document.getElementById('pay-trigger').innerHTML = `💳 ${window.safeHTML(p.name)}`;
                 
                 let qrImg = document.getElementById('payment-qr-img');
-                if (p.qrUrl && (p.qrUrl.startsWith('http://') || p.qrUrl.startsWith('https://') || p.qrUrl.startsWith('data:image'))) {
+                if (p.qrUrl) {
                     qrImg.src = p.qrUrl;
-                } else { qrImg.src = ''; }
+                    qrImg.style.display = 'block';
+                } else { 
+                    qrImg.src = '';
+                    qrImg.style.display = 'none';
+                }
                 
                 document.getElementById('payment-instructions').innerText = p.instructions || '';
                 document.getElementById('qr-instruction-area').style.display = 'block';
@@ -1937,41 +1935,54 @@
         window.submitPaymentProof = async function(e) {
             e.preventDefault();
             const payMethod = document.getElementById('selected-pay-method').value;
-            const typedAmount = parseFloat(document.getElementById('proof-amount').value);
             const txid = window.safeHTML(document.getElementById('proof-txid').value.trim());
             
             if(!payMethod) return window.showToast("Please select a Payment Method first", "error");
-            if(typedAmount <= 0) return window.showToast("Invalid amount", "error");
 
             // 🛑 AUTOMATIC SECURE UTR VERIFICATION SYSTEM
             if (txid.length !== 12 || !/^\d+$/.test(txid)) {
                 return window.showToast("Invalid Transaction ID! PhonePe UTR must be exactly 12 digits.", "error");
             }
 
+            const btn = e.target.querySelector('button');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+            btn.disabled = true;
+
             try {
                 // Check for duplicate UTRs across the database securely
                 const duplicateCheckQ = query(ref(db, 'payment_proofs'), orderByChild('txid'), equalTo(txid));
                 const duplicateSnap = await get(duplicateCheckQ);
                 if (duplicateSnap.exists()) {
-                    return window.showToast("Invalid! This Transaction ID has already been used.", "error");
+                    btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Verify & Add Funds';
+                    btn.disabled = false;
+                    return window.showToast("Invalid! This Transaction ID has already been verified/used.", "error");
                 }
 
+                // Send to Admin for Secure Processing (Amount is 0 until Admin confirms via API/Dashboard)
                 await push(ref(db, 'payment_proofs'), { 
                     userId: currentUser.uid, 
                     email: currentUser.email, 
-                    amount: typedAmount, 
+                    amount: 0, 
                     txid: txid, 
                     method: globalPaymentMethods[payMethod]?.name || 'Unknown',
                     status: 'Pending', 
                     timestamp: Date.now() 
                 });
-                window.showToast("Proof Sent Successfully!"); 
+                
+                window.showToast("UTR Verified! Funds will reflect shortly.", "success"); 
                 e.target.reset(); 
                 document.getElementById('selected-pay-method').value = '';
                 document.getElementById('pay-trigger').innerHTML = '💳 Select Method...';
                 document.getElementById('qr-instruction-area').style.display = 'none';
                 window.switchView('deposit-history');
-            } catch(error) { window.showToast("Error submitting proof", "error"); }
+            } catch(error) { 
+                window.showToast("Error submitting verification", "error"); 
+            } finally {
+                if(btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-shield-halved"></i> Verify & Add Funds';
+                    btn.disabled = false;
+                }
+            }
         };
 
         window.requestRefill = async function(orderId) {
