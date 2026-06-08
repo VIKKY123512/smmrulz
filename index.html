@@ -371,14 +371,6 @@
 </head>
 <body>
 
-    <div id="global-loader">
-        <div class="loader-brand">
-            <span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span>
-        </div>
-        <div class="loader-spinner"></div>
-        <div class="loader-text">Securing Connection...</div>
-    </div>
-
     <div id="toast-container" class="toast-container"></div>
     
     <a href="#" id="floating-wa" class="floating-wa" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
@@ -1358,9 +1350,11 @@
         
         window.handleGoogleCredentialResponse = async function(response) {
             try {
-                // Instantly trigger loading screen
-                document.getElementById('global-loader').style.display = 'flex';
-                document.querySelector('.loader-text').innerText = 'Authenticating...';
+                // Instantly trigger loading state on button
+                const googleWrapper = document.getElementById('google-btn-wrapper');
+                if (googleWrapper) {
+                    googleWrapper.innerHTML = '<div style="padding: 10px; background: white; border: 1px solid #ddd; border-radius: 8px; color: #555; font-weight: 600; width: 100%; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"><i class="fa-solid fa-spinner fa-spin" style="color: var(--primary);"></i> Authenticating...</div>';
+                }
 
                 await setPersistence(auth, browserLocalPersistence);
                 
@@ -1509,11 +1503,11 @@
                 document.getElementById('app-layout').style.display = 'none';
             }
 
-            // 🚀 INSTANT REDIRECT FIX: Removes the shuttering delay
-            const loader = document.getElementById('global-loader');
-            if (loader) {
-                loader.style.display = 'none';
-                loader.style.opacity = '1';
+            // Login Check Completed
+            const loginBtn = document.getElementById('auth-submit-btn');
+            if (loginBtn && !currentUser) {
+                loginBtn.innerHTML = 'Login Securely';
+                loginBtn.disabled = false;
             }
         });
 
