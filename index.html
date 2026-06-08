@@ -1962,36 +1962,49 @@
 
         window.submitOrder = async function(e) {
             e.preventDefault();
+            const srvId = document.getElementById('order-srv').value;
+            const link = window.safeHTML(document.getElementById('order-link').value.trim());
+            const qty = parseInt(document.getElementById('order-qty').value);
             
-            if (window.isMaintenanceMode) return window.showToast("Ordering is currently disabled for maintenance.", "error");
-            if (isOrderProcessing) return;
-            isOrderProcessing = true; 
+            if(!srvId) return window.showToast("Please select a service first!", "error");
+            if(!link) return window.showToast("Target Link is required!", "error");
+            if(isNaN(qty) || qty <= 0) return window.showToast("Invalid quantity entered!", "error");
 
-            const btn = document.getElementById('order-btn'); 
+            // 🚀 UX FIX: Instantly show loading state to remove perceived "lag"
+            const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
-            btn.disabled = true; 
-            btn.style.opacity = "0.7";
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Placing Order...';
+            btn.disabled = true;
 
             try {
-                const srvId = document.getElementById('order-srv').value; 
-                let link = document.getElementById('order-link').value.trim(); 
-                const qty = parseInt(document.getElementById('order-qty').value);
-                
-                if(!srvId || !link || !qty) { window.showToast("Missing fields", "error"); throw new Error("Validation"); }
-                if(qty <= 0) { window.showToast("Quantity must be greater than 0", "error"); throw new Error("Validation"); }
-                
-                try {
-                    new URL(link.startsWith('http') ? link : 'https://' + link);
-                    if(!link.startsWith('http')) link = 'https://' + link;
-                } catch(err) {
-                    window.showToast("Please enter a valid URL", "error"); throw new Error("Validation");
-                }
+                const idToken = await currentUser.getIdToken(true);
+                const commentsGroup = document.getElementById('comments-group');
+                const commentsData = (commentsGroup && commentsGroup.style.display !== 'none') ? document.getElementById('order-comments').value.trim() : null;
 
-                const service = globalServices[srvId];
-                if(!service || qty < service.min || qty > service.max) {
-                    window.showToast(`Limits: ${service.min} - ${service.max}`, "error"); throw new Error("Validation");
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                    body: JSON.stringify({ uid: currentUser.uid, srvId: srvId, link: link, qty: qty, comments: commentsData })
+                });
+
+                const data = await response.json();
+                if(data.success) {
+                    window.showToast("Order Placed Successfully!", "success");
+                    e.target.reset();
+                    if(commentsGroup) commentsGroup.style.display = 'none';
+                    document.getElementById('order-charge').value = '0.00';
+                    window.switchView('order-history'); // 🚀 Instantly redirects to Order History
+                } else {
+                    window.showToast(data.error || "Failed to place order.", "error");
                 }
+            } catch (err) {
+                console.error(err);
+                window.showToast("Server connection error. Please try again.", "error");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        };
 
                 // 🛑 MASTER FEATURE: FRONTEND BALANCE GUARD
                 const baseCharge = (service.price / 1000) * qty;
