@@ -304,9 +304,11 @@
         .search-suggestion-name { font-size: 13px; font-weight: 600; color: var(--text-dark); }
         .search-suggestion-price { font-size: 12px; color: var(--success); font-weight: 600; }
 
-        .table-wrapper { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border-color); width: 100%; }
-        table { width: 100%; border-collapse: collapse; background: var(--bg-top); }
-        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; white-space: normal; word-wrap: break-word; }
+        .table-wrapper { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border-color); width: 100%; -webkit-overflow-scrolling: touch; cursor: grab; }
+        .table-wrapper::-webkit-scrollbar { height: 6px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; background: var(--bg-top); min-width: 800px; margin-bottom: 0; }
+        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; white-space: nowrap; }
         th { background: var(--bg-bottom); color: var(--text-gray); font-weight: 600; text-transform: uppercase; font-size: 11px; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: white; }
         .bg-pending { background: #f39c12; } .bg-processing { background: #3498db; } .bg-completed { background: #2ecc71; } .bg-canceled { background: #e74c3c; }
@@ -883,8 +885,8 @@
                         </div>
                         
                         <div class="card" style="padding: 10px;">
-                            <div class="table-wrapper" style="border: none; overflow-x: hidden;">
-                                <table style="min-width: 100%;">
+                            <div class="table-wrapper" style="border: none;">
+                                <table>
                                     <thead><tr><th style="width: 60px; text-align: center;">ID</th><th>Service Name & Details</th><th>Rate/1k (₹)</th><th>Min/Max</th></tr></thead>
                                     <tbody id="app-services-table"></tbody>
                                 </table>
