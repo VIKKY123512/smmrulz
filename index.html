@@ -226,7 +226,7 @@
         .nav-item:hover { background: var(--bg-bottom); }
         .nav-item.active { background: var(--primary-light); font-weight: 600; border-left-color: var(--primary); color: var(--primary); }
 
-        main { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 100vw; overflow-y: auto; overflow-x: hidden; background-color: var(--bg-bottom); padding-bottom: 100px; -webkit-overflow-scrolling: touch; }
+        main { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 100vw; overflow-y: auto; overflow-x: hidden; background-color: var(--bg-bottom); -webkit-overflow-scrolling: touch; }
         .view { display: none; animation: fadeIn 0.3s ease; width: 100%; box-sizing: border-box; }
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -883,9 +883,9 @@
                         </div>
                         
                         <div class="card" style="padding: 10px;">
-                            <div class="table-wrapper" style="border: none;">
-                                <table>
-                                    <thead><tr><th>Category</th><th>Service Name & Time</th><th>Rate/1k (₹)</th><th>Min/Max</th></tr></thead>
+                            <div class="table-wrapper" style="border: none; overflow-x: hidden;">
+                                <table style="min-width: 100%;">
+                                    <thead><tr><th style="width: 60px; text-align: center;">ID</th><th>Service Name & Details</th><th>Rate/1k (₹)</th><th>Min/Max</th></tr></thead>
                                     <tbody id="app-services-table"></tbody>
                                 </table>
                             </div>
@@ -1794,20 +1794,96 @@
 
         function renderServices() {
             let html = '';
+            let grouped = {};
+            
+            // Group services by category
             for(let id in globalServices) {
                 const s = globalServices[id];
                 if(s.active) {
-                    let avgTimeBadge = s.averageTime ? `<br><small style="color:var(--success); font-weight:600;"><i class="fa-solid fa-clock"></i> ${window.safeHTML(s.averageTime)}</small>` : '';
-                    html += `<tr>
-                        <td><small>${window.safeHTML(globalCategories[s.categoryId]?.name || '')}</small></td>
-                        <td style="font-weight:600;">${window.safeHTML(s.name)} ${avgTimeBadge}</td>
-                        <td style="color:var(--primary); font-weight:700;">₹${parseFloat(s.price || 0).toFixed(2)}</td>
-                        <td><small>${s.min} / ${s.max}</small></td>
-                    </tr>`;
+                    if(!grouped[s.categoryId]) grouped[s.categoryId] = [];
+                    grouped[s.categoryId].push({ id, ...s });
                 }
             }
+
+            // Sort categories logically
+            let sortedCatIds = Object.keys(grouped).sort((a, b) => {
+                let orderA = globalCategories[a]?.sortOrder || 999999;
+                let orderB = globalCategories[b]?.sortOrder || 999999;
+                return orderA - orderB;
+            });
+
+            sortedCatIds.forEach(catId => {
+                let catName = window.safeHTML(globalCategories[catId]?.name || 'Uncategorized');
+                let catIcon = window.getCatIcon(catName);
+                
+                // 🎨 BEAUTIFUL CATEGORY HEADER WITH COPY BUTTON
+                html += `<tr class="category-row" data-cat="${catId}" style="background: var(--primary-light);">
+                    <td colspan="4" style="padding: 12px 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 15px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                                ${catIcon} ${catName}
+                            </div>
+                            <button onclick="navigator.clipboard.writeText('${catName}'); window.showToast('Category name copied!');" style="background: white; border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; color: var(--primary); cursor: pointer; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" title="Copy Category Name"><i class="fa-solid fa-copy"></i> Copy</button>
+                        </div>
+                    </td>
+                </tr>`;
+
+                // ⚡ SERVICES LIST WITH ID COPY BUTTONS
+                grouped[catId].forEach(s => {
+                    let avgTimeBadge = s.averageTime ? `<br><small style="color:var(--success); font-weight:600;"><i class="fa-solid fa-clock"></i> ${window.safeHTML(s.averageTime)}</small>` : '';
+                    let safeSrvName = window.safeHTML(s.name);
+                    
+                    html += `<tr class="service-row" data-cat="${catId}" data-name="${safeSrvName.toLowerCase()}">
+                        <td style="text-align: center;">
+                            <span class="badge bg-processing" style="font-size: 10px;">${s.id}</span>
+                        </td>
+                        <td style="font-weight:600; line-height: 1.5;">
+                            <div style="display:flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+                                <span>${safeSrvName} ${avgTimeBadge}</span>
+                                <button onclick="navigator.clipboard.writeText('${s.id} - ${safeSrvName.replace(/'/g, "\\'")}'); window.showToast('Service copied!');" style="background: transparent; border: none; color: var(--text-gray); cursor: pointer; font-size: 14px; flex-shrink: 0;" onmouseover="this.style.color='var(--primary)';" onmouseout="this.style.color='var(--text-gray)';" title="Copy Service ID & Name"><i class="fa-solid fa-copy"></i></button>
+                            </div>
+                        </td>
+                        <td style="color:var(--primary); font-weight:700; white-space: nowrap;">₹${parseFloat(s.price || 0).toFixed(2)}</td>
+                        <td style="white-space: nowrap;"><small>${s.min} / ${s.max}</small></td>
+                    </tr>`;
+                });
+            });
+
             document.getElementById('app-services-table').innerHTML = html;
         }
+
+        window.filterServicesTable = function() {
+            const catFilter = document.getElementById('service-cat-filter') ? document.getElementById('service-cat-filter').value : 'all';
+            const searchInput = document.getElementById('service-search').value.toLowerCase();
+            
+            const catRows = document.querySelectorAll('.category-row');
+            const srvRows = document.querySelectorAll('.service-row');
+            
+            let visibleCats = new Set();
+
+            srvRows.forEach(row => {
+                let catId = row.getAttribute('data-cat');
+                let srvName = row.getAttribute('data-name');
+                
+                let matchesCat = (catFilter === 'all' || catFilter === catId);
+                let matchesSearch = srvName.includes(searchInput) || (globalCategories[catId] && globalCategories[catId].name.toLowerCase().includes(searchInput));
+                
+                if (matchesCat && matchesSearch) {
+                    row.style.display = "";
+                    visibleCats.add(catId);
+                } else {
+                    row.style.display = "none";
+                }
+            });
+
+            catRows.forEach(row => {
+                if (visibleCats.has(row.getAttribute('data-cat'))) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        };
 
         window.filterServices = function() {
             const catId = document.getElementById('order-cat').value; 
