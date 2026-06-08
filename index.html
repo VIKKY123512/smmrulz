@@ -8,6 +8,13 @@
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <script>if (window.top !== window.self) window.top.location.replace(window.self.location.href);</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script>
+        // 🚀 PREVENTS GOOGLE LOGIN RACE CONDITIONS
+        window.handleGoogleLogin = function(response) {
+            if (window.processGoogleToken) { window.processGoogleToken(response); } 
+            else { window.pendingGoogleResponse = response; }
+        };
+    </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <title>SMMRulz | Secure, Automated & Reliable SMM Services</title>
@@ -1970,6 +1977,17 @@
             if(!link) return window.showToast("Target Link is required!", "error");
             if(isNaN(qty) || qty <= 0) return window.showToast("Invalid quantity entered!", "error");
 
+            // 🛑 MASTER FEATURE: FRONTEND BALANCE GUARD
+            const service = globalServices[srvId];
+            if(service) {
+                const baseCharge = (service.price / 1000) * qty;
+                if (rawBalance < baseCharge) {
+                    window.showToast("Insufficient Funds! Please add money to your wallet.", "error"); 
+                    window.switchView('add-funds'); // Auto-redirect to Add Funds page
+                    return;
+                }
+            }
+
             // 🚀 UX FIX: Instantly show loading state to remove perceived "lag"
             const btn = e.target.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
@@ -1981,6 +1999,7 @@
                 const commentsGroup = document.getElementById('comments-group');
                 const commentsData = (commentsGroup && commentsGroup.style.display !== 'none') ? document.getElementById('order-comments').value.trim() : null;
 
+                const API_URL = '/api/order';
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
@@ -1988,12 +2007,12 @@
                 });
 
                 const data = await response.json();
-                if(data.success) {
+                if(data.success || response.ok) {
                     window.showToast("Order Placed Successfully!", "success");
                     e.target.reset();
                     if(commentsGroup) commentsGroup.style.display = 'none';
                     document.getElementById('order-charge').value = '0.00';
-                    window.switchView('order-history'); // 🚀 Instantly redirects to Order History
+                    window.switchView('orders-history'); 
                 } else {
                     window.showToast(data.error || "Failed to place order.", "error");
                 }
@@ -2003,63 +2022,6 @@
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-            }
-        };
-
-                // 🛑 MASTER FEATURE: FRONTEND BALANCE GUARD
-                const baseCharge = (service.price / 1000) * qty;
-                if (rawBalance < baseCharge) {
-                    window.showToast("Insufficient Funds! Please add money to your wallet.", "error"); 
-                    window.switchView('add-funds'); // Auto-redirect to Add Funds page
-                    throw new Error("Validation");
-                }
-
-                const API_URL = '/api/order';
-
-                // 🔒 SECURE TOKEN GENERATION
-                const idToken = await currentUser.getIdToken(true);
-
-                const commentsGroup = document.getElementById('comments-group');
-                const commentsData = (commentsGroup && commentsGroup.style.display !== 'none') ? document.getElementById('order-comments').value.trim() : null;
-
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${idToken}` // Token sent securely
-                    },
-                    body: JSON.stringify({
-                        uid: currentUser.uid, 
-                        srvId: srvId,
-                        link: link,
-                        qty: qty,
-                        comments: commentsData
-                    })
-                });
-                
-                const data = await response.json().catch(() => ({}));
-                
-                if (response.ok) {
-                    window.showToast("Order Placed Successfully!", "success");
-                    document.getElementById('order-form').reset(); 
-                    window.updateServiceDetails(); 
-                    window.switchView('orders-history');
-                } else {
-                    window.showToast(data.error || "Transaction Failed", "error");
-                }
-            } catch(error) { 
-                if (error.message !== "Validation") {
-                    console.error("API Error:", error);
-                    window.showToast("Server Connection Failed.", "error"); 
-                }
-            } finally { 
-                setTimeout(() => {
-                    isOrderProcessing = false;
-                    btn.disabled = false; 
-                    btn.style.opacity = "1";
-                    btn.innerHTML = originalText; 
-                }, 3000);
             }
         };
 
