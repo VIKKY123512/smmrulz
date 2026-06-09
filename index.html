@@ -8,26 +8,9 @@
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <script>if (window.top !== window.self) window.top.location.replace(window.self.location.href);</script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-    <script>
-        // 🚀 PREVENTS GOOGLE LOGIN RACE CONDITIONS
-        window.handleGoogleLogin = function(response) {
-            if (window.processGoogleToken) { window.processGoogleToken(response); } 
-            else { window.pendingGoogleResponse = response; }
-        };
-    </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <title>SMMRulz | Secure, Automated & Reliable SMM Services</title>
-    <style>
-        #login-view { display: flex !important; }
-        #login-view.hide-force { display: none !important; }
-        #app-layout.show-force { display: flex !important; }
-    </style>
-    <script>
-        window.onerror = function(msg, url, line) { 
-            alert("System Crash Detected!\nError on line " + line + ": " + msg); 
-        };
-    </script>
     
     <meta name="description" content="SMMRulz is a trusted and cheapest SMM panel offering fully automated Instagram, YouTube, TikTok & Facebook services with super fast delivery worldwide.">
     <meta name="keywords" content="SMM panel, cheapest SMM panel, Indian SMM panel, buy Instagram followers, buy YouTube views, SMMRulz">
@@ -71,7 +54,7 @@
         
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        html, body { background-color: var(--bg-bottom); color: var(--text-dark); overflow-x: hidden; height: 100%; min-height: 100dvh; display: flex; flex-direction: column; transition: background-color 0.3s, color 0.3s; }
+        html, body { background-color: var(--bg-bottom); color: var(--text-dark); overflow-x: hidden; height: 100%; display: flex; flex-direction: column; transition: background-color 0.3s, color 0.3s; }
 
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
         .toast { padding: 14px 20px; border-radius: 12px; color: white; font-weight: 600; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; transform: translateY(-150%); opacity: 0; transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
@@ -243,7 +226,7 @@
         .nav-item:hover { background: var(--bg-bottom); }
         .nav-item.active { background: var(--primary-light); font-weight: 600; border-left-color: var(--primary); color: var(--primary); }
 
-        main { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 100vw; overflow-y: auto; overflow-x: hidden; background-color: var(--bg-bottom); -webkit-overflow-scrolling: touch; }
+        main { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 100vw; overflow-y: auto; overflow-x: hidden; background-color: var(--bg-bottom); }
         .view { display: none; animation: fadeIn 0.3s ease; width: 100%; box-sizing: border-box; }
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -321,11 +304,13 @@
         .search-suggestion-name { font-size: 13px; font-weight: 600; color: var(--text-dark); }
         .search-suggestion-price { font-size: 12px; color: var(--success); font-weight: 600; }
 
-        .table-wrapper { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border-color); width: 100%; -webkit-overflow-scrolling: touch; cursor: grab; }
+        .table-wrapper { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border-color); width: 100%; -webkit-overflow-scrolling: touch; }
         .table-wrapper::-webkit-scrollbar { height: 6px; }
         .table-wrapper::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
-        table { width: 100%; border-collapse: collapse; background: var(--bg-top); min-width: 800px; margin-bottom: 0; }
-        th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; white-space: nowrap; }
+        table { width: 100%; border-collapse: collapse; background: var(--bg-top); min-width: 750px; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; white-space: nowrap; }
+        table { width: 100%; border-collapse: collapse; background: var(--bg-top); }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; white-space: normal; word-wrap: break-word; }
         th { background: var(--bg-bottom); color: var(--text-gray); font-weight: 600; text-transform: uppercase; font-size: 11px; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: white; }
         .bg-pending { background: #f39c12; } .bg-processing { background: #3498db; } .bg-completed { background: #2ecc71; } .bg-canceled { background: #e74c3c; }
@@ -401,16 +386,10 @@
     <div id="auth-container">
         
         <div class="landing-content">
-            <header class="landing-header" style="justify-content: center; position: relative;">
-                <div class="landing-logo brand-glow" style="font-size: 32px;"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
-                <i class="fa-solid fa-bars" style="font-size: 28px; color: var(--text-dark); cursor: pointer; position: absolute; right: 20px;" onclick="document.getElementById('landing-mobile-menu').style.display='flex'"></i>
+            <header class="landing-header">
+                <div class="landing-logo brand-glow"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
+                <i class="fa-solid fa-bars" style="font-size: 28px; color: var(--text-dark); cursor: pointer; z-index: 11;" onclick="document.getElementById('landing-mobile-menu').style.display='flex'"></i>
             </header>
-            
-            <div style="display: flex; justify-content: center; gap: 20px; margin-top: 10px; margin-bottom: 25px;">
-                <a href="#" class="dynamic-wa" target="_blank" style="display:none; color: #25D366; font-size: 26px; text-decoration: none;" title="WhatsApp Support"><i class="fa-brands fa-whatsapp"></i></a>
-                <a href="#" class="dynamic-tg" target="_blank" style="display:none; color: #0088cc; font-size: 26px; text-decoration: none;" title="Telegram Support"><i class="fa-brands fa-telegram"></i></a>
-                <a href="#" class="dynamic-ig" target="_blank" style="display:none; color: #E1306C; font-size: 26px; text-decoration: none;" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
-            </div>
             
             <div id="landing-mobile-menu" style="display:none; position:fixed; inset:0; background:var(--bg-top); z-index:9999; flex-direction:column; padding:30px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:50px;">
@@ -477,6 +456,18 @@
                         <div class="divider">Or</div>
                         
                         <div id="google-btn-wrapper" style="margin-top: 15px; width: 100%; display: flex; justify-content: center; min-height: 44px;"></div>
+
+                        <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                            <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--primary); text-align: center;">Our Live Services & Pricing</h3>
+                            <div class="table-wrapper" style="max-height: 350px; overflow-y: auto;">
+                                <table style="min-width: 100% !important;">
+                                    <thead><tr><th style="width: 60px; text-align: center;">ID</th><th>Service Name & Details</th><th>Rate/1k (₹)</th><th>Min/Max</th></tr></thead>
+                                    <tbody id="public-services-table">
+                                        <tr><td colspan="4" align="center">Loading live services...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
 
                         <div class="promo-cards-container" style="margin-top: 30px;">
                             <div class="promo-card">
@@ -1239,64 +1230,17 @@
         const db = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
+        let currentUser = null;
+        let rawBalance = 0;
         let globalCategories = {};
         let globalServices = {};
         let globalPaymentMethods = {};
-        let globalOrders = [];
-        let rawBalance = 0;
 
         function initPublicData() {
-            onValue(ref(db, 'categories'), (snap) => {
-                globalCategories = snap.val() || {};
-                if(document.getElementById('public-services-table')) window.renderPublicServices();
-            });
-            onValue(ref(db, 'services'), (snap) => {
-                globalServices = snap.val() || {};
-                if(document.getElementById('public-services-table')) window.renderPublicServices();
-            });
-            onValue(ref(db, 'settings/socials'), (snap) => {
-                const s = snap.val() || {};
-                const tgUrl = s.telegram ? (s.telegram.startsWith('http') ? s.telegram : `https://t.me/${s.telegram.replace('@','')}`) : '';
-                const waUrl = s.whatsapp ? (s.whatsapp.startsWith('http') ? s.whatsapp : `https://wa.me/${s.whatsapp.replace(/[^0-9]/g, '')}`) : '';
-                const igUrl = s.instagram ? (s.instagram.startsWith('http') ? s.instagram : `https://instagram.com/${s.instagram.replace('@','')}`) : '';
-                
-                if(tgUrl) document.querySelectorAll('.dynamic-tg').forEach(el => { el.href = tgUrl; el.style.display = 'flex'; });
-                if(waUrl) document.querySelectorAll('.dynamic-wa').forEach(el => { el.href = waUrl; el.style.display = 'flex'; });
-                if(igUrl) document.querySelectorAll('.dynamic-ig').forEach(el => { el.href = igUrl; el.style.display = 'flex'; });
-            });
+            onValue(ref(db, 'categories'), (snap) => { globalCategories = snap.val() || {}; renderServices(); });
+            onValue(ref(db, 'services'), (snap) => { globalServices = snap.val() || {}; renderServices(); });
         }
         initPublicData();
-
-        window.renderPublicServices = function() {
-            let html = '';
-            let grouped = {};
-            for(let id in globalServices) {
-                const s = globalServices[id];
-                if(s.active) {
-                    if(!grouped[s.categoryId]) grouped[s.categoryId] = [];
-                    grouped[s.categoryId].push({ id, ...s });
-                }
-            }
-            let sortedCatIds = Object.keys(grouped).sort((a, b) => {
-                let orderA = globalCategories[a]?.sortOrder || 999999;
-                let orderB = globalCategories[b]?.sortOrder || 999999;
-                return orderA - orderB;
-            });
-            sortedCatIds.forEach(catId => {
-                let catName = window.safeHTML(globalCategories[catId]?.name || 'Uncategorized');
-                html += `<tr style="background: var(--primary-light);"><td colspan="3" style="padding: 12px; font-weight: bold; color: var(--primary); text-align: center;">${catName}</td></tr>`;
-                grouped[catId].forEach(s => {
-                    let safeName = window.safeHTML(s.name);
-                    html += `<tr>
-                        <td style="white-space: normal;">${safeName}</td>
-                        <td style="color: var(--primary); font-weight: bold;">₹${parseFloat(s.price || 0).toFixed(2)}</td>
-                        <td>${s.min} / ${s.max}</td>
-                    </tr>`;
-                });
-            });
-            const tbody = document.getElementById('public-services-table');
-            if(tbody) tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;">No services available.</td></tr>';
-        };
 
         window.sendResetLink = async function() {
             const emailInput = document.getElementById('reset-email-input').value.trim();
@@ -1360,7 +1304,6 @@
         
         window.handleGoogleCredentialResponse = async function(response) {
             try {
-                // Instantly trigger loading state on button
                 const googleWrapper = document.getElementById('google-btn-wrapper');
                 if (googleWrapper) {
                     googleWrapper.innerHTML = '<div style="padding: 10px; background: white; border: 1px solid #ddd; border-radius: 8px; color: #555; font-weight: 600; width: 100%; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"><i class="fa-solid fa-spinner fa-spin" style="color: var(--primary);"></i> Authenticating...</div>';
@@ -1513,11 +1456,11 @@
                 document.getElementById('app-layout').style.display = 'none';
             }
 
-            // Login Check Completed
-            const loginBtn = document.getElementById('auth-submit-btn');
-            if (loginBtn && !currentUser) {
-                loginBtn.innerHTML = 'Login Securely';
-                loginBtn.disabled = false;
+            // Done loading
+            const submitBtn = document.getElementById('auth-submit-btn');
+            if (submitBtn && !currentUser) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = isSignupMode ? "Register Account" : "Login Securely";
             }
         });
 
@@ -1867,8 +1810,6 @@
         function renderServices() {
             let html = '';
             let grouped = {};
-            
-            // Group services by category
             for(let id in globalServices) {
                 const s = globalServices[id];
                 if(s.active) {
@@ -1876,86 +1817,46 @@
                     grouped[s.categoryId].push({ id, ...s });
                 }
             }
-
-            // Sort categories logically
             let sortedCatIds = Object.keys(grouped).sort((a, b) => {
                 let orderA = globalCategories[a]?.sortOrder || 999999;
                 let orderB = globalCategories[b]?.sortOrder || 999999;
                 return orderA - orderB;
             });
-
             sortedCatIds.forEach(catId => {
                 let catName = window.safeHTML(globalCategories[catId]?.name || 'Uncategorized');
                 let catIcon = window.getCatIcon(catName);
-                
-                // 🎨 BEAUTIFUL CATEGORY HEADER WITH COPY BUTTON
                 html += `<tr class="category-row" data-cat="${catId}" style="background: var(--primary-light);">
                     <td colspan="4" style="padding: 12px 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="font-size: 15px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                            <div style="font-size: 14px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
                                 ${catIcon} ${catName}
                             </div>
-                            <button onclick="navigator.clipboard.writeText('${catName}'); window.showToast('Category name copied!');" style="background: white; border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; color: var(--primary); cursor: pointer; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" title="Copy Category Name"><i class="fa-solid fa-copy"></i> Copy</button>
+                            <button type="button" onclick="navigator.clipboard.writeText('${catName}'); window.showToast('Category name copied!');" style="background: white; border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 8px; color: var(--primary); cursor: pointer; font-size: 11px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" title="Copy Category Name"><i class="fa-solid fa-copy"></i> Copy</button>
                         </div>
                     </td>
                 </tr>`;
-
-                // ⚡ SERVICES LIST WITH ID COPY BUTTONS
                 grouped[catId].forEach(s => {
                     let avgTimeBadge = s.averageTime ? `<br><small style="color:var(--success); font-weight:600;"><i class="fa-solid fa-clock"></i> ${window.safeHTML(s.averageTime)}</small>` : '';
                     let safeSrvName = window.safeHTML(s.name);
-                    
                     html += `<tr class="service-row" data-cat="${catId}" data-name="${safeSrvName.toLowerCase()}">
-                        <td style="text-align: center;">
-                            <span class="badge bg-processing" style="font-size: 10px;">${s.id}</span>
-                        </td>
-                        <td style="font-weight:600; line-height: 1.5;">
+                        <td style="text-align: center;"><span class="badge bg-processing" style="font-size: 10px;">${s.id}</span></td>
+                        <td style="font-weight:600; line-height: 1.5; white-space: normal;">
                             <div style="display:flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
                                 <span>${safeSrvName} ${avgTimeBadge}</span>
-                                <button onclick="navigator.clipboard.writeText('${s.id} - ${safeSrvName.replace(/'/g, "\\'")}'); window.showToast('Service copied!');" style="background: transparent; border: none; color: var(--text-gray); cursor: pointer; font-size: 14px; flex-shrink: 0;" onmouseover="this.style.color='var(--primary)';" onmouseout="this.style.color='var(--text-gray)';" title="Copy Service ID & Name"><i class="fa-solid fa-copy"></i></button>
+                                <button type="button" onclick="navigator.clipboard.writeText('${s.id} - ${safeSrvName.replace(/'/g, "\\'")}'); window.showToast('Service copied!');" style="background: transparent; border: none; color: var(--text-gray); cursor: pointer; font-size: 13px; flex-shrink: 0;" title="Copy Service ID & Name"><i class="fa-solid fa-copy"></i></button>
                             </div>
                         </td>
-                        <td style="color:var(--primary); font-weight:700; white-space: nowrap;">₹${parseFloat(s.price || 0).toFixed(2)}</td>
-                        <td style="white-space: nowrap;"><small>${s.min} / ${s.max}</small></td>
+                        <td style="color:var(--primary); font-weight:700;">₹${parseFloat(s.price || 0).toFixed(2)}</td>
+                        <td><small>${s.min} / ${s.max}</small></td>
                     </tr>`;
                 });
             });
-
-            document.getElementById('app-services-table').innerHTML = html;
+            
+            const appTable = document.getElementById('app-services-table');
+            if (appTable) appTable.innerHTML = html;
+            const publicTable = document.getElementById('public-services-table');
+            if (publicTable) publicTable.innerHTML = html || '<tr><td colspan="4" align="center">No services available.</td></tr>';
         }
-
-        window.filterServicesTable = function() {
-            const catFilter = document.getElementById('service-cat-filter') ? document.getElementById('service-cat-filter').value : 'all';
-            const searchInput = document.getElementById('service-search').value.toLowerCase();
-            
-            const catRows = document.querySelectorAll('.category-row');
-            const srvRows = document.querySelectorAll('.service-row');
-            
-            let visibleCats = new Set();
-
-            srvRows.forEach(row => {
-                let catId = row.getAttribute('data-cat');
-                let srvName = row.getAttribute('data-name');
-                
-                let matchesCat = (catFilter === 'all' || catFilter === catId);
-                let matchesSearch = srvName.includes(searchInput) || (globalCategories[catId] && globalCategories[catId].name.toLowerCase().includes(searchInput));
-                
-                if (matchesCat && matchesSearch) {
-                    row.style.display = "";
-                    visibleCats.add(catId);
-                } else {
-                    row.style.display = "none";
-                }
-            });
-
-            catRows.forEach(row => {
-                if (visibleCats.has(row.getAttribute('data-cat'))) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
-            });
-        };
 
         window.filterServices = function() {
             const catId = document.getElementById('order-cat').value; 
@@ -1981,13 +1882,15 @@
             const descText = document.getElementById('service-desc-text');
             const rulesText = document.getElementById('service-rules-text');
             const limitsBox = document.getElementById('qty-limits');
+            
+            document.getElementById('order-qty').value = ''; document.getElementById('order-charge').value = '0.00';
+            
             const commentsGroup = document.getElementById('comments-group');
             const commentsInput = document.getElementById('order-comments');
             const qtyInput = document.getElementById('order-qty');
             
-            qtyInput.value = ''; document.getElementById('order-charge').value = '0.00';
-            commentsInput.value = '';
-            
+            if (commentsInput) commentsInput.value = '';
+
             if(srvId && globalServices[srvId]) {
                 const s = globalServices[srvId];
                 infoBox.style.display = 'block'; 
@@ -1996,20 +1899,17 @@
                 rulesText.innerHTML = window.safeHTML(s.rules || 'No rules provided.');
                 limitsBox.innerText = `Min: ${s.min} | Max: ${s.max}`;
 
-                // 🚀 AUTO-DETECT CUSTOM COMMENTS SERVICE
-                const isCustomComments = s.name.toLowerCase().includes('custom') && s.name.toLowerCase().includes('comment');
-                if (isCustomComments) {
+                const isCustomComments = s.name && s.name.toLowerCase().includes('custom') && s.name.toLowerCase().includes('comment');
+                if (isCustomComments && commentsGroup) {
                     commentsGroup.style.display = 'block';
                     qtyInput.readOnly = true;
                     qtyInput.style.backgroundColor = 'rgba(0,0,0,0.2)';
-                    
-                    // Auto-count lines for quantity
                     commentsInput.oninput = function() {
                         const lines = commentsInput.value.split('\n').filter(line => line.trim() !== '').length;
                         qtyInput.value = lines > 0 ? lines : '';
                         window.calculateCharge();
                     };
-                } else {
+                } else if (commentsGroup) {
                     commentsGroup.style.display = 'none';
                     qtyInput.readOnly = false;
                     qtyInput.style.backgroundColor = 'rgba(255,255,255,0.15)';
@@ -2018,7 +1918,7 @@
             } else { 
                 infoBox.style.display = 'none'; 
                 limitsBox.innerText = 'Min: 0 - Max: 0'; 
-                commentsGroup.style.display = 'none';
+                if (commentsGroup) commentsGroup.style.display = 'none';
             }
         };
 
@@ -2032,59 +1932,91 @@
 
         window.submitOrder = async function(e) {
             e.preventDefault();
-            const srvId = document.getElementById('order-srv').value;
-            const link = window.safeHTML(document.getElementById('order-link').value.trim());
-            const qty = parseInt(document.getElementById('order-qty').value);
             
-            if(!srvId) return window.showToast("Please select a service first!", "error");
-            if(!link) return window.showToast("Target Link is required!", "error");
-            if(isNaN(qty) || qty <= 0) return window.showToast("Invalid quantity entered!", "error");
+            if (window.isMaintenanceMode) return window.showToast("Ordering is currently disabled for maintenance.", "error");
+            if (isOrderProcessing) return;
+            isOrderProcessing = true; 
 
-            // 🛑 MASTER FEATURE: FRONTEND BALANCE GUARD
-            const service = globalServices[srvId];
-            if(service) {
+            const btn = document.getElementById('order-btn'); 
+            const originalText = btn.innerHTML;
+            btn.disabled = true; 
+            btn.style.opacity = "0.7";
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing...';
+
+            try {
+                const srvId = document.getElementById('order-srv').value; 
+                let link = document.getElementById('order-link').value.trim(); 
+                const qty = parseInt(document.getElementById('order-qty').value);
+                
+                if(!srvId || !link || !qty) { window.showToast("Missing fields", "error"); throw new Error("Validation"); }
+                if(qty <= 0) { window.showToast("Quantity must be greater than 0", "error"); throw new Error("Validation"); }
+                
+                try {
+                    new URL(link.startsWith('http') ? link : 'https://' + link);
+                    if(!link.startsWith('http')) link = 'https://' + link;
+                } catch(err) {
+                    window.showToast("Please enter a valid URL", "error"); throw new Error("Validation");
+                }
+
+                const service = globalServices[srvId];
+                if(!service || qty < service.min || qty > service.max) {
+                    window.showToast(`Limits: ${service.min} - ${service.max}`, "error"); throw new Error("Validation");
+                }
+
+                // 🛑 MASTER FEATURE: FRONTEND BALANCE GUARD
                 const baseCharge = (service.price / 1000) * qty;
                 if (rawBalance < baseCharge) {
                     window.showToast("Insufficient Funds! Please add money to your wallet.", "error"); 
                     window.switchView('add-funds'); // Auto-redirect to Add Funds page
-                    return;
+                    throw new Error("Validation");
                 }
-            }
 
-            // 🚀 UX FIX: Instantly show loading state to remove perceived "lag"
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Placing Order...';
-            btn.disabled = true;
+                const API_URL = '/api/order';
 
-            try {
+                // 🔒 SECURE TOKEN GENERATION
                 const idToken = await currentUser.getIdToken(true);
+
                 const commentsGroup = document.getElementById('comments-group');
                 const commentsData = (commentsGroup && commentsGroup.style.display !== 'none') ? document.getElementById('order-comments').value.trim() : null;
 
-                const API_URL = '/api/order';
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-                    body: JSON.stringify({ uid: currentUser.uid, srvId: srvId, link: link, qty: qty, comments: commentsData })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${idToken}` // Token sent securely
+                    },
+                    body: JSON.stringify({
+                        uid: currentUser.uid, // 💡 BACKWARDS COMPATIBILITY: Restored so old Vercel code doesn't crash!
+                        srvId: srvId,
+                        link: link,
+                        qty: qty,
+                        comments: commentsData
+                    })
                 });
-
-                const data = await response.json();
-                if(data.success || response.ok) {
+                
+                const data = await response.json().catch(() => ({}));
+                
+                if (response.ok) {
                     window.showToast("Order Placed Successfully!", "success");
-                    e.target.reset();
-                    if(commentsGroup) commentsGroup.style.display = 'none';
-                    document.getElementById('order-charge').value = '0.00';
-                    window.switchView('orders-history'); 
+                    document.getElementById('order-form').reset(); 
+                    window.updateServiceDetails(); 
+                    window.switchView('orders-history');
                 } else {
-                    window.showToast(data.error || "Failed to place order.", "error");
+                    window.showToast(data.error || "Transaction Failed", "error");
                 }
-            } catch (err) {
-                console.error(err);
-                window.showToast("Server connection error. Please try again.", "error");
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+            } catch(error) { 
+                if (error.message !== "Validation") {
+                    console.error("API Error:", error);
+                    window.showToast("Server Connection Failed.", "error"); 
+                }
+            } finally { 
+                setTimeout(() => {
+                    isOrderProcessing = false;
+                    btn.disabled = false; 
+                    btn.style.opacity = "1";
+                    btn.innerHTML = originalText; 
+                }, 3000);
             }
         };
 
