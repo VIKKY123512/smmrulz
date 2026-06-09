@@ -11,6 +11,10 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <title>SMMRulz | Secure, Automated & Reliable SMM Services</title>
+    <style>
+        .public-services-overlay { display: none; position: fixed; inset: 0; background: var(--bg-bottom); z-index: 20000; flex-direction: column; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .public-services-overlay.active { display: flex; }
+    </style>
     
     <meta name="description" content="SMMRulz is a trusted and cheapest SMM panel offering fully automated Instagram, YouTube, TikTok & Facebook services with super fast delivery worldwide.">
     <meta name="keywords" content="SMM panel, cheapest SMM panel, Indian SMM panel, buy Instagram followers, buy YouTube views, SMMRulz">
@@ -367,6 +371,28 @@
 <body>
 
     <div id="toast-container" class="toast-container"></div>
+
+    <div id="public-services-modal" class="public-services-overlay">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+            <h2 style="color: var(--primary); font-size: 20px; margin: 0;"><i class="fa-solid fa-list-check"></i> Services Pricing List</h2>
+            <button onclick="document.getElementById('public-services-modal').classList.remove('active')" style="background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+        <div class="table-wrapper" style="border: none; background: transparent;">
+            <table style="min-width: 100% !important;">
+                <thead>
+                    <tr>
+                        <th style="width: 60px; text-align: center;">ID</th>
+                        <th>Service Name & Details</th>
+                        <th>Rate/1k (₹)</th>
+                        <th>Min/Max</th>
+                    </tr>
+                </thead>
+                <tbody id="public-services-table">
+                    <tr><td colspan="4" align="center"><i class="fa-solid fa-spinner fa-spin"></i> Loading live services matrix...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
     
     <a href="#" id="floating-wa" class="floating-wa" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
 
@@ -397,7 +423,7 @@
                     <i class="fa-solid fa-xmark" style="font-size:32px; color:var(--text-dark); cursor:pointer;" onclick="document.getElementById('landing-mobile-menu').style.display='none'"></i>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:25px; font-size:18px; font-weight:600;">
-                    <a href="javascript:void(0)" onclick="window.showToast('Please Login or Register to view our full services and pricing.', 'info'); document.getElementById('landing-mobile-menu').style.display='none';" style="color:var(--text-dark); text-decoration:none;"><i class="fa-solid fa-list" style="color:var(--primary); width:30px;"></i> Services List</a>
+                    <a href="javascript:void(0)" onclick="document.getElementById('landing-mobile-menu').style.display='none'; document.getElementById('public-services-modal').classList.add('active');" style="color:var(--text-dark); text-decoration:none;"><i class="fa-solid fa-list" style="color:var(--primary); width:30px;"></i> Services List</a>
                     <a href="javascript:void(0)" onclick="window.openInfoModal('about'); document.getElementById('landing-mobile-menu').style.display='none';" style="color:var(--text-dark); text-decoration:none;"><i class="fa-solid fa-circle-info" style="color:var(--success); width:30px;"></i> About Us</a>
                     <a href="javascript:void(0)" onclick="window.openInfoModal('contact'); document.getElementById('landing-mobile-menu').style.display='none';" style="color:var(--text-dark); text-decoration:none;"><i class="fa-solid fa-headset" style="color:var(--danger); width:30px;"></i> Contact Support</a>
                     <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 10px 0;">
@@ -1236,11 +1262,41 @@
         let globalServices = {};
         let globalPaymentMethods = {};
 
-        function initPublicData() {
-            onValue(ref(db, 'categories'), (snap) => { globalCategories = snap.val() || {}; renderServices(); });
-            onValue(ref(db, 'services'), (snap) => { globalServices = snap.val() || {}; renderServices(); });
+        // 🚀 UNIFIED LIVE PUBLIC OBSERVER SYSTEM
+        function initPublicGlobalSync() {
+            onValue(ref(db, 'categories'), (snap) => {
+                globalCategories = snap.val() || {};
+                renderServices();
+            });
+            onValue(ref(db, 'services'), (snap) => {
+                globalServices = snap.val() || {};
+                renderServices();
+            });
+            onValue(ref(db, 'settings/socials'), (snap) => {
+                const s = snap.val() || {};
+                const waNum = s.whatsapp ? s.whatsapp.replace(/[^0-9]/g, '') : '';
+                const waLink = waNum ? `https://wa.me/${waNum}` : '';
+                const tgLink = s.telegram && s.telegram.startsWith('http') ? s.telegram : (s.telegram ? `https://t.me/${s.telegram.replace('@','')}` : '');
+                const igLink = s.instagram && s.instagram.startsWith('http') ? s.instagram : (s.instagram ? `https://instagram.com/${s.instagram.replace('@','')}` : '');
+                
+                if (tgLink) {
+                    document.querySelectorAll('.dynamic-tg').forEach(el => { el.href = tgLink; el.style.display = 'flex'; });
+                    const mTg = document.getElementById('mobile-menu-tg'); if(mTg) { mTg.href = tgLink; mTg.style.display = 'block'; }
+                    const aTg = document.getElementById('auth-promo-tg'); if(aTg) aTg.href = tgLink;
+                }
+                if (waLink) {
+                    document.querySelectorAll('.dynamic-wa').forEach(el => { el.href = waLink; el.style.display = 'flex'; });
+                    const mWa = document.getElementById('mobile-menu-wa'); if(mWa) { mWa.href = waLink; mWa.style.display = 'block'; }
+                    const aWa = document.getElementById('auth-promo-wa'); if(aWa) aWa.href = waLink;
+                    const fWa = document.getElementById('floating-wa'); if(fWa) { fWa.href = waLink; fWa.style.display = 'flex'; }
+                }
+                if (igLink) {
+                    document.querySelectorAll('.dynamic-ig').forEach(el => { el.href = igLink; el.style.display = 'flex'; });
+                    const mIg = document.getElementById('mobile-menu-ig'); if(mIg) { mIg.href = igLink; mIg.style.display = 'block'; }
+                }
+            });
         }
-        initPublicData();
+        initPublicGlobalSync();
 
         window.sendResetLink = async function() {
             const emailInput = document.getElementById('reset-email-input').value.trim();
