@@ -12,8 +12,10 @@
 
     <title>SMMRulz | Secure, Automated & Reliable SMM Services</title>
     <style>
-        .public-services-overlay { display: none; position: fixed; inset: 0; background: var(--bg-bottom); z-index: 20000; flex-direction: column; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .public-services-overlay { display: none; position: fixed; inset: 0; background: var(--bg-bottom); z-index: 20000; flex-direction: column; padding: 20px; -webkit-overflow-scrolling: touch; }
         .public-services-overlay.active { display: flex; }
+        .public-services-overlay .table-wrapper { overflow-y: auto; flex: 1; position: relative; max-height: calc(100vh - 100px); border-radius: 8px; }
+        .public-services-overlay table thead th { position: sticky; top: 0; background-color: var(--bg-bottom); z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
     
     <meta name="description" content="SMMRulz is a trusted and cheapest SMM panel offering fully automated Instagram, YouTube, TikTok & Facebook services with super fast delivery worldwide.">
@@ -483,19 +485,7 @@
                         
                         <div id="google-btn-wrapper" style="margin-top: 15px; width: 100%; display: flex; justify-content: center; min-height: 44px;"></div>
 
-                        <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-                            <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--primary); text-align: center;">Our Live Services & Pricing</h3>
-                            <div class="table-wrapper" style="max-height: 350px; overflow-y: auto;">
-                                <table style="min-width: 100% !important;">
-                                    <thead><tr><th style="width: 60px; text-align: center;">ID</th><th>Service Name & Details</th><th>Rate/1k (₹)</th><th>Min/Max</th></tr></thead>
-                                    <tbody id="public-services-table">
-                                        <tr><td colspan="4" align="center">Loading live services...</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="promo-cards-container" style="margin-top: 30px;">
+                        <div class="promo-cards-container" style="margin-top: 20px;">
                             <div class="promo-card">
                                 <div class="promo-icon" style="background:#e0f2fe; color:#0ea5e9;"><i class="fa-brands fa-telegram"></i></div>
                                 <div class="promo-text">
@@ -2017,6 +2007,61 @@
                 const service = globalServices[srvId];
                 if(!service || qty < service.min || qty > service.max) {
                     window.showToast(`Limits: ${service.min} - ${service.max}`, "error"); throw new Error("Validation");
+                }
+
+                // 🚀 SMART CONTEXTUAL LINK GUARDIAN ENGINE
+                const sName = (service.name || '').toLowerCase();
+                let isLinkValid = true;
+                let urlHelperMessage = "";
+
+                if (sName.includes("instagram") || sName.includes("reels") || sName.includes("ig ")) {
+                    if (sName.includes("like") || sName.includes("view") || sName.includes("comment") || sName.includes("reel") || sName.includes("impression") || sName.includes("save")) {
+                        if (!link.includes("/p/") && !link.includes("/reel/") && !link.includes("/tv/") && !link.includes("/share/")) {
+                            isLinkValid = false;
+                            urlHelperMessage = "Paste correct URL! For this service, please paste the exact Instagram Post, Video, or Reel URL link.";
+                        }
+                    } else if (sName.includes("follower") || sName.includes("profile")) {
+                        if (link.includes("/p/") || link.includes("/reel/") || link.includes("/tv/")) {
+                            isLinkValid = false;
+                            urlHelperMessage = "Paste correct URL! For this service, please paste your Instagram Profile URL link or Username.";
+                        }
+                    }
+                } else if (sName.includes("youtube") || sName.includes("yt ")) {
+                    if (sName.includes("view") || sName.includes("like") || sName.includes("comment") || sName.includes("watch")) {
+                        if (!link.includes("watch?v=") && !link.includes("youtu.be/") && !link.includes("/shorts/")) {
+                            isLinkValid = false;
+                            urlHelperMessage = "Paste correct URL! For this service, please paste the exact YouTube Video or Shorts video link URL.";
+                        }
+                    } else if (sName.includes("subscriber") || sName.includes("channel")) {
+                        if (link.includes("watch?v=") || link.includes("youtu.be/") || link.includes("/shorts/")) {
+                            isLinkValid = false;
+                            urlHelperMessage = "Paste correct URL! For this service, please paste your public YouTube Channel link profile URL.";
+                        }
+                    }
+                } else if (sName.includes("telegram") || sName.includes("tg ")) {
+                    if (!link.includes("t.me/") && !link.startsWith("@")) {
+                        isLinkValid = false;
+                        urlHelperMessage = "Paste correct URL! For this service, please paste a valid Telegram invitation link (t.me/channel) or channel username.";
+                    }
+                } else if (sName.includes("facebook") || sName.includes("fb ")) {
+                    if (sName.includes("follower") || sName.includes("page") || sName.includes("profile")) {
+                        if (link.includes("/posts/") || link.includes("/videos/") || link.includes("/permalink")) {
+                            isLinkValid = false;
+                            urlHelperMessage = "Paste correct URL! For this service, please paste your Facebook Page or Profile URL link.";
+                        }
+                    }
+                } else if (sName.includes("tiktok") || sName.includes("tt ")) {
+                    if (sName.includes("view") || sName.includes("like") || sName.includes("comment")) {
+                        if (!link.includes("/video/")) {
+                            isLinkValid = false;
+                            urlHelperMessage = "Paste correct URL! For this service, please paste the exact TikTok post video URL link.";
+                        }
+                    }
+                }
+
+                if (!isLinkValid) {
+                    window.showToast(urlHelperMessage, "error");
+                    throw new Error("Validation");
                 }
 
                 // 🛑 MASTER FEATURE: FRONTEND BALANCE GUARD
