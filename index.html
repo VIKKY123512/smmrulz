@@ -1289,7 +1289,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getDatabase, ref, get, set, update, onValue, push, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+        import { getDatabase, ref, get, set, update, onValue, push, query, orderByChild, equalTo, onChildChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
@@ -2390,10 +2390,7 @@
                 }
             });
 
-            // 3. Disable Text Selection & Dragging (Protects content copying)
-            document.addEventListener('selectstart', e => { 
-                if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') e.preventDefault(); 
-            });
+            // 3. Disable Dragging (Protects visual elements)
             document.addEventListener('dragstart', e => e.preventDefault());
 
             // 4. Console Warning Trap
