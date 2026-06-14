@@ -1246,44 +1246,6 @@
                 if(sugg) sugg.style.display = 'none';
             }
         });
-
-        window.switchView = function(viewId, pushHistory = true) {
-            // 🚀 SECURE SEEN STATE ENFORCER: Clears active flags immediately upon navigation click
-            if (currentUser) {
-                if (viewId.includes('order')) update(ref(db, `users/${currentUser.uid}/seen_states`), { orders: true });
-                if (viewId.includes('service')) update(ref(db, `users/${currentUser.uid}/seen_states`), { services: true });
-                if (viewId.includes('ticket') || viewId.includes('support')) update(ref(db, `users/${currentUser.uid}/seen_states`), { tickets: true });
-                if (viewId.includes('fund') || viewId.includes('transaction')) update(ref(db, `users/${currentUser.uid}/seen_states`), { balance: true });
-            }
-
-            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
-            document.querySelectorAll('.nav-item').forEach(l => l.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            const targetNav = document.querySelector(`.nav-item.${viewId}`);
-            if(targetNav) targetNav.classList.add('active');
-            
-            const header = document.getElementById('stats-header'); 
-            const wave = document.getElementById('wave');
-            if (viewId === 'new-order') { header.style.display = 'block'; wave.style.display = 'block'; } 
-            else { header.style.display = 'none'; wave.style.display = 'none'; }
-            
-            if (viewId === 'add-funds') {
-                document.getElementById('add-funds-intro').style.display = 'block';
-                document.getElementById('payment-details-section').style.display = 'none';
-            }
-
-            if(window.innerWidth <= 768) { 
-                document.getElementById('drawer').classList.remove('open'); 
-                document.getElementById('drawer-overlay').classList.remove('show'); 
-            }
-            
-            if (pushHistory) { history.pushState({ view: viewId }, '', '#' + viewId); }
-        };
-
-        window.addEventListener('popstate', (e) => {
-            if (e.state && e.state.view) { window.switchView(e.state.view, false); } 
-            else { window.switchView('new-order', false); }
-        });
     </script>
 
     <script type="module">
@@ -1312,6 +1274,66 @@
         let globalCategories = {};
         let globalServices = {};
         let globalPaymentMethods = {};
+
+        window.switchView = function(viewId, pushHistory = true) {
+            // 🚀 SECURE SEEN STATE ENFORCER: Clears active flags safely inside module scope
+            if (currentUser) {
+                const seenUpdates = {};
+                if (viewId.includes('order')) seenUpdates.orders = true;
+                if (viewId.includes('service')) seenUpdates.services = true;
+                if (viewId.includes('ticket') || viewId.includes('support')) seenUpdates.tickets = true;
+                if (viewId.includes('fund') || viewId.includes('transaction')) seenUpdates.balance = true;
+                if (Object.keys(seenUpdates).length > 0) {
+                    update(ref(db, `users/${currentUser.uid}/seen_states`), seenUpdates).catch(() => {});
+                }
+            }
+
+            document.querySelectorAll('.view').forEach(v => {
+                v.style.display = 'none';
+                v.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-item').forEach(l => l.classList.remove('active'));
+            
+            const targetView = document.getElementById(viewId);
+            if (targetView) {
+                targetView.style.display = 'block';
+                targetView.classList.add('active');
+            }
+            
+            const targetNav = document.querySelector(`.nav-item.${viewId}`);
+            if(targetNav) targetNav.classList.add('active');
+            
+            const header = document.getElementById('stats-header'); 
+            const wave = document.getElementById('wave');
+            if (viewId === 'new-order') { 
+                if(header) header.style.display = 'block'; 
+                if(wave) wave.style.display = 'block'; 
+            } else { 
+                if(header) header.style.display = 'none'; 
+                if(wave) wave.style.display = 'none'; 
+            }
+            
+            if (viewId === 'add-funds') {
+                const afIntro = document.getElementById('add-funds-intro');
+                const pdSection = document.getElementById('payment-details-section');
+                if(afIntro) afIntro.style.display = 'block';
+                if(pdSection) pdSection.style.display = 'none';
+            }
+
+            if(window.innerWidth <= 768) { 
+                const drw = document.getElementById('drawer');
+                const ovr = document.getElementById('drawer-overlay');
+                if(drw) drw.classList.remove('open'); 
+                if(ovr) ovr.classList.remove('show'); 
+            }
+            
+            if (pushHistory) { history.pushState({ view: viewId }, '', '#' + viewId); }
+        };
+
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.view) { window.switchView(e.state.view, false); } 
+            else { window.switchView('new-order', false); }
+        });
 
         // 🚀 REALTIME ASYNCHRONOUS SEEN/UNSEEN NOTIFICATION ENGINE
         window.syncLiveUserNotifications = function() {
