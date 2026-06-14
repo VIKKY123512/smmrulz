@@ -1256,7 +1256,7 @@
                 if (viewId.includes('fund') || viewId.includes('transaction')) update(ref(db, `users/${currentUser.uid}/seen_states`), { balance: true });
             }
 
-            document.querySelectorAll('.view').forEach(v => { if(v.id !== 'stats-header' && v.id !== 'wave') v.classList.remove('active'); });
+            document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(l => l.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             const targetNav = document.querySelector(`.nav-item.${viewId}`);
