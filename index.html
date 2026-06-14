@@ -1405,22 +1405,32 @@
                 }
             });
 
-            // 🧠 INTELLIGENT OBSERVERS: Automatically flag options as "Unseen" when changes stream live
+            // 🧠 INTELLIGENT OBSERVERS: Automatically flag options as "Unseen" ONLY on true Admin modifications
             onChildChanged(ref(db, `orders`), (data) => {
                 if (data.val().userId === currentUser.uid) {
-                    update(ref(db, `users/${currentUser.uid}/seen_states`), { orders: false });
+                    // Only flag unseen if the user isn't currently viewing their order history list
+                    if (window.location.hash !== '#orders-history') {
+                        update(ref(db, `users/${currentUser.uid}/seen_states`), { orders: false }).catch(() => {});
+                    }
                 }
             });
 
             onChildChanged(ref(db, `tickets`), (data) => {
                 if (data.val().userId === currentUser.uid) {
-                    update(ref(db, `users/${currentUser.uid}/seen_states`), { tickets: false });
+                    // Only flag unseen if the user isn't currently inside the live support chat view
+                    if (window.location.hash !== '#support') {
+                        update(ref(db, `users/${currentUser.uid}/seen_states`), { tickets: false }).catch(() => {});
+                    }
                 }
             });
 
-            onValue(ref(db, `users/${currentUser.uid}/balance`), (data) => {
-                // If wallet funds get modified or updated by administrative actions
-                update(ref(db, `users/${currentUser.uid}/seen_states`), { balance: false });
+            onChildChanged(ref(db, `payment_proofs`), (data) => {
+                if (data.val().userId === currentUser.uid) {
+                    // Only flag unseen if a deposit status is approved/rejected while user is on another page
+                    if (window.location.hash !== '#deposit-history' && window.location.hash !== '#transactions' && window.location.hash !== '#add-funds') {
+                        update(ref(db, `users/${currentUser.uid}/seen_states`), { balance: false }).catch(() => {});
+                    }
+                }
             });
         };
 
