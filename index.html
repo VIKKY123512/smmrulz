@@ -25,6 +25,24 @@
         .notif-dropdown.active { display: flex; }
         .notif-item { padding: 10px; border-radius: 8px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: 0.2s; }
         .notif-item:hover { background-color: var(--primary-light); }
+        
+        /* 🚀 LIVE OPTION NOTIFICATION DOTS STYLING */
+        .option-badge-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 6px;
+            box-shadow: 0 0 8px #ef4444;
+            vertical-align: middle;
+            animation: pulse-badge 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse-badge {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
     </style>
     
     <meta name="description" content="SMMRulz is a trusted and cheapest SMM panel offering fully automated Instagram, YouTube, TikTok & Facebook services with super fast delivery worldwide.">
@@ -1230,6 +1248,14 @@
         });
 
         window.switchView = function(viewId, pushHistory = true) {
+            // 🚀 SECURE SEEN STATE ENFORCER: Clears active flags immediately upon navigation click
+            if (currentUser) {
+                if (viewId.includes('order')) update(ref(db, `users/${currentUser.uid}/seen_states`), { orders: true });
+                if (viewId.includes('service')) update(ref(db, `users/${currentUser.uid}/seen_states`), { services: true });
+                if (viewId.includes('ticket') || viewId.includes('support')) update(ref(db, `users/${currentUser.uid}/seen_states`), { tickets: true });
+                if (viewId.includes('fund') || viewId.includes('transaction')) update(ref(db, `users/${currentUser.uid}/seen_states`), { balance: true });
+            }
+
             document.querySelectorAll('.view').forEach(v => { if(v.id !== 'stats-header' && v.id !== 'wave') v.classList.remove('active'); });
             document.querySelectorAll('.nav-item').forEach(l => l.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
@@ -1321,6 +1347,58 @@
 
                 container.innerHTML = html;
                 badgeDot.style.display = hasUnseen ? 'block' : 'none';
+            });
+        };
+
+        // 🚀 AUTOMATED CROSS-MODULE SEEN/UNSEEN BADGE SYNCHRONIZER
+        window.initWorkingOptionsTracker = function() {
+            if (!currentUser) return;
+
+            // Define map links to append active dynamic badges
+            const navElementsMap = {
+                orders: document.querySelectorAll('a[onclick*="orders-history"], div[onclick*="orders-history"]'),
+                services: document.querySelectorAll('a[onclick*="services"], div[onclick*="services"]'),
+                tickets: document.querySelectorAll('a[onclick*="tickets"], div[onclick*="tickets"], a[onclick*="support"]'),
+                balance: document.querySelectorAll('a[onclick*="add-funds"], div[onclick*="add-funds"]')
+            };
+
+            onValue(ref(db, `users/${currentUser.uid}/seen_states`), (snapshot) => {
+                const states = snapshot.val() || { orders: true, services: true, tickets: true, balance: true };
+
+                // Clean all existing active badges from layout options first
+                document.querySelectorAll('.option-badge-dot').forEach(el => el.remove());
+
+                // Inject live pulsing unseen badges across menus if modifications exist
+                for (let featureKey in navElementsMap) {
+                    if (states[featureKey] === false) {
+                        navElementsMap[featureKey].forEach(element => {
+                            if (!element.querySelector('.option-badge-dot')) {
+                                let badge = document.createElement('span');
+                                badge.className = 'option-badge-dot';
+                                badge.title = 'New updates available here!';
+                                element.appendChild(badge);
+                            }
+                        });
+                    }
+                }
+            });
+
+            // 🧠 INTELLIGENT OBSERVERS: Automatically flag options as "Unseen" when changes stream live
+            onChildChanged(ref(db, `orders`), (data) => {
+                if (data.val().userId === currentUser.uid) {
+                    update(ref(db, `users/${currentUser.uid}/seen_states`), { orders: false });
+                }
+            });
+
+            onChildChanged(ref(db, `tickets`), (data) => {
+                if (data.val().userId === currentUser.uid) {
+                    update(ref(db, `users/${currentUser.uid}/seen_states`), { tickets: false });
+                }
+            });
+
+            onValue(ref(db, `users/${currentUser.uid}/balance`), (data) => {
+                // If wallet funds get modified or updated by administrative actions
+                update(ref(db, `users/${currentUser.uid}/seen_states`), { balance: false });
             });
         };
 
@@ -1592,6 +1670,7 @@
                 loadUserData();
                 loadAppData();
                 window.syncLiveUserNotifications();
+                window.initWorkingOptionsTracker(); // 🚀 Bootstraps seen/unseen menu nodes instantly
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-layout').style.display = 'none';
