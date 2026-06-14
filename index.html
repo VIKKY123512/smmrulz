@@ -1964,16 +1964,19 @@
                 }
             });
             
-            // 2. Orders Listener (Secure Query Method)
-            const ordersQ = query(ref(db, 'orders'), orderByChild('userId'), equalTo(uid));
-            onValue(ordersQ, (snap) => {
+            // 2. Asynchronous Orders Listener (High-Speed Real-Time Sync Stream)
+            onValue(ref(db, 'orders'), (snap) => {
                 const userOrdersList = [];
                 if (snap.exists()) {
-                    snap.forEach((childSnap) => {
-                        userOrdersList.push({ id: childSnap.key, ...childSnap.val() });
-                    });
+                    const allOrders = snap.val();
+                    for (let orderId in allOrders) {
+                        if (allOrders[orderId].userId === uid) {
+                            userOrdersList.push({ id: orderId, ...allOrders[orderId] });
+                        }
+                    }
                 }
-                userOrdersList.reverse();
+                // Reverse chronological sorting for instant preview feed
+                userOrdersList.sort((a, b) => b.timestamp - a.timestamp);
 
                 document.getElementById('stat-total-orders').innerText = userOrdersList.length; 
                 let html = '';
@@ -1982,17 +1985,18 @@
                     let actionBtn = `<a href="${window.safeHTML(o.link)}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-link"></i> View</a>`;
 
                     if(o.status === 'Processing') badge = '<span class="badge bg-processing">Processing</span>'; 
+                    else if(o.status === 'In progress') badge = '<span class="badge bg-processing">In progress</span>';
+                    else if(o.status === 'Partial') badge = '<span class="badge bg-warning">Partial</span>';
                     else if(o.status === 'Completed') {
                         badge = '<span class="badge bg-completed">Completed</span>'; 
-                        // Automatically adds a Refill Button to completed orders!
                         actionBtn += `<br><button onclick="window.requestRefill('${o.id}')" style="background:var(--primary-light); color:var(--primary); border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer; margin-top:5px; transition:0.2s;"><i class="fa-solid fa-rotate"></i> Request Refill</button>`;
                     } 
                     else if(o.status === 'Canceled' || o.status === 'Refunded') badge = '<span class="badge bg-canceled">Refunded</span>';
                     
-                    html += `<tr><td><small>${o.id.slice(-6)}</small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td>${actionBtn}</td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
+                    html += `<tr><td><small><b>ORD_${o.id.slice(-6).toUpperCase()}</b></small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td>${actionBtn}</td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
                 });
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
-            }, (error) => { console.error("Firebase Read Error (Orders):", error); });
+            }, (error) => { console.error("Firebase Live Stream Error (Orders):", error); });
             
             // 3. Payment Proofs / Deposits (Secure Query Method)
             const proofsQ = query(ref(db, 'payment_proofs'), orderByChild('userId'), equalTo(uid));
