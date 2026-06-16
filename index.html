@@ -45,11 +45,11 @@
         }
         
         /* 🕹️ ULTRA-PREMIUM FREE FIRE THEMED STYLESHEET OVERHAUL */
-        html, body { min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
+        html, body { height: 100%; min-height: 100vh; display: flex; flex-direction: column; margin: 0; }
         #app-layout { display: flex; flex-direction: column; min-height: 100vh; flex: 1; }
         .main-wrapper { display: flex; flex: 1; position: relative; }
-        main { display: flex; flex-direction: column; flex: 1; min-height: 100%; }
-        footer { margin-top: auto !important; width: 100%; position: relative; clear: both; background: var(--bg-top); border-top: 1px solid var(--border-color); }
+        main { display: flex; flex-direction: column; flex: 1; width: 100%; background-color: var(--bg-bottom); }
+        footer { margin-top: auto !important; width: 100%; background: var(--bg-top); border-top: 1px solid var(--border-color); padding: 20px 0; position: relative; z-index: 100; }
         
         .category-toggle-container { display: flex; gap: 10px; background: rgba(0, 0, 0, 0.04); padding: 6px; border-radius: 50px; margin-bottom: 20px; border: 1px solid var(--border-color); }
         body.dark-mode .category-toggle-container { background: rgba(255, 255, 255, 0.03); }
@@ -1071,133 +1071,6 @@
                         </div>
                     </div>
                 </div>
-                    <div class="page-content">
-                        <div class="ff-wrapper">
-                            <div class="ff-banner-title">
-                                <i class="fa-solid fa-fire-burner"></i> FREE FIRE AUTO LIKE SYSTEM (AUTOMATED PREMIUM TIER)
-                            </div>
-                            <p style="font-size: 13px; color: #94a3b8; line-height: 1.6; margin-bottom: 20px;">
-                                Boost your Free Fire profile aesthetics seamlessly. Select a choice package below matching the screen values found in <b style="color:#eab308">Screenshot_20260615_070033_Free Fire MAX.jpg</b>, fill details, and trigger automation. Order charges deduct smoothly from your primary account balance wallet.
-                            </p>
-                            
-                            <form id="ff-order-form" onsubmit="window.executeFreeFireOrder(event)">
-                                <div class="flex-row" style="margin-bottom: 20px;">
-                                    <div class="input-group" style="flex: 1; min-width: 250px;">
-                                        <label style="color: #eab308; font-weight: 700;">1. Target Player UID String</label>
-                                        <input type="text" id="ff-uid" placeholder="Enter Free Fire UID (e.g. 14160011100)" style="background: rgba(255,255,255,0.05); border: 1px solid #4338ca; color: #fff; width: 100%;" required>
-                                    </div>
-                                    <div class="input-group" style="flex: 1; min-width: 250px;">
-                                        <label style="color: #eab308; font-weight: 700;">2. Select Player Account Server/Region</label>
-                                        <select id="ff-region" style="background: #1e1b4b; border: 1px solid #4338ca; color: #fff; width: 100%; font-weight: 600;" required>
-                                            <option value="">Choose Regional Server Node...</option>
-                                            <option value="IND">IND (India 🇮🇳)</option>
-                                            <option value="BR">BR (Brazil 🇧🇷)</option>
-                                            <option value="US">US (United States 🇺🇸)</option>
-                                            <option value="SG">SG (Singapore 🇸🇬)</option>
-                                            <option value="RU">RU (Russia 🇺🇦)</option>
-                                            <option value="ID">ID (Indonesia 🇮🇩)</option>
-                                            <option value="TW">TW (Taiwan 🇹🇼)</option>
-                                            <option value="VN">VN (Vietnam 🇻🇳)</option>
-                                            <option value="TH">TH (Thailand 🇹🇭)</option>
-                                            <option value="PK">PK (Pakistan 🇵🇰)</option>
-                                            <option value="BD">BD (Bangladesh 🇧🇩)</option>
-                                            <option value="EUROPE">EUROPE (Europe 🌍)</option>
-                                            <option value="ME">ME (Middle East 🌍)</option>
-                                            <option value="SAC">SAC (South America 🌍)</option>
-                                            <option value="NA">NA (North America 🌍)</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <input type="hidden" id="ff-selected-tier-price" value="">
-                                <input type="hidden" id="ff-selected-tier-name" value="">
-                                <input type="hidden" id="ff-selected-tier-likes" value="">
-
-                                <div class="ff-grid" id="ff-tiers-container">
-                                    <div class="ff-card" onclick="window.selectFreeFireTier(20, '1 Day Membership Lite', 200, this)">
-                                        <div class="ff-card-header">
-                                            <span class="ff-badge">1 Day Lite Pack</span>
-                                            <i class="fa-solid fa-bolt" style="color:#eab308;"></i>
-                                        </div>
-                                        <div class="ff-likes-count">200 <span>Likes Total</span></div>
-                                        <div style="margin-top: 10px;">
-                                            <div class="ff-reward-row"><span>Likes Output:</span><span style="color:#eab308; font-weight:700;">200 Real Likes</span></div>
-                                            <div class="ff-reward-row"><span>System Speed:</span><span>Daily Drop Automation</span></div>
-                                            <div class="ff-reward-row"><span>Duration Length:</span><span style="color:#a855f7;">1 Day Plan Active</span></div>
-                                        </div>
-                                        <button type="button" class="ff-price-tag">₹20.00</button>
-                                    </div>
-
-                                    <div class="ff-card" onclick="window.selectFreeFireTier(90, '7 Days Premium Membership', 1400, this)">
-                                        <div class="ff-card-header">
-                                            <span class="ff-badge" style="background:linear-gradient(90deg, #ec4899, #f43f5e)">7 Days Pack</span>
-                                            <i class="fa-solid fa-crown" style="color:#eab308;"></i>
-                                        </div>
-                                        <div class="ff-likes-count">1,400 <span>Likes Total</span></div>
-                                        <div style="margin-top: 10px;">
-                                            <div class="ff-reward-row"><span>Likes Output:</span><span style="color:#eab308; font-weight:700;">1400 Real Likes</span></div>
-                                            <div class="ff-reward-row"><span>System Speed:</span><span>Daily Drop Automation</span></div>
-                                            <div class="ff-reward-row"><span>Duration Length:</span><span style="color:#a855f7;">7 Days Plan Active</span></div>
-                                        </div>
-                                        <button type="button" class="ff-price-tag">₹90.00</button>
-                                    </div>
-
-                                    <div class="ff-card" onclick="window.selectFreeFireTier(190, '15 Days Advanced VIP Bundle', 3000, this)">
-                                        <div class="ff-card-header">
-                                            <span class="ff-badge" style="background:linear-gradient(90deg, #3b82f6, #06b6d4)">15 Days Pack</span>
-                                            <i class="fa-solid fa-gem" style="color:#eab308;"></i>
-                                        </div>
-                                        <div class="ff-likes-count">3,000 <span>Likes Total</span></div>
-                                        <div style="margin-top: 10px;">
-                                            <div class="ff-reward-row"><span>Likes Output:</span><span style="color:#eab308; font-weight:700;">3000 Real Likes</span></div>
-                                            <div class="ff-reward-row"><span>System Speed:</span><span>Daily Drop Automation</span></div>
-                                            <div class="ff-reward-row"><span>Duration Length:</span><span style="color:#a855f7;">15 Days Plan Active</span></div>
-                                        </div>
-                                        <button type="button" class="ff-price-tag">₹190.00</button>
-                                    </div>
-
-                                    <div class="ff-card" onclick="window.selectFreeFireTier(350, '30 Days Monthly Membership Super', 6000, this)">
-                                        <div class="ff-card-header">
-                                            <span class="ff-badge" style="background:linear-gradient(90deg, #eab308, #f97316)">30 Days Pack</span>
-                                            <i class="fa-solid fa-trophy" style="color:#eab308;"></i>
-                                        </div>
-                                        <div class="ff-likes-count">6,000 <span>Likes Total</span></div>
-                                        <div style="margin-top: 10px;">
-                                            <div class="ff-reward-row"><span>Likes Output:</span><span style="color:#eab308; font-weight:700;">6000 Real Likes</span></div>
-                                            <div class="ff-reward-row"><span>System Speed:</span><span>Daily Drop Automation</span></div>
-                                            <div class="ff-reward-row"><span>Duration Length:</span><span style="color:#a855f7;">30 Days Plan Active</span></div>
-                                        </div>
-                                        <button type="button" class="ff-price-tag">₹350.00</button>
-                                    </div>
-
-                                    <div class="ff-card" onclick="window.selectFreeFireTier(600, '60 Days Ultra Supreme Bundle', 12000, this)">
-                                        <div class="ff-card-header">
-                                            <span class="ff-badge" style="background:linear-gradient(90deg, #10b981, #3b82f6)">60 Days Pack</span>
-                                            <i class="fa-solid fa-shield-halved" style="color:#eab308;"></i>
-                                        </div>
-                                        <div class="ff-likes-count">12,000 <span>Likes Total</span></div>
-                                        <div style="margin-top: 10px;">
-                                            <div class="ff-reward-row"><span>Likes Output:</span><span style="color:#eab308; font-weight:700;">12,000 Real Likes</span></div>
-                                            <div class="ff-reward-row"><span>System Speed:</span><span>Daily Drop Automation</span></div>
-                                            <div class="ff-reward-row"><span>Duration Length:</span><span style="color:#a855f7;">60 Days Plan Active</span></div>
-                                        </div>
-                                        <button type="button" class="ff-price-tag">₹600.00</button>
-                                    </div>
-
-                                    <div class="ff-card" onclick="window.selectFreeFireTier(800, '90 Days Ultimate Grandmaster', 18000, this)">
-                                        <div class="ff-card-header">
-                                            <span class="ff-badge" style="background:linear-gradient(90deg, #ef4444, #a855f7)">90 Days Pack</span>
-                                            <i class="fa-solid fa-medal" style="color:#eab308;"></i>
-                                        </div>
-                                        <div class="ff-likes-count">18,000 <span>Likes Total</span></div>
-                                        <div style="margin-top: 10px;">
-                                            <div class="ff-reward-row"><span>Likes Output:</span><span style="color:#eab308; font-weight:700;">18,000 Real Likes</span></div>
-                                            <div class="ff-reward-row"><span>System Speed:</span><span>Daily Drop Automation</span></div>
-                                            <div class="ff-reward-row"><span>Duration Length:</span><span style="color:#a855f7;">90 Days Plan Active</span></div>
-                                        </div>
-                                        <button type="button" class="ff-price-tag">₹800.00</button>
-                                    </div>
-                                </div>
 
                 <div id="services" class="view">
                     <div class="page-content">
