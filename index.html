@@ -1569,7 +1569,7 @@
             if (isNaN(priceVal) || !tierName || isNaN(runtimeDays)) return window.showToast('Tap a premium pack card to select it!', 'error');
 
             if (rawBalance < priceVal) {
-                window.showToast(`Insufficient balance! Requires ₹${priceVal.toFixed(2)}.`, 'error');
+                window.showToast(`Low Balance! Redirecting to add funds for your ₹${priceVal.toFixed(2)} selection.`, 'error');
                 return window.switchView('add-funds');
             }
 
