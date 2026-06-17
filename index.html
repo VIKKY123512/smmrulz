@@ -1440,6 +1440,10 @@
                 v.style.display = 'none';
                 v.classList.remove('active');
             });
+            
+            const ffPanelEl = document.getElementById('ff-likes-panel');
+            if (ffPanelEl) ffPanelEl.style.display = 'none';
+            
             document.querySelectorAll('.nav-item').forEach(l => l.classList.remove('active'));
             
             const targetView = document.getElementById(viewId);
@@ -1448,12 +1452,17 @@
                 targetView.classList.add('active');
             }
             
+            if (viewId === 'new-order') {
+                const isFFActive = document.getElementById('pill-tab-ffmax') ? document.getElementById('pill-tab-ffmax').classList.contains('active') : false;
+                window.toggleMainOrderLayout(isFFActive ? 'ffmax' : 'smm');
+            }
+            
             const targetNav = document.querySelector(`.nav-item.${viewId}`);
             if(targetNav) targetNav.classList.add('active');
             
             const header = document.getElementById('stats-header'); 
             const wave = document.getElementById('wave');
-            if (viewId === 'new-order' || viewId === 'ff-likes-panel') { 
+            if (viewId === 'new-order') { 
                 if(header) header.style.display = 'block'; 
                 if(wave) wave.style.display = 'block'; 
             } else { 
