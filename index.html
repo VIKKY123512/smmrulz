@@ -51,7 +51,6 @@
         main { display: flex; flex-direction: column; flex: 1; min-height: 100%; }
         footer { margin-top: auto !important; width: 100%; position: relative; clear: both; background: var(--bg-top); border-top: 1px solid var(--border-color); }
         
-        /* Explicitly force dark text on review cards to fix the dark-mode text visibility issue */
         .review-slide-card h4, .review-slide-card p { color: #1e293b !important; }
         
         .category-toggle-container { display: flex; gap: 10px; background: rgba(0, 0, 0, 0.04); padding: 6px; border-radius: 50px; margin-bottom: 20px; border: 1px solid var(--border-color); }
@@ -67,7 +66,6 @@
         @media (max-width: 768px) { .ff-media-row { grid-template-columns: 1fr; } .ff-small-scroll-box { height: 160px !important; } }
         .ff-big-banner-frame { width: 100%; height: 260px; border-radius: 12px; background: url('https://img.freepik.com/premium-photo/futuristic-gaming-room-with-computers-monitors_713888-2424.jpg') center/cover no-repeat; background-size: 100% 100% !important; background-position: center !important; background-repeat: no-repeat !important; border: 2px solid #ec4899; box-shadow: inset 0 0 40px rgba(0,0,0,0.8); transition: background-image 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        /* Modified size bounds to present exactly one card cleanly on screen at a time */
         .ff-small-scroll-box { width: 100%; height: 100%; min-height: 260px; max-height: 260px; position: relative; border-radius: 12px; border: 2px solid #7c3aed; background: #070412; display: flex; flex-direction: column; padding: 6px; justify-content: space-between; box-sizing: border-box; }
         .ff-scroller-track { display: flex; flex-direction: column; gap: 0px; width: 100%; height: 184px; max-height: 184px; overflow: hidden; padding: 0; box-sizing: border-box; }
         .ff-track-arrow-btn { background: rgba(124, 58, 237, 0.2); color: #f59e0b; border: 1px solid #7c3aed; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; z-index: 10; flex-shrink: 0; }
@@ -139,8 +137,6 @@
             --border-color: #374151;
             --primary-light: rgba(59, 73, 223, 0.15);
         }
-
-        
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
         html, body { background-color: var(--bg-bottom); color: var(--text-dark); overflow-x: hidden; height: 100%; display: flex; flex-direction: column; transition: background-color 0.3s, color 0.3s; }
@@ -397,8 +393,6 @@
         .table-wrapper::-webkit-scrollbar { height: 6px; }
         .table-wrapper::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
         table { width: 100%; border-collapse: collapse; background: var(--bg-top); min-width: 750px; }
-        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; white-space: nowrap; }
-        table { width: 100%; border-collapse: collapse; background: var(--bg-top); }
         th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; white-space: normal; word-wrap: break-word; }
         th { background: var(--bg-bottom); color: var(--text-gray); font-weight: 600; text-transform: uppercase; font-size: 11px; }
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: white; }
@@ -424,7 +418,7 @@
         .flex-row { display: flex; gap: 15px; flex-wrap: wrap; width: 100%; }
         .flex-row > div { flex: 1; min-width: 140px; }
 
-        /* ✨ CLEAN SHINING PLATFORM ICONS (No Blurry Glow) */
+        /* ✨ CLEAN SHINING PLATFORM ICONS */
         .platform-icon { font-size: 18px; display: inline-block; vertical-align: middle; margin-right: 4px; animation: floatAndShine 3s infinite linear; background-size: 200% auto !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
         
         @keyframes floatAndShine { 
@@ -434,7 +428,6 @@
             100% { transform: translateY(0px) scale(1); background-position: -200% center; } 
         }
         
-        /* Each icon has its base color with a sweeping bright white shine in the middle */
         .ig-icon { background: linear-gradient(120deg, #d6249f 20%, #fd5949 35%, #ffffff 50%, #fdf497 65%, #285AEB 80%); }
         .yt-icon { background: linear-gradient(120deg, #FF0000 40%, #ffffff 50%, #FF0000 60%); }
         .fb-icon { background: linear-gradient(120deg, #1877F2 40%, #ffffff 50%, #1877F2 60%); }
@@ -495,7 +488,6 @@
     </div>
 
     <div id="auth-container">
-        
         <div class="landing-content">
             <header class="landing-header">
                 <div class="landing-logo brand-glow"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
@@ -568,22 +560,18 @@
                         
                         <div id="google-btn-wrapper" style="margin-top: 15px; width: 100%; display: flex; justify-content: center; min-height: 44px;"></div>
 
-                        <div class="promo-cards-container" style="margin-top: 20px;">
-                            <div class="promo-card">
-                                <div class="promo-icon" style="background:#e0f2fe; color:#0ea5e9;"><i class="fa-brands fa-telegram"></i></div>
-                                <div class="promo-text">
-                                    <h4>Telegram Channel</h4>
-                                    <p>Join for exclusive updates</p>
-                                </div>
-                                <a href="#" id="auth-promo-tg" target="_blank" class="promo-btn" style="background:#e0f2fe; color:#0ea5e9;">JOIN</a>
-                            </div>
-                            <div class="promo-card">
-                                <div class="promo-icon" style="background:#d1fae5; color:#10b981;"><i class="fa-brands fa-whatsapp"></i></div>
-                                <div class="promo-text">
-                                    <h4>WhatsApp Channel</h4>
-                                    <p>24/7 Support & Offers</p>
-                                </div>
-                                <a href="#" id="auth-promo-wa" target="_blank" class="promo-btn" style="background:#d1fae5; color:#10b981;">JOIN</a>
+                        <div style="margin-top: 25px;">
+                            <h4 style="font-size: 13px; color: var(--text-gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; font-weight: 700;">Connect with Us</h4>
+                            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                                <a href="#" id="auth-social-wa" target="_blank" style="display: none; align-items: center; gap: 8px; text-decoration: none; padding: 10px 16px; border-radius: 50px; background: #25D366; color: white; font-size: 12px; font-weight: 700; box-shadow: 0 4px 10px rgba(37,211,102,0.25); transition: 0.2s;">
+                                    <i class="fa-brands fa-whatsapp" style="font-size: 16px;"></i> WhatsApp
+                                </a>
+                                <a href="#" id="auth-social-tg" target="_blank" style="display: none; align-items: center; gap: 8px; text-decoration: none; padding: 10px 16px; border-radius: 50px; background: #0088cc; color: white; font-size: 12px; font-weight: 700; box-shadow: 0 4px 10px rgba(0,136,204,0.25); transition: 0.2s;">
+                                    <i class="fa-brands fa-telegram" style="font-size: 16px;"></i> Telegram
+                                </a>
+                                <a href="#" id="auth-social-ig" target="_blank" style="display: none; align-items: center; gap: 8px; text-decoration: none; padding: 10px 16px; border-radius: 50px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; font-size: 12px; font-weight: 700; box-shadow: 0 4px 10px rgba(220,39,67,0.25); transition: 0.2s;">
+                                    <i class="fa-brands fa-instagram" style="font-size: 16px;"></i> Instagram
+                                </a>
                             </div>
                         </div>
 
@@ -725,37 +713,6 @@
                             </div>
                             <p>"The refund policy is completely transparent. If a service drops or gets canceled by the server, the funds are instantly refunded to the wallet. Extremely trustworthy panel and great UI."</p>
                         </div>
-                        
-                        <div class="review-slide-card">
-                            <div class="review-user-info">
-                                <img src="https://ui-avatars.com/api/?name=Asil+Kocak&background=e0f2fe&color=0284c7&rounded=true" alt="User">
-                                <div class="review-user-details">
-                                    <h4>Asil Kocak <img src="bluetick.jpg" style="width: 14px; height: 14px; border-radius: 50%;" alt="Verified"></h4>
-                                    <div style="color: #f59e0b; font-size: 12px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                                </div>
-                            </div>
-                            <p>"I do SMM promotions for different businesses and this panel has been such a great discovery for me! I used to spend lots of time doing some tasks that can be done super quickly now because SMM services here are delivered so fast. Thank you guys!!"</p>
-                        </div>
-                        <div class="review-slide-card">
-                            <div class="review-user-info">
-                                <img src="https://ui-avatars.com/api/?name=Rahul+D&background=dcfce7&color=16a34a&rounded=true" alt="User">
-                                <div class="review-user-details">
-                                    <h4>Rahul D. <img src="bluetick.jpg" style="width: 14px; height: 14px; border-radius: 50%;" alt="Verified"></h4>
-                                    <div style="color: #f59e0b; font-size: 12px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                                </div>
-                            </div>
-                            <p>"Fastest delivery I've ever seen. The API backend integration works flawlessly for my agency. Zero drops on Premium followers. Highly recommended to anyone looking to grow securely!"</p>
-                        </div>
-                        <div class="review-slide-card">
-                            <div class="review-user-info">
-                                <img src="https://ui-avatars.com/api/?name=Sarah+M&background=fce7f3&color=db2777&rounded=true" alt="User">
-                                <div class="review-user-details">
-                                    <h4>Sarah M. <img src="bluetick.jpg" style="width: 14px; height: 14px; border-radius: 50%;" alt="Verified"></h4>
-                                    <div style="color: #f59e0b; font-size: 12px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                                </div>
-                            </div>
-                            <p>"The refund policy is completely transparent. If a service drops or gets canceled by the server, the funds are instantly refunded to the wallet. Extremely trustworthy panel and great UI."</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -772,6 +729,7 @@
             &copy; 2026 SMMRulz. All Rights Reserved.
         </div>
     </div>
+
     <div id="username-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
         <div class="card" style="max-width:350px; width:90%; animation: fadeIn 0.3s ease; padding: 25px; text-align: center; margin:0;">
             <h3 style="margin-bottom:15px; color:var(--primary); font-size: 18px;">Edit Profile Name</h3>
@@ -793,11 +751,9 @@
     </div>
 
     <div id="app-layout">
-        
         <header style="position: relative;">
             <div class="header-logo brand-glow"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
             <div style="display:flex; align-items:center; gap: 20px;">
-                <!-- Notification Bell Center Handle Component -->
                 <div style="position: relative; cursor: pointer;" onclick="window.toggleNotificationDropdown(event)">
                     <i class="fa-solid fa-bell" style="font-size: 20px; color: var(--text-gray);"></i>
                     <span id="notif-badge-dot" style="position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: red; border-radius: 50%; display: none;"></span>
@@ -806,7 +762,6 @@
                 <i class="fa-solid fa-bars menu-btn" onclick="window.toggleDrawer()"></i>
             </div>
 
-            <!-- Realtime Interactive Notification Dropdown Component Window -->
             <div id="user-notif-dropdown" class="notif-dropdown">
                 <div style="font-weight: 700; font-size: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; color: var(--primary); display: flex; align-items: center; justify-content: space-between;">
                     <span>System Updates & Alerts</span>
@@ -841,7 +796,7 @@
                     <div class="nav-item orders-history" onclick="window.switchView('orders-history')"><i class="fa-solid fa-clock-rotate-left"></i> Order History</div>
                     <div class="nav-item add-funds" onclick="window.switchView('add-funds')"><i class="fa-solid fa-money-bill-transfer"></i> Add Funds</div>
                     <div class="nav-item deposit-history" onclick="window.switchView('deposit-history')"><i class="fa-solid fa-file-invoice-dollar"></i> Deposit History</div>
-                                        <div class="nav-item transactions" onclick="window.switchView('transactions')"><i class="fa-solid fa-money-bill-transfer"></i> Transactions</div>
+                    <div class="nav-item transactions" onclick="window.switchView('transactions')"><i class="fa-solid fa-money-bill-transfer"></i> Transactions</div>
                     <div class="nav-item support" onclick="window.switchView('support')"><i class="fa-solid fa-headset"></i> Support</div>
                     
                     <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
@@ -894,7 +849,6 @@
                 <div id="new-order" class="view active">
                     <div class="page-content">
                         
-                        <!-- 🟩 GREEN MARKER TOGGLE SYSTEM ROW INJECTION -->
                         <div class="category-toggle-container">
                             <button class="toggle-pill-btn active" id="pill-tab-smm" onclick="window.toggleMainOrderLayout('smm')"><i class="fa-solid fa-server"></i> SMMRulz Panel Service</button>
                             <button class="toggle-pill-btn" id="pill-tab-ffmax" onclick="window.toggleMainOrderLayout('ffmax')"><i class="fa-solid fa-crosshairs"></i> FFMax Premium Likes</button>
@@ -988,14 +942,10 @@
                     </div>
                 </div>
 
-                <!-- 🚀 INDEPENDENT FREE FIRE AUTO-LIKE PREMIUM MODULE -->
-                <div id="ff-likes-panel" style="display: none; margin-top: 15px;">
-                   <!-- Premium Custom Image Media Rows -->
+                <div id="ff-likes-panel" style="display: none; margin-top: 15px; width: 100%; padding: 20px; box-sizing: border-box;">
                         <div class="ff-media-row">
-                            <!-- Left: Big Premium Interactive Wide Banner Frame Container -->
                             <div class="ff-big-banner-frame" id="ff-carousel-target" style="background: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;"></div>
                             
-                            <!-- Right: Small Vertical Scrolling Track with Manual UP/DOWN Navigation Buttons -->
                             <div class="ff-small-scroll-box">
                                 <button type="button" class="ff-track-arrow-btn" onclick="window.scrollManualFFTrack(-1)"><i class="fa-solid fa-chevron-up"></i></button>
                                 <div class="ff-scroller-track" id="ff-manual-track">
@@ -1064,7 +1014,6 @@
                     </div>
                 </div>
 
-                <!-- 🚀 INDEPENDENT MY SUBSCRIPTIONS ACTIVE CALENDAR DASHBOARD TRACKER VIEW -->
                 <div id="ff-my-subscriptions" class="view">
                     <div class="page-content">
                         <h1 class="page-title">My Active Subscriptions Log</h1>
@@ -1080,7 +1029,6 @@
                             <h1 class="page-title" style="margin: 0;">Services List</h1>
                             
                             <div style="display: flex; gap: 15px; flex-wrap: wrap; width: 100%; max-width: 650px; align-items: center;">
-                                
                                 <div class="custom-select-wrapper" style="flex: 1; min-width: 200px;" onclick="window.toggleDropdown('filter-cat-options', event)">
                                     <div class="custom-select-trigger filter-trigger" id="filter-cat-trigger">
                                         <i class="fa-solid fa-filter"></i> Filter Categories
@@ -1249,10 +1197,8 @@
     </div>
 
     <script>
-        // Security Wrapper
         window.safeHTML = function(text) { return DOMPurify.sanitize(text || ''); };
         
-        // Theme Toggle Logic
         if(localStorage.getItem('theme') === 'dark') { 
             document.body.classList.add('dark-mode'); 
             setTimeout(() => document.getElementById('theme-toggle').className = 'fa-solid fa-sun', 100);
@@ -1274,14 +1220,11 @@
             setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 2500);
         };
 
-
-        // Toggle FAQ
         window.toggleFaq = function(element) {
             const item = element.parentElement;
             item.classList.toggle('open');
         };
 
-        // Password Hide/Show Fix
         window.togglePassword = function(inputId, iconElement) {
             const input = document.getElementById(inputId);
             if (input.type === "password") { 
@@ -1359,7 +1302,6 @@
             if(isOpened){ overlay.classList.add('show'); } else { overlay.classList.remove('show'); }
         };
 
-        // 🐛 FIX: Add Funds UI Triggers perfectly restored
         window.showPaymentDetails = function() {
             document.getElementById('add-funds-intro').style.display = 'none';
             document.getElementById('payment-details-section').style.display = 'block';
@@ -1390,7 +1332,7 @@
 
         document.addEventListener('click', (e) => {
             document.querySelectorAll('.custom-select-options').forEach(el => el.classList.remove('show'));
-            if(e.target.id !== 'service-search') {
+            if(e.target.id !== 'service-search' && e.target.id !== 'landing-service-search') {
                 const sugg = document.getElementById('search-suggestions');
                 if(sugg) sugg.style.display = 'none';
             }
@@ -1487,7 +1429,6 @@
             if (pushHistory) { history.pushState({ view: viewId }, '', '#' + viewId); }
         };
 
-        // 🟩 LIVE SWITCH OVERLAY RENDERING DRIVER
         window.activeBannerIndex = 1;
         window.maxBannerCount = 6;
 
@@ -1525,7 +1466,6 @@
             window.updateManualBannerTrack();
         };
 
-        // 🕹️ FREE FIRE MANUAL SELECTION INTERACTIVE SCROLLER CONTROLLER
         window.handleScrollBannerSelection = function(price, name, days, largeBannerUrl, element) {
             document.querySelectorAll('.ff-scroll-banner-card').forEach(c => { c.classList.remove('selected'); });
             if (element) element.classList.add('selected');
@@ -1537,7 +1477,6 @@
             const cache = window.globalFFBannersCache || {};
             const activeIdx = window.activeBannerIndex || 1;
             
-            // Map the big banner container image dynamically to match the selected index context
             const finalBigUrl = cache[`bigUrl${activeIdx}`] || 'https://img.freepik.com/premium-photo/futuristic-gaming-room-with-computers-monitors_713888-2424.jpg';
             
             const carouselFrame = document.getElementById('ff-carousel-target');
@@ -1643,7 +1582,6 @@
             else { window.switchView('new-order', false); }
         });
 
-        // 🚀 REALTIME ASYNCHRONOUS SEEN/UNSEEN NOTIFICATION ENGINE
         window.syncLiveUserNotifications = function() {
             if(!currentUser) return;
             onValue(ref(db, `notifications/${currentUser.uid}`), (snap) => {
@@ -1680,11 +1618,9 @@
             });
         };
 
-        // 🚀 AUTOMATED CROSS-MODULE SEEN/UNSEEN BADGE SYNCHRONIZER
         window.initWorkingOptionsTracker = function() {
             if (!currentUser) return;
 
-            // Define map links to append active dynamic badges
             const navElementsMap = {
                 orders: document.querySelectorAll('a[onclick*="orders-history"], div[onclick*="orders-history"]'),
                 services: document.querySelectorAll('a[onclick*="services"], div[onclick*="services"]'),
@@ -1695,10 +1631,8 @@
             onValue(ref(db, `users/${currentUser.uid}/seen_states`), (snapshot) => {
                 const states = snapshot.val() || { orders: true, services: true, tickets: true, balance: true };
 
-                // Clean all existing active badges from layout options first
                 document.querySelectorAll('.option-badge-dot').forEach(el => el.remove());
 
-                // Inject live pulsing unseen badges across menus if modifications exist
                 for (let featureKey in navElementsMap) {
                     if (states[featureKey] === false) {
                         navElementsMap[featureKey].forEach(element => {
@@ -1713,10 +1647,8 @@
                 }
             });
 
-            // 🧠 INTELLIGENT OBSERVERS: Automatically flag options as "Unseen" ONLY on true Admin modifications
             onChildChanged(ref(db, `orders`), (data) => {
                 if (data.val().userId === currentUser.uid) {
-                    // Only flag unseen if the user isn't currently viewing their order history list
                     if (window.location.hash !== '#orders-history') {
                         update(ref(db, `users/${currentUser.uid}/seen_states`), { orders: false }).catch(() => {});
                     }
@@ -1725,7 +1657,6 @@
 
             onChildChanged(ref(db, `tickets`), (data) => {
                 if (data.val().userId === currentUser.uid) {
-                    // Only flag unseen if the user isn't currently inside the live support chat view
                     if (window.location.hash !== '#support') {
                         update(ref(db, `users/${currentUser.uid}/seen_states`), { tickets: false }).catch(() => {});
                     }
@@ -1734,7 +1665,6 @@
 
             onChildChanged(ref(db, `payment_proofs`), (data) => {
                 if (data.val().userId === currentUser.uid) {
-                    // Only flag unseen if a deposit status is approved/rejected while user is on another page
                     if (window.location.hash !== '#deposit-history' && window.location.hash !== '#transactions' && window.location.hash !== '#add-funds') {
                         update(ref(db, `users/${currentUser.uid}/seen_states`), { balance: false }).catch(() => {});
                     }
@@ -1744,7 +1674,6 @@
 
         window.handleNotificationClick = async function(notifId, destination) {
             if(!currentUser) return;
-            // Atomic update to database seen status flag
             await update(ref(db, `notifications/${currentUser.uid}/${notifId}`), { seen: true });
             if(destination && destination !== 'undefined') {
                 window.switchView(destination);
@@ -1764,7 +1693,6 @@
             }
         };
 
-        // 🚀 UNIFIED LIVE PUBLIC OBSERVER SYSTEM
         function initPublicGlobalSync() {
             onValue(ref(db, 'categories'), (snap) => {
                 globalCategories = snap.val() || {};
@@ -1785,16 +1713,34 @@
                     document.querySelectorAll('.dynamic-tg').forEach(el => { el.href = tgLink; el.style.display = 'flex'; });
                     const mTg = document.getElementById('mobile-menu-tg'); if(mTg) { mTg.href = tgLink; mTg.style.display = 'block'; }
                     const aTg = document.getElementById('auth-promo-tg'); if(aTg) aTg.href = tgLink;
+                    
+                    const aTgSocial = document.getElementById('auth-social-tg');
+                    if(aTgSocial) { aTgSocial.href = tgLink; aTgSocial.style.display = 'inline-flex'; }
+                } else {
+                    const aTgSocial = document.getElementById('auth-social-tg');
+                    if(aTgSocial) aTgSocial.style.display = 'none';
                 }
                 if (waLink) {
                     document.querySelectorAll('.dynamic-wa').forEach(el => { el.href = waLink; el.style.display = 'flex'; });
                     const mWa = document.getElementById('mobile-menu-wa'); if(mWa) { mWa.href = waLink; mWa.style.display = 'block'; }
                     const aWa = document.getElementById('auth-promo-wa'); if(aWa) aWa.href = waLink;
                     const fWa = document.getElementById('floating-wa'); if(fWa) { fWa.href = waLink; fWa.style.display = 'flex'; }
+                    
+                    const aWaSocial = document.getElementById('auth-social-wa');
+                    if(aWaSocial) { aWaSocial.href = waLink; aWaSocial.style.display = 'inline-flex'; }
+                } else {
+                    const aWaSocial = document.getElementById('auth-social-wa');
+                    if(aWaSocial) aWaSocial.style.display = 'none';
                 }
                 if (igLink) {
                     document.querySelectorAll('.dynamic-ig').forEach(el => { el.href = igLink; el.style.display = 'flex'; });
                     const mIg = document.getElementById('mobile-menu-ig'); if(mIg) { mIg.href = igLink; mIg.style.display = 'block'; }
+                    
+                    const aIgSocial = document.getElementById('auth-social-ig');
+                    if(aIgSocial) { aIgSocial.href = igLink; aIgSocial.style.display = 'inline-flex'; }
+                } else {
+                    const aIgSocial = document.getElementById('auth-social-ig');
+                    if(aIgSocial) aIgSocial.style.display = 'none';
                 }
             });
         }
@@ -1815,7 +1761,6 @@
 
         window.handleAuth = async function(e) {
             e.preventDefault();
-            // isSignupMode comes from the Fast-Load script
             const email = window.safeHTML(document.getElementById('auth-email').value.trim()); 
             const pass = document.getElementById('auth-password').value; 
             const rememberMe = document.getElementById('remember-me').checked;
@@ -1835,7 +1780,6 @@
                     const cred = await createUserWithEmailAndPassword(auth, email, pass);
                     const baseWords = email.split('@')[0].replace(/[^a-zA-Z]/g, '').substring(0, 6);
                     const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    // 🚀 FIX: Removed balance & suspended fields so Firebase Rules don't block user creation!
                     await set(ref(db, `users/${cred.user.uid}`), { email: email, username: username, createdAt: Date.now() });
                     window.showToast("Account Created! Logging in...");
                 } else { 
@@ -1857,9 +1801,6 @@
             }
         };
 
-        // 🚀 ADVANCED ENTERPRISE GOOGLE IDENTITY SYSTEM
-        // This bypasses ALL mobile popup blockers and storage partition errors.
-        
         window.handleGoogleCredentialResponse = async function(response) {
             try {
                 const googleWrapper = document.getElementById('google-btn-wrapper');
@@ -1869,11 +1810,9 @@
 
                 await setPersistence(auth, browserLocalPersistence);
                 
-                // 1. Exchange the Google Identity JWT Token for a Firebase Session securely
                 const credential = GoogleAuthProvider.credential(response.credential);
                 const result = await signInWithCredential(auth, credential);
                 
-                // 2. Synchronize the User Database
                 const userRef = ref(db, `users/${result.user.uid}`);
                 const snapshot = await get(userRef);
                 const safeEmail = result.user.email || 'user@smmrulz.com';
@@ -1881,13 +1820,11 @@
                 if (!snapshot.exists()) {
                     const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
                     const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    // 🚀 FIX: Removed balance & suspended fields so Firebase Rules don't block user creation!
                     await set(userRef, { email: window.safeHTML(safeEmail), username: username, createdAt: Date.now() });
                 }
                 
                 window.showToast("Google Login Successful!");
                 
-                // 3. ABSOLUTE FORCED DASHBOARD TRANSITION (No more getting stuck)
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
                 window.switchView('new-order', false);
@@ -1900,7 +1837,6 @@
                 console.error("Google Auth Error:", error);
                 window.showToast("Authentication Failed.", "error");
             } finally {
-                // 🚀 INSTANT REDIRECT FIX: Removes the shuttering delay
                 const loader = document.getElementById('global-loader');
                 if (loader) {
                     loader.style.display = 'none'; 
@@ -1909,7 +1845,6 @@
             }
         };
 
-        // 4. Initialize the Official Google API Using your Cloud Client ID
         function initGoogleIdentity() {
             if (window.google && window.google.accounts) {
                 window.google.accounts.id.initialize({
@@ -1922,7 +1857,7 @@
                     { theme: "outline", size: "large", shape: "rectangular", width: "350", text: "continue_with" }
                 );
             } else {
-                setTimeout(initGoogleIdentity, 100); // Wait for Google script to load
+                setTimeout(initGoogleIdentity, 100); 
             }
         }
         initGoogleIdentity();
@@ -1948,14 +1883,12 @@
             } else { window.showToast("Name cannot be empty", "error"); }
         };
 
-        // 🚀 THE MASTER LISTENER
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             
             const btn = document.getElementById('btn-google');
             if (btn) {
                 btn.disabled = false;
-                isAuthProcessing = false;
                 btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
             }
 
@@ -1978,7 +1911,6 @@
                         const safeEmail = user.email || 'user@smmrulz.com';
                         const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
                         const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                        // 🚀 FIX: Removed balance & suspended fields so Firebase Rules don't block user creation!
                         await set(userRef, { email: window.safeHTML(safeEmail), username: username, createdAt: Date.now() });
 
                         document.getElementById('drawer-email').innerHTML = username;
@@ -2010,24 +1942,28 @@
                 loadUserData();
                 loadAppData();
                 window.syncLiveUserNotifications();
-                window.initWorkingOptionsTracker(); // 🚀 Bootstraps seen/unseen menu nodes instantly
+                window.initWorkingOptionsTracker(); 
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-layout').style.display = 'none';
             }
 
-            // Done loading
             const submitBtn = document.getElementById('auth-submit-btn');
             if (submitBtn && !currentUser) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = isSignupMode ? "Register Account" : "Login Securely";
+            }
+            
+            const loader = document.getElementById('global-loader');
+            if (loader) {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
             }
         });
 
         window.getCatIcon = function(name) {
             const n = name.toLowerCase();
             
-            // 1. PRIMARY PRIORITY: If the platform is explicitly named, lock it in immediately.
             if(/facebook|\bfb\b/i.test(n)) return '<i class="fa-brands fa-facebook platform-icon fb-icon"></i>';
             if(/youtube|\byt\b/i.test(n)) return '<i class="fa-brands fa-youtube platform-icon yt-icon"></i>';
             if(/instagram|\big\b/i.test(n)) return '<i class="fa-brands fa-instagram platform-icon ig-icon"></i>';
@@ -2035,11 +1971,9 @@
             if(/twitter|\bx\b/i.test(n)) return '<i class="fa-brands fa-x-twitter platform-icon x-icon"></i>';
             if(/tiktok|\btt\b/i.test(n)) return '<i class="fa-brands fa-tiktok platform-icon tt-icon"></i>';
             
-            // 2. SECONDARY PRIORITY: Only triggers if the service has no explicit platform name above.
             if(/\breels\b/i.test(n)) return '<i class="fa-brands fa-instagram platform-icon ig-icon"></i>'; 
             if(/\bshorts\b/i.test(n)) return '<i class="fa-brands fa-youtube platform-icon yt-icon"></i>';
             
-            // 3. OTHER PLATFORMS
             if(/spotify/i.test(n)) return '<i class="fa-brands fa-spotify platform-icon sp-icon"></i>';
             if(/threads/i.test(n)) return '<i class="fa-brands fa-threads platform-icon x-icon"></i>';
             if(/discord/i.test(n)) return '<i class="fa-brands fa-discord platform-icon dc-icon"></i>';
@@ -2085,26 +2019,70 @@
             window.filterServicesTable();
         };
 
+        window.selectLandingFilterCategory = function(catId, catName, event) {
+            if(event) event.stopPropagation();
+            document.querySelectorAll('.custom-select-options').forEach(el => el.classList.remove('show'));
+            
+            let icon = catId === 'all' ? '<i class="fa-solid fa-filter"></i>' : window.getCatIcon(catName);
+            document.getElementById('landing-service-cat-filter').value = window.safeHTML(catId);
+            document.getElementById('landing-filter-cat-trigger').innerHTML = `${icon} ${window.safeHTML(catName)}`;
+            
+            window.filterLandingServicesTable();
+        };
+
         window.filterServicesTable = function() {
             const catId = document.getElementById('service-cat-filter') ? document.getElementById('service-cat-filter').value : 'all';
             const searchInput = document.getElementById('service-search').value.toLowerCase();
             const tableBody = document.getElementById('app-services-table');
+            if(!tableBody) return;
             const rows = tableBody.getElementsByTagName('tr');
             
             for (let i = 0; i < rows.length; i++) {
-                let catCell = rows[i].getElementsByTagName('td')[0].innerText.toLowerCase();
-                let nameCell = rows[i].getElementsByTagName('td')[1].innerText.toLowerCase();
+                let isCategoryRow = rows[i].classList.contains('category-row');
+                let rowCatId = rows[i].getAttribute('data-cat') || '';
                 
-                let matchesCat = true;
-                if (catId !== 'all' && globalCategories[catId]) {
-                    matchesCat = catCell.includes(globalCategories[catId].name.toLowerCase());
+                if (isCategoryRow) {
+                    if (catId === 'all') {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = (rowCatId === catId) ? "" : "none";
+                    }
+                } else {
+                    let matchesCat = (catId === 'all') || (rowCatId === catId);
+                    let nameAttr = rows[i].getAttribute('data-name') || '';
+                    let matchesSearch = nameAttr.includes(searchInput);
+                    
+                    rows[i].style.display = (matchesCat && matchesSearch) ? "" : "none";
                 }
-                let matchesSearch = nameCell.includes(searchInput) || catCell.includes(searchInput);
-                
-                rows[i].style.display = (matchesCat && matchesSearch) ? "" : "none";
             }
         };
 
+        window.filterLandingServicesTable = function() {
+            const catId = document.getElementById('landing-service-cat-filter') ? document.getElementById('landing-service-cat-filter').value : 'all';
+            const searchInput = document.getElementById('landing-service-search').value.toLowerCase();
+            const tableBody = document.getElementById('landing-services-table');
+            if(!tableBody) return;
+            const rows = tableBody.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                let isCategoryRow = rows[i].classList.contains('category-row');
+                let rowCatId = rows[i].getAttribute('data-cat') || '';
+                
+                if (isCategoryRow) {
+                    if (catId === 'all') {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = (rowCatId === catId) ? "" : "none";
+                    }
+                } else {
+                    let matchesCat = (catId === 'all') || (rowCatId === catId);
+                    let nameAttr = rows[i].getAttribute('data-name') || '';
+                    let matchesSearch = nameAttr.includes(searchInput);
+                    
+                    rows[i].style.display = (matchesCat && matchesSearch) ? "" : "none";
+                }
+            }
+        };
 
         window.selectPayment = function(payId, event) {
             if(event) event.stopPropagation();
@@ -2144,29 +2122,32 @@
                     catHtml += `<div class="custom-option" onclick="window.selectCategory('${cat.id}', event)">${icon} ${catName}</div>`;
                 });
                 
-                // FIX: This line puts the categories into the New Order dropdown
                 document.getElementById('cat-options').innerHTML = catHtml || '<div class="custom-option">No categories yet</div>';
                 
-                // POPULATE THE NEW COLORFUL SERVICES FILTER
                 let filterHtml = `<div class="custom-option" onclick="window.selectFilterCategory('all', 'All Categories', event)"><i class="fa-solid fa-list-ol"></i> All Categories</div>`;
                 sortedCats.forEach(cat => { 
                     let safeName = window.safeHTML(cat.name);
                     let icon = window.getCatIcon(safeName);
-                    // We escape single quotes in name to prevent breaking the onclick function
                     filterHtml += `<div class="custom-option" onclick="window.selectFilterCategory('${cat.id}', '${safeName.replace(/'/g, "\\'")}', event)">${icon} ${safeName}</div>`; 
                 });
                 const filterEl = document.getElementById('filter-cat-options');
                 if(filterEl) filterEl.innerHTML = filterHtml;
+
+                let landingFilterHtml = `<div class="custom-option" onclick="window.selectLandingFilterCategory('all', 'All Categories', event)"><i class="fa-solid fa-list-ol"></i> All Categories</div>`;
+                sortedCats.forEach(cat => { 
+                    let safeName = window.safeHTML(cat.name);
+                    let icon = window.getCatIcon(safeName);
+                    landingFilterHtml += `<div class="custom-option" onclick="window.selectLandingFilterCategory('${cat.id}', '${safeName.replace(/'/g, "\\'")}', event)">${icon} ${safeName}</div>`; 
+                });
+                const landingFilterEl = document.getElementById('landing-filter-cat-options');
+                if(landingFilterEl) landingFilterEl.innerHTML = landingFilterHtml;
             });
             
             onValue(ref(db, 'services'), (snap) => { globalServices = snap.val() || {}; renderServices(); });
 
-            // Premium graphics sync routing observer attachment
             onValue(ref(db, 'settings/ff_banners'), (snap) => {
                 const b = snap.val() || {};
                 window.globalFFBannersCache = b;
-                
-                // Force hot-reload on the active carousel index selection context state
                 if(typeof window.updateManualBannerTrack === 'function' && document.getElementById('ff-likes-panel').style.display === 'block') {
                     window.updateManualBannerTrack();
                 }
@@ -2185,7 +2166,6 @@
             onValue(ref(db, 'settings/socials'), (snap) => {
                 const s = snap.val() || {};
                 
-                // Set WhatsApp Promos
                 const waNum = window.safeHTML(s.whatsapp ? s.whatsapp.replace(/[^0-9]/g, '') : '');
                 const waLink = waNum ? `https://wa.me/${waNum}` : '';
                 if(waLink) {
@@ -2198,12 +2178,16 @@
                     if(authWa) authWa.href = waLink;
                     const ordWa = document.getElementById('order-promo-wa');
                     if(ordWa) ordWa.href = waLink;
+                    
+                    const aWaSocial = document.getElementById('auth-social-wa');
+                    if(aWaSocial) { aWaSocial.href = waLink; aWaSocial.style.display = 'inline-flex'; }
                 } else {
                     document.getElementById('floating-wa').style.display = 'none';
                     document.getElementById('link-wa').style.display = 'none';
+                    const aWaSocial = document.getElementById('auth-social-wa');
+                    if(aWaSocial) aWaSocial.style.display = 'none';
                 }
 
-                // Set Telegram Promos
                 const checkUrl = (url) => (url && (url.startsWith('http://') || url.startsWith('https://'))) ? window.safeHTML(url) : '';
                 const tgUrl = checkUrl(s.telegram);
                 if(tgUrl) { 
@@ -2216,21 +2200,30 @@
                     if(authTg) authTg.href = tgUrl;
                     const ordTg = document.getElementById('order-promo-tg');
                     if(ordTg) ordTg.href = tgUrl;
+                    
+                    const aTgSocial = document.getElementById('auth-social-tg');
+                    if(aTgSocial) { aTgSocial.href = tgUrl; aTgSocial.style.display = 'inline-flex'; }
                 } else { 
                     document.getElementById('link-tg').style.display = 'none'; 
                     if(document.getElementById('mobile-menu-tg')) document.getElementById('mobile-menu-tg').style.display = 'none';
+                    const aTgSocial = document.getElementById('auth-social-tg');
+                    if(aTgSocial) aTgSocial.style.display = 'none';
                 }
                 
-                // Other Promos
                 const igUrl = checkUrl(s.instagram);
                 if(igUrl) { 
                     document.getElementById('link-ig').href = igUrl; 
                     document.getElementById('link-ig').style.display = 'block'; 
                     const mMenuIg = document.getElementById('mobile-menu-ig');
                     if(mMenuIg) { mMenuIg.href = igUrl; mMenuIg.style.display = 'block'; }
+                    
+                    const aIgSocial = document.getElementById('auth-social-ig');
+                    if(aIgSocial) { aIgSocial.href = igUrl; aIgSocial.style.display = 'inline-flex'; }
                 } else { 
                     document.getElementById('link-ig').style.display = 'none'; 
                     if(document.getElementById('mobile-menu-ig')) document.getElementById('mobile-menu-ig').style.display = 'none';
+                    const aIgSocial = document.getElementById('auth-social-ig');
+                    if(aIgSocial) aIgSocial.style.display = 'none';
                 }
                 
                 if(waLink) {
@@ -2250,13 +2243,11 @@
                     document.getElementById('custom-link-box').style.display = 'none';
                 }
                 
-                // 📢 DYNAMIC LIVE TICKER
                 const tickerEl = document.getElementById('live-ticker-text');
                 if (tickerEl) {
                     tickerEl.innerHTML = s.announcement ? window.safeHTML(s.announcement) : '🔥 Welcome to Perfect SMM! The fastest, most secure SMM Panel. Keep adding funds to enjoy uninterrupted service. 🚀';
                 }
 
-                // 🛑 GLOBAL MAINTENANCE MODE CHECK
                 window.isMaintenanceMode = s.maintenance === true;
                 const orderBtn = document.getElementById('order-btn');
                 if (window.isMaintenanceMode) {
@@ -2275,15 +2266,13 @@
             if (!currentUser) return;
             const uid = currentUser.uid;
 
-            // 1. Balance Listener
             onValue(ref(db, `users/${uid}/balance`), (snap) => { 
                 if(snap.exists()) {
-                    rawBalance = parseFloat(snap.val()) || 0; // 🚀 SYNCS LIVE BALANCE TO JAVASCRIPT
+                    rawBalance = parseFloat(snap.val()) || 0; 
                     document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
                 }
             });
             
-            // 2. Asynchronous Orders Listener (Secure Real-Time Query Stream)
             const ordersQ = query(ref(db, 'orders'), orderByChild('userId'), equalTo(uid));
             onValue(ordersQ, (snap) => {
                 const userOrdersList = [];
@@ -2292,7 +2281,6 @@
                         userOrdersList.push({ id: childSnap.key, ...childSnap.val() });
                     });
                 }
-                // High-speed real-time sorting for instant preview feed
                 userOrdersList.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
                 document.getElementById('stat-total-orders').innerText = userOrdersList.length; 
@@ -2315,7 +2303,6 @@
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
             }, (error) => { console.error("Firebase Live Query Error (Orders):", error); });
 
-            // ⚙️ REALTIME SUBSCRIPTION CALENDAR LOGS PARSER ENGINE
             onValue(ref(db, `freefire_subs/${uid}`), (snap) => {
                 const subsRoot = document.getElementById('ff-active-subs-root-feed');
                 if (!subsRoot) return;
@@ -2393,7 +2380,6 @@
                 subsRoot.innerHTML = html;
             });
             
-            // 3. Payment Proofs / Deposits (Secure Query Method)
             const proofsQ = query(ref(db, 'payment_proofs'), orderByChild('userId'), equalTo(uid));
             onValue(proofsQ, (snap) => {
                 const userDepositsList = [];
@@ -2435,94 +2421,6 @@
                 if(transTable) transTable.innerHTML = transHtml || '<tr><td colspan="4" align="center">No transactions found.</td></tr>';
             }, (error) => { console.error("Firebase Read Error (Deposits):", error); });
             
-            // 5. Realtime Free Fire Auto-Like Progress Tracker (Pushes structural data tables down)
-            onValue(ref(db, `freefire_subs/${uid}`), (snap) => {
-                const subsRoot = document.getElementById('ff-active-subs-root-feed');
-                if (!subsRoot) return;
-
-                if (!snap.exists()) {
-                    subsRoot.innerHTML = `<div style="padding:40px; text-align:center; color:var(--text-gray); font-size:13px; background:var(--bg-top); border-radius:12px; border:1px solid var(--border-color);"><i class="fa-solid fa-box-open" style="font-size:24px; margin-bottom:10px; display:block; color:var(--text-gray);"></i> You have no running subscription models currently registered.</div>`;
-                    return;
-                }
-
-                let html = '';
-                const activeSubs = snap.val();
-                
-                for (let key in activeSubs) {
-                    const sub = activeSubs[key];
-                    const daysRemaining = Math.max(0, Math.ceil((sub.expiryTime - Date.now()) / 86400000));
-                    
-                    html += `
-                        <div class="card" style="background:var(--bg-top); border-color:var(--border-color); padding:20px; position:relative; margin-bottom:20px;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border-color); padding-bottom:12px; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                                <div>
-                                    <h3 style="font-size:16px; font-weight:700; color:var(--primary);">${window.safeHTML(sub.packageName)}</h3>
-                                    <small style="color:var(--text-gray);">Target UID: <b style="color:var(--text-dark); font-family:monospace;">${window.safeHTML(sub.uid)}</b> | Server: <b>${window.safeHTML(sub.region)}</b></small>
-                                </div>
-                                <div style="text-align:right;">
-                                    <span class="badge bg-completed" style="background:#10b981; border-radius:50px;">Running Active</span>
-                                    <small style="display:block; color:var(--text-gray); margin-top:4px;">Expires in: <b>${daysRemaining} Days</b></small>
-                                </div>
-                            </div>
-                            
-                            <!-- Internal Stats Counter Ledger Row -->
-                            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:13px;">
-                                <div><span style="color:var(--text-gray);">Purchased on:</span> <small><b>${new Date(sub.purchaseTime).toLocaleDateString()}</b></small></div>
-                                <div><span style="color:var(--text-gray);">Likes Dropped:</span> <b style="color:#10b981;">${window.safeHTML(String(sub.likesDelivered))} ❤️</b></div>
-                                <div><span style="color:var(--text-gray);">Remaining Loop:</span> <b style="color:var(--text-gray);">${window.safeHTML(String(sub.likesRemaining))}</b></div>
-                            </div>
-
-                            <!-- 🔴 RED MARKER DIRECTIVE CALENDAR TIMELINE COMPONENT INJECTION -->
-                            <h4 style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-gray); margin-bottom:8px;"><i class="fa-regular fa-calendar-check"></i> Day-by-Day Drop Metrics Calendar</h4>
-                            <div class="ff-progress-timeline">
-                    `;
-
-                    // Form loop array sequence dynamically checking day-by-day timestamps
-                    for (let i = 0; i < sub.totalDays; i++) {
-                        const nodeTime = sub.purchaseTime + (i * 86400000);
-                        const nodeDateStr = new Date(nodeTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-                        
-                        let isNodeCompleted = false;
-                        const currentDayIndex = Math.floor((Date.now() - sub.purchaseTime) / 86400000);
-
-                        if (i < currentDayIndex) {
-                            isNodeCompleted = true; // Historical past system drops completed safely
-                        } else if (i === currentDayIndex) {
-                            // Check if initial time frame hour threshold has been met contextually
-                            const purchaseHour = new Date(sub.purchaseTime).getHours();
-                            const currentHour = new Date().getHours();
-                            if (currentHour >= purchaseHour) isNodeCompleted = true;
-                        }
-
-                        if (isNodeCompleted) {
-                            html += `
-                                <div class="ff-timeline-node completed">
-                                    <small style="font-size:10px; display:block; color:#fff;">Day ${i+1}</small>
-                                    <strong style="font-size:11px; display:block; margin-top:2px; color:rgba(255,255,255,0.7);">${nodeDateStr}</strong>
-                                    <div class="ff-node-status-icon completed"><i class="fa-solid fa-circle-check"></i></div>
-                                </div>
-                            `;
-                        } else {
-                            html += `
-                                <div class="ff-timeline-node pending">
-                                    <small style="font-size:10px; display:block; color:#94a3b8;">Day ${i+1}</small>
-                                    <strong style="font-size:11px; display:block; margin-top:2px; color:#94a3b8;">${nodeDateStr}</strong>
-                                    <div class="ff-node-status-icon pending" title="Triggers automatically daily at ${new Date(sub.purchaseTime).toLocaleTimeString(undefined, {hour: '2-digit', minute:'2-digit'})}"><i class="fa-solid fa-circle-dot"></i></div>
-                                </div>
-                            `;
-                        }
-                    }
-
-                    html += `
-                            </div>
-                        </div>
-                    `;
-                }
-
-                subsRoot.innerHTML = html;
-            });
-
-            // 4. Tickets (Secure Query Method)
             const ticketsQ = query(ref(db, 'tickets'), orderByChild('userId'), equalTo(uid));
             onValue(ticketsQ, (snap) => {
                 const myTickets = [];
@@ -2595,6 +2493,11 @@
             if (appTable) appTable.innerHTML = html;
             const publicTable = document.getElementById('public-services-table');
             if (publicTable) publicTable.innerHTML = html || '<tr><td colspan="4" align="center">No services available.</td></tr>';
+            const landingTable = document.getElementById('landing-services-table');
+            if (landingTable) landingTable.innerHTML = html || '<tr><td colspan="4" align="center">No services available.</td></tr>';
+            
+            if (typeof window.filterServicesTable === 'function') { window.filterServicesTable(); }
+            if (typeof window.filterLandingServicesTable === 'function') { window.filterLandingServicesTable(); }
         }
 
         window.filterServices = function() {
@@ -2666,7 +2569,6 @@
             if(srvId && globalServices[srvId] && qty && !isNaN(qty) && qty > 0) { const baseCharge = (globalServices[srvId].price / 1000) * qty; document.getElementById('order-charge').value = baseCharge.toFixed(2); } else { document.getElementById('order-charge').value = '0.00'; }
         };
 
-        // 🚀 BULLETPROOF SECURE ORDER SYSTEM
         let isOrderProcessing = false;
 
         window.submitOrder = async function(e) {
@@ -2702,7 +2604,6 @@
                     window.showToast(`Limits: ${service.min} - ${service.max}`, "error"); throw new Error("Validation");
                 }
 
-                // 🚀 SMART CONTEXTUAL LINK GUARDIAN ENGINE
                 const sName = (service.name || '').toLowerCase();
                 let isLinkValid = true;
                 let urlHelperMessage = "";
@@ -2757,17 +2658,14 @@
                     throw new Error("Validation");
                 }
 
-                // 🛑 MASTER FEATURE: FRONTEND BALANCE GUARD
                 const baseCharge = (service.price / 1000) * qty;
                 if (rawBalance < baseCharge) {
                     window.showToast("Insufficient Funds! Please add money to your wallet.", "error"); 
-                    window.switchView('add-funds'); // Auto-redirect to Add Funds page
+                    window.switchView('add-funds'); 
                     throw new Error("Validation");
                 }
 
                 const API_URL = '/api/order';
-
-                // 🔒 SECURE TOKEN GENERATION
                 const idToken = await currentUser.getIdToken(true);
 
                 const commentsGroup = document.getElementById('comments-group');
@@ -2778,10 +2676,10 @@
                     headers: { 
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'Authorization': `Bearer ${idToken}` // Token sent securely
+                        'Authorization': `Bearer ${idToken}` 
                     },
                     body: JSON.stringify({
-                        uid: currentUser.uid, // 💡 BACKWARDS COMPATIBILITY: Restored so old Vercel code doesn't crash!
+                        uid: currentUser.uid, 
                         srvId: srvId,
                         link: link,
                         qty: qty,
@@ -2823,7 +2721,6 @@
             if(!payMethod) return window.showToast("Please select a Payment Method first", "error");
             if(isNaN(typedAmount) || typedAmount <= 0) return window.showToast("Invalid amount entered", "error");
 
-            // 🛑 SECURE UTR FORMAT VERIFICATION
             if (txid.length !== 12 || !/^\d+$/.test(txid)) {
                 return window.showToast("Invalid Transaction ID! PhonePe UTR must be exactly 12 digits.", "error");
             }
@@ -2834,7 +2731,6 @@
             btn.disabled = true;
 
             try {
-                // Send to Admin for Manual Processing
                 await push(ref(db, 'payment_proofs'), { 
                     userId: currentUser.uid, 
                     email: currentUser.email, 
@@ -2892,14 +2788,11 @@
     </script>
     
     <script>
-        // 🛡️ ULTIMATE ANTI-CRACK & ANTI-THEFT SHIELD 🛡️
         (function() {
-            // 1. Block Context Menu (Right-Click) EXCEPT on inputs for pasting
             document.addEventListener('contextmenu', event => {
                 if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') event.preventDefault();
             });
             
-            // 2. Block Advanced Developer Tools Shortcuts
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'F12' || 
                    (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
@@ -2908,10 +2801,8 @@
                 }
             });
 
-            // 3. Disable Dragging (Protects visual elements)
             document.addEventListener('dragstart', e => e.preventDefault());
 
-            // 4. Console Warning Trap
             setTimeout(() => {
                 console.clear();
                 console.log("%cSTOP! 🛑", "color: red; font-size: 40px; font-weight: bold; text-shadow: 2px 2px 0 #000;");
