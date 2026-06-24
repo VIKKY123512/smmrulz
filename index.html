@@ -1109,15 +1109,11 @@
                             <form id="proof-form" onsubmit="window.submitPaymentProof(event)">
                                 <div class="flex-row">
                                     <div class="input-group">
-                                        <label>Amount Sent (₹)</label>
-                                        <input type="number" step="0.01" min="1" id="proof-amount" placeholder="e.g. 500" required>
-                                    </div>
-                                    <div class="input-group">
-                                        <label>Transaction ID / UTR</label>
+                                        <label>Transaction ID / UTR (12 Digits)</label>
                                         <input type="text" id="proof-txid" placeholder="Paste 12-digit UTR here" required>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-check-circle"></i> Submit Payment Proof</button>
+                                <button type="submit" class="btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-bolt"></i> Auto Verify Payment</button>
                             </form>
                             <button class="btn" onclick="window.hidePaymentDetails()" style="background: var(--bg-bottom); color: var(--text-dark); margin-top: 15px; box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Go Back</button>
                         </div>
@@ -2714,47 +2710,78 @@
 
         window.submitPaymentProof = async function(e) {
             e.preventDefault();
-            const payMethod = document.getElementById('selected-pay-method').value;
-            const typedAmount = parseFloat(document.getElementById('proof-amount').value);
-            const txid = window.safeHTML(document.getElementById('proof-txid').value.trim());
             
-            if(!payMethod) return window.showToast("Please select a Payment Method first", "error");
-            if(isNaN(typedAmount) || typedAmount <= 0) return window.showToast("Invalid amount entered", "error");
-
-            if (txid.length !== 12 || !/^\d+$/.test(txid)) {
-                return window.showToast("Invalid Transaction ID! PhonePe UTR must be exactly 12 digits.", "error");
+            // WE GRAB THE UTR ONLY
+            const utr = document.getElementById('proof-txid').value.trim();
+            
+            if(utr.length !== 12 || !/^\d+$/.test(utr)) {
+                return window.showToast("Invalid Transaction ID! UTR must be exactly 12 digits.", "error");
             }
 
             const btn = e.target.querySelector('button');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking Server...';
             btn.disabled = true;
 
             try {
-                await push(ref(db, 'payment_proofs'), { 
-                    userId: currentUser.uid, 
-                    email: currentUser.email, 
-                    amount: typedAmount, 
-                    txid: txid, 
-                    method: globalPaymentMethods[payMethod]?.name || 'Unknown',
-                    status: 'Pending', 
-                    timestamp: Date.now() 
+                // IMPORTANT: Replace this URL with the actual URL where you upload your verify_upi.php file!
+                const VERIFY_ENDPOINT = "https://yourdomain.com/api/verify_upi.php"; 
+                
+                const response = await fetch(VERIFY_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `utr=${encodeURIComponent(utr)}`
                 });
                 
-                window.showToast("Payment Proof Submitted Successfully!", "success"); 
-                e.target.reset(); 
-                document.getElementById('selected-pay-method').value = '';
-                document.getElementById('pay-trigger').innerHTML = '💳 Select Method...';
-                document.getElementById('qr-instruction-area').style.display = 'none';
-                window.switchView('deposit-history');
+                const data = await response.json();
+
+                if (data.success) {
+                    // PAYMENT VERIFIED! Now update Firebase dynamically.
+                    const amountAdded = parseFloat(data.amount);
+                    const newBal = rawBalance + amountAdded;
+
+                    // 1. Update User Balance
+                    await update(ref(db), { [`users/${currentUser.uid}/balance`]: newBal });
+
+                    // 2. Log Payment Proof as "Approved" instantly
+                    await push(ref(db, 'payment_proofs'), { 
+                        userId: currentUser.uid, 
+                        email: currentUser.email, 
+                        amount: amountAdded, 
+                        txid: utr, 
+                        method: 'Auto UPI (Verified)',
+                        status: 'Approved', 
+                        timestamp: Date.now() 
+                    });
+
+                    // 3. Send Notification to User
+                    let depNotifRef = push(ref(db, `notifications/${currentUser.uid}`));
+                    await set(depNotifRef, {
+                        id: depNotifRef.key, 
+                        title: "Auto-Payment Verified! ✅",
+                        message: `Your payment of ₹${amountAdded.toFixed(2)} (UTR: ${utr}) has been instantly verified and added to your balance.`,
+                        timestamp: Date.now(), 
+                        seen: false, 
+                        destination: 'transactions'
+                    });
+
+                    window.showToast(`Success! ₹${amountAdded.toFixed(2)} added to your wallet.`, "success"); 
+                    e.target.reset(); 
+                    document.getElementById('selected-pay-method').value = '';
+                    document.getElementById('pay-trigger').innerHTML = '💳 Select Method...';
+                    document.getElementById('qr-instruction-area').style.display = 'none';
+                    window.switchView('deposit-history');
+                } else {
+                    // Transaction not found or already used
+                    window.showToast(data.message || "Payment not found. If you just paid, wait 1 minute.", "error");
+                }
+                
             } catch(error) { 
-                window.showToast("Error submitting proof. Check connection.", "error"); 
+                window.showToast("Error connecting to Verification Server. Check connection.", "error"); 
                 console.error(error);
             } finally {
-                if(btn) {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         };
 
