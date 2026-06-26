@@ -398,6 +398,26 @@
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; color: white; }
         .bg-pending { background: #f39c12; } .bg-processing { background: #3498db; } .bg-completed { background: #2ecc71; } .bg-canceled { background: #e74c3c; }
 
+        /* ===== TASK 5/8: Premium Auto-Verify Payment modal ===== */
+        .verify-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:6000; align-items:center; justify-content:center; backdrop-filter:blur(4px); padding:20px; }
+        .verify-modal-overlay.show { display:flex; }
+        .verify-modal-box { background:var(--bg-top); border:1px solid var(--border-color); border-radius:20px; padding:35px 25px; max-width:380px; width:100%; text-align:center; box-shadow:0 25px 60px rgba(0,0,0,0.35); animation:verifyPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+        .verify-state h3 { margin:18px 0 6px; font-size:18px; color:var(--text-dark); }
+        .verify-sub { color:var(--text-gray); font-size:13px; margin:0; }
+        .verify-spinner-ring { width:78px; height:78px; margin:0 auto; border-radius:50%; border:4px solid var(--primary-light); border-top-color:var(--primary); position:relative; display:flex; align-items:center; justify-content:center; animation:verifySpin 0.9s linear infinite, verifyGlow 1.6s ease-in-out infinite; color:var(--primary); font-size:22px; }
+        .verify-check-circle { width:78px; height:78px; margin:0 auto; }
+        .verify-check-circle svg { width:100%; height:100%; }
+        .verify-check-circle-bg { fill:none; stroke:var(--success); stroke-width:3; stroke-dasharray:166; stroke-dashoffset:166; animation:verifyCircleDraw 0.5s ease-out forwards; }
+        .verify-check-mark { stroke:var(--success); stroke-width:4; stroke-linecap:round; stroke-linejoin:round; fill:none; stroke-dasharray:48; stroke-dashoffset:48; animation:verifyCheckDraw 0.35s 0.45s ease-out forwards; }
+        .verify-error-circle { width:78px; height:78px; margin:0 auto; border-radius:50%; background:var(--danger); color:white; font-size:30px; display:flex; align-items:center; justify-content:center; animation:verifyPop 0.3s ease-out; }
+        .verify-details-box { background:var(--bg-bottom); border:1px solid var(--border-color); border-radius:12px; padding:14px; margin-top:16px; text-align:left; font-size:13px; color:var(--text-dark); line-height:1.8; }
+        .verify-details-box b { color:var(--success); }
+        @keyframes verifySpin { to { transform:rotate(360deg); } }
+        @keyframes verifyGlow { 0%,100% { box-shadow:0 0 0 rgba(59,73,223,0); } 50% { box-shadow:0 0 25px var(--primary); } }
+        @keyframes verifyCircleDraw { to { stroke-dashoffset:0; } }
+        @keyframes verifyCheckDraw { to { stroke-dashoffset:0; } }
+        @keyframes verifyPop { 0% { transform:scale(0.85); opacity:0; } 100% { transform:scale(1); opacity:1; } }
+
         .chat-app { background: #0f172a; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 500px; margin: 0 auto; border: 1px solid #1e293b;}
         .chat-header { padding: 15px 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; background: #111827; }
         .chat-history { height: 400px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: #0f172a; }
@@ -444,38 +464,6 @@
         .web-icon { background: linear-gradient(120deg, #3b82f6 40%, #ffffff 50%, #3b82f6 60%); }
 
         @media (min-width: 769px) { .menu-btn { display: none; } aside { position: relative; left: 0; transform: none; width: 260px; border-right: 1px solid var(--border-color); box-shadow: none; z-index: 1; } #drawer-overlay { display: none !important; } }
-        
-        /* 🔥 PREMIUM NEON DARK THEME UPGRADE */
-        body.dark-mode {
-            --bg-top: #0a0f1c; 
-            --bg-bottom: #04060d; 
-            --dark-card: rgba(13, 20, 36, 0.75);
-            --text-dark: #f8fafc; 
-            --text-gray: #94a3b8;
-            --border-color: rgba(255,255,255,0.06);
-            --primary-light: rgba(59, 73, 223, 0.2);
-        }
-        body.dark-mode .card {
-            background: var(--dark-card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
-        }
-        body.dark-mode .btn { box-shadow: 0 0 15px rgba(59, 73, 223, 0.4); }
-        body.dark-mode .btn:hover { box-shadow: 0 0 25px rgba(59, 73, 223, 0.7); }
-        body.dark-mode .btn-success { box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
-        body.dark-mode .toast { background: rgba(10, 15, 28, 0.9); border: 1px solid var(--border-color); box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-
-        /* PhonePe Auto Verify UX Animations */
-        .phonepe-spinner {
-            width: 60px; height: 60px; border: 4px solid var(--border-color); border-top-color: var(--primary); 
-            border-radius: 50%; animation: phonepe-spin 1s linear infinite; margin: 0 auto;
-        }
-        @keyframes phonepe-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .success-checkmark {
-            width: 80px; height: 80px; background: rgba(16, 185, 129, 0.1); border-radius: 50%; display: flex; 
-            align-items: center; justify-content: center; margin: 0 auto; color: var(--success); font-size: 40px;
-            animation: scaleInCheck 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-        }
-        @keyframes scaleInCheck { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -779,6 +767,34 @@
             <h2 id="info-modal-title" style="margin-bottom:15px; color:var(--primary); font-size: 22px;">Title</h2>
             <div id="info-modal-content" style="font-size: 14px; color: var(--text-dark); line-height: 1.7;"></div>
             <button class="btn" onclick="window.closeInfoModal()" style="margin-top: 20px; width: 100%;">I Understand & Accept</button>
+        </div>
+    </div>
+
+    <!-- TASK 5/7: Premium Auto-Verify Payment modal -->
+    <div id="verify-payment-modal" class="verify-modal-overlay">
+        <div class="verify-modal-box">
+            <div id="verify-state-loading" class="verify-state">
+                <div class="verify-spinner-ring"><i class="fa-solid fa-bolt"></i></div>
+                <h3>Verifying Payment...</h3>
+                <p class="verify-sub">Please wait while we confirm your UPI transaction</p>
+            </div>
+            <div id="verify-state-success" class="verify-state" style="display:none;">
+                <div class="verify-check-circle">
+                    <svg viewBox="0 0 52 52"><circle class="verify-check-circle-bg" cx="26" cy="26" r="23"/><path class="verify-check-mark" d="M14 27l7 7 16-16"/></svg>
+                </div>
+                <h3 style="color:var(--success);">Payment Verified Successfully</h3>
+                <div id="verify-success-details" class="verify-details-box"></div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button class="btn" onclick="window.closeVerifyModal()" style="flex:1;">Done</button>
+                    <button class="btn" id="verify-receipt-btn" style="flex:1; background:var(--bg-bottom); color:var(--text-dark); border:1px solid var(--border-color); box-shadow:none;"><i class="fa-solid fa-download"></i> Receipt</button>
+                </div>
+            </div>
+            <div id="verify-state-error" class="verify-state" style="display:none;">
+                <div class="verify-error-circle"><i class="fa-solid fa-xmark"></i></div>
+                <h3 style="color:var(--danger);">Verification Failed</h3>
+                <p class="verify-sub" id="verify-error-msg">Payment not found. If you just paid, please wait a minute and try again.</p>
+                <button class="btn" onclick="window.closeVerifyModal()" style="width:100%; margin-top:15px;">Close</button>
+            </div>
         </div>
     </div>
 
@@ -1137,50 +1153,21 @@
                             </div>
 
                             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 25px 0;">
-                            <div id="payment-form-section">
-                                <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--primary);">Submit Payment Details</h3>
-                                <form id="proof-form" onsubmit="window.submitPaymentProof(event)">
-                                    <div class="flex-row">
-                                        <div class="input-group">
-                                            <label>Amount Paid (₹)</label>
-                                            <input type="number" id="proof-amount" placeholder="Enter Amount" min="1" required>
-                                        </div>
-                                        <div class="input-group">
-                                            <label>Transaction ID / UTR (8-20 Digits)</label>
-                                            <input type="text" id="proof-utr" placeholder="Paste UTR here" minlength="8" maxlength="20" pattern="[a-zA-Z0-9]+" required>
-                                        </div>
+                            <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--primary);">Submit Payment Details</h3>
+                            <form id="proof-form" onsubmit="window.submitPaymentProof(event)">
+                                <div class="flex-row">
+                                    <div class="input-group">
+                                        <label>UTR (12 Digits)</label>
+                                        <input type="text" id="proof-txid" placeholder="Paste UTR / Transaction ID here" minlength="8" maxlength="20" required>
                                     </div>
-                                    <button type="submit" class="btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-bolt"></i> Auto Verify Payment</button>
-                                </form>
-                                <button class="btn" onclick="window.hidePaymentDetails()" style="background: var(--bg-bottom); color: var(--text-dark); margin-top: 15px; box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Go Back</button>
-                            </div>
-                            
-                            <!-- 🚀 PREMIUM PHONEPE VERIFICATION UX -->
-                            <div id="verification-ux" style="display:none; text-align:center; padding: 40px 20px;">
-                               <div id="ux-loading">
-                                   <div class="phonepe-spinner"></div>
-                                   <h3 style="margin-top:20px; color:var(--primary);">Verifying Payment...</h3>
-                                   <p style="color:var(--text-gray); font-size:13px;">Please wait while we securely check with the bank.</p>
-                               </div>
-                               <div id="ux-success" style="display:none;">
-                                   <div class="success-checkmark"><i class="fa-solid fa-check"></i></div>
-                                   <h3 style="margin-top:20px; color:var(--success);">Payment Verified Successfully</h3>
-                                   <p id="ux-success-details" style="color:var(--text-gray); font-size:14px; margin-bottom:20px;"></p>
-                                   <button class="btn btn-success" id="btn-download-receipt" style="width:100%; margin-bottom:10px;"><i class="fa-solid fa-download"></i> Download Receipt</button>
-                                   <button class="btn" style="background:var(--bg-bottom); color:var(--text-dark); border:1px solid var(--border-color); width:100%;" onclick="window.resetAddFundsUX()">Make Another Payment</button>
-                               </div>
-                            </div>
-                        </div>
-
-                        <!-- 🚀 RECENT TRANSACTIONS LEDGER -->
-                        <div style="margin-top: 30px;">
-                            <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-dark);"><i class="fa-solid fa-clock-rotate-left"></i> Recent Transactions</h3>
-                            <div class="table-wrapper" style="border: none; background: var(--bg-top);">
-                                <table style="width: 100%;">
-                                    <thead><tr><th>UTR Number</th><th>Amount (₹)</th><th>Status</th><th>Date</th></tr></thead>
-                                    <tbody id="add-funds-recent-txns"></tbody>
-                                </table>
-                            </div>
+                                    <div class="input-group">
+                                        <label>Amount Paid (₹)</label>
+                                        <input type="number" id="proof-amount" placeholder="Enter amount you paid" min="1" step="0.01" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn" id="proof-submit-btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-bolt"></i> Auto Verify Payment</button>
+                            </form>
+                            <button class="btn" onclick="window.hidePaymentDetails()" style="background: var(--bg-bottom); color: var(--text-dark); margin-top: 15px; box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Go Back</button>
                         </div>
                     </div>
                 </div>
@@ -1191,7 +1178,7 @@
                         <div class="card" style="padding: 10px;">
                             <div class="table-wrapper" style="border: none;">
                                 <table>
-                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>Txn ID</th><th>Status</th></tr></thead>
+                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>Txn ID</th><th>Method</th><th>Status</th><th>Receipt</th></tr></thead>
                                     <tbody id="deposit-history-table"></tbody>
                                 </table>
                             </div>
@@ -1373,6 +1360,78 @@
             document.getElementById('add-funds-intro').style.display = 'block';
         };
 
+        // ===== TASK 5: Premium Auto-Verify Payment modal controllers =====
+        window.openVerifyModal = function() {
+            document.getElementById('verify-state-loading').style.display = 'block';
+            document.getElementById('verify-state-success').style.display = 'none';
+            document.getElementById('verify-state-error').style.display = 'none';
+            document.getElementById('verify-payment-modal').classList.add('show');
+        };
+        window.closeVerifyModal = function() {
+            document.getElementById('verify-payment-modal').classList.remove('show');
+        };
+        window.showVerifySuccess = function(details) {
+            document.getElementById('verify-state-loading').style.display = 'none';
+            document.getElementById('verify-state-error').style.display = 'none';
+            document.getElementById('verify-success-details').innerHTML = `
+                <div>Amount Credited: <b>₹${details.amount.toFixed(2)}</b></div>
+                <div>UTR: <b>${window.safeHTML(details.utr)}</b></div>
+                <div>Method: <b>${window.safeHTML(details.method)}</b></div>
+                <div>New Balance: <b>₹${details.newBalance.toFixed(2)}</b></div>
+            `;
+            document.getElementById('verify-state-success').style.display = 'block';
+            const receiptBtn = document.getElementById('verify-receipt-btn');
+            if (receiptBtn) receiptBtn.onclick = () => window.downloadReceipt(details.id);
+        };
+        window.showVerifyError = function(message) {
+            document.getElementById('verify-state-loading').style.display = 'none';
+            document.getElementById('verify-state-success').style.display = 'none';
+            document.getElementById('verify-error-msg').innerText = message || 'Payment not found. If you just paid, please wait a minute and try again.';
+            document.getElementById('verify-state-error').style.display = 'block';
+        };
+
+        // ===== TASK 7: Receipt download (HTML file) =====
+        window.downloadReceipt = function(depositId) {
+            const p = depositsCache[depositId];
+            if (!p) return window.showToast("Receipt data not found.", "error");
+
+            const statusText = (p.status || 'Pending');
+            const receiptHtml = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Receipt - ${window.safeHTML(p.txid)}</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;}
+.receipt{max-width:420px;margin:0 auto;background:#fff;border-radius:16px;padding:30px;box-shadow:0 10px 30px rgba(0,0,0,0.08);}
+.receipt h2{margin:0 0 4px;color:#3b49df;}
+.receipt .sub{color:#6b7280;font-size:13px;margin-bottom:20px;}
+.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e5e7eb;font-size:14px;}
+.row span:first-child{color:#6b7280;}
+.row span:last-child{font-weight:700;}
+.status{display:inline-block;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;color:#fff;background:${statusText.toLowerCase().includes('approve') || statusText.toLowerCase().includes('success') ? '#10b981' : (statusText.toLowerCase().includes('reject') || statusText.toLowerCase().includes('fail') ? '#ef4444' : '#f59e0b')};}
+</style></head>
+<body>
+  <div class="receipt">
+    <h2>Payment Receipt</h2>
+    <div class="sub">SMMRulz Wallet Top-up</div>
+    <div class="row"><span>Transaction ID</span><span>${window.safeHTML(p.id)}</span></div>
+    <div class="row"><span>UTR Number</span><span>${window.safeHTML(p.txid)}</span></div>
+    <div class="row"><span>Amount</span><span>₹${parseFloat(p.amount).toFixed(2)}</span></div>
+    <div class="row"><span>Payment Method</span><span>${window.safeHTML(p.method || 'UPI')}</span></div>
+    <div class="row"><span>Status</span><span class="status">${window.safeHTML(statusText)}</span></div>
+    <div class="row" style="border-bottom:none;"><span>Date &amp; Time</span><span>${new Date(p.timestamp).toLocaleString()}</span></div>
+  </div>
+</body></html>`;
+
+            const blob = new Blob([receiptHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Receipt-${p.txid}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+
         window.toggleNotificationDropdown = function(event) {
             if(event) event.stopPropagation();
             document.getElementById('user-notif-dropdown').classList.toggle('active');
@@ -1398,45 +1457,6 @@
                 if(sugg) sugg.style.display = 'none';
             }
         });
-
-        window.resetAddFundsUX = function() {
-            document.getElementById('proof-form').reset();
-            document.getElementById('verification-ux').style.display = 'none';
-            document.getElementById('payment-form-section').style.display = 'block';
-        };
-
-        window.downloadReceipt = function(txnId, utr, amount, status, date) {
-            const receiptHtml = `<html>
-                <head><title>Secure Payment Receipt - ${utr}</title>
-                <style>
-                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #333; background: #f4f7fa; }
-                    .receipt-box { background: white; border: 1px solid #dce1e8; padding: 40px; border-radius: 12px; max-width: 500px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
-                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px dashed #eee; padding-bottom: 20px; }
-                    .header h1 { color: #3b49df; margin: 0; font-size: 26px; font-style: italic; }
-                    .header p { color: #777; font-size: 14px; margin-top: 5px; }
-                    .row { display: flex; justify-content: space-between; margin-bottom: 18px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
-                    .label { color: #888; font-size: 14px; font-weight: 500; }
-                    .value { font-weight: 700; font-size: 14px; color: #111; }
-                    .success { color: #10b981; }
-                    .footer { text-align: center; font-size: 11px; color: #999; margin-top: 30px; }
-                </style>
-                </head>
-                <body>
-                    <div class="receipt-box">
-                        <div class="header"><h1>SMMRulz Network</h1><p>Official Transaction Receipt</p></div>
-                        <div class="row"><span class="label">Date & Time</span><span class="value">${date}</span></div>
-                        <div class="row"><span class="label">System Trace ID</span><span class="value">${txnId}</span></div>
-                        <div class="row"><span class="label">Bank UTR / Reference</span><span class="value">${utr}</span></div>
-                        <div class="row"><span class="label">Processed Amount</span><span class="value">₹${amount}</span></div>
-                        <div class="row"><span class="label">Verification Status</span><span class="value success">${status}</span></div>
-                        <div class="footer">Thank you for choosing SMMRulz. Keep this receipt for your records.</div>
-                    </div>
-                </body></html>`;
-            const blob = new Blob([receiptHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = \`SMMRulz_Receipt_${utr}.html\`;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-        };
     </script>
 
     <script type="module">
@@ -1455,19 +1475,44 @@
             measurementId: "G-PWX4TCSM3L"
         };
 
-        // 🚀 CRITICAL CONFIG: Set your absolute backend server endpoint domain here.
-        window.API_BASE_URL = "https://perfect-smm-backend.vercel.app/api";
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
         const provider = new GoogleAuthProvider();
+
+        // ===== BACKEND API CONFIG (TASK 1) =====
+        // Leave as '' if this HTML is served from the SAME domain as your Node/Next.js backend
+        // (e.g. Next.js serving both the app and the /api routes, or a reverse proxy in front of both).
+        // If your backend lives on a DIFFERENT domain, put the full origin here instead, e.g:
+        //   const API_BASE_URL = "https://api.yourdomain.com";
+        const API_BASE_URL = "https://perfect-smm-backend.vercel.app/api";
+
+        // ===== SHARED AUTH HELPER (TASK 2) =====
+        // Every authenticated backend call should go through this so we never forget the token.
+        async function apiFetch(path, options = {}) {
+            if (!currentUser) throw new Error("AUTH_REQUIRED");
+            const idToken = await currentUser.getIdToken(true);
+            console.log("[DEBUG] apiFetch ->", API_BASE_URL + path, options.body ? JSON.parse(options.body) : null);
+            const res = await fetch(API_BASE_URL + path, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${idToken}`,
+                    ...(options.headers || {})
+                }
+            });
+            const data = await res.json().catch(() => ({}));
+            console.log("[DEBUG] apiFetch <-", path, res.status, data);
+            return { ok: res.ok, status: res.status, data };
+        }
 
         let currentUser = null;
         let rawBalance = 0;
         let globalCategories = {};
         let globalServices = {};
         let globalPaymentMethods = {};
+        let depositsCache = {}; // TASK 6/7: id -> deposit record, used by receipt download
 
         window.switchView = function(viewId, pushHistory = true) {
             if (currentUser) {
@@ -2257,29 +2302,31 @@
             });
             
             onValue(ref(db, 'payment_methods'), (snap) => {
-                let methods = snap.val() || {};
-                
-                // Ensure PhonePe exists and isolate its Key
-                let phonePeKey = Object.keys(methods).find(k => methods[k].name.toLowerCase().includes('phonepe'));
-                if (!phonePeKey) { phonePeKey = 'default_phonepe'; methods[phonePeKey] = { name: 'PhonePe Auto', instructions: 'Pay safely and instantly via PhonePe' }; }
-                
-                globalPaymentMethods = methods;
-                
-                // Sort keys so PhonePe is always at the top
-                let sortedKeys = Object.keys(methods).sort((a,b) => {
-                    if (a === phonePeKey) return -1;
-                    if (b === phonePeKey) return 1;
-                    return 0;
+                globalPaymentMethods = snap.val() || {};
+
+                // TASK 4: never show a method literally named "None", and put PhonePe first if present
+                let methodKeys = Object.keys(globalPaymentMethods).filter(k => {
+                    const nm = (globalPaymentMethods[k].name || '').trim().toLowerCase();
+                    return nm !== 'none' && nm !== '';
                 });
-                
+                methodKeys.sort((a, b) => {
+                    const aPhone = (globalPaymentMethods[a].name || '').toLowerCase().includes('phonepe') ? 0 : 1;
+                    const bPhone = (globalPaymentMethods[b].name || '').toLowerCase().includes('phonepe') ? 0 : 1;
+                    return aPhone - bPhone;
+                });
+
                 let payHtml = '';
-                sortedKeys.forEach(k => {
-                    let pName = window.safeHTML(methods[k].name);
+                methodKeys.forEach(k => {
+                    let pName = window.safeHTML(globalPaymentMethods[k].name);
                     payHtml += `<div class="custom-option" onclick="window.selectPayment('${k}', event)">💳 ${pName}</div>`;
                 });
-                
-                document.getElementById('pay-options').innerHTML = payHtml;
-                if(sortedKeys.length > 0) window.selectPayment(phonePeKey); // Force PhonePe Default
+                document.getElementById('pay-options').innerHTML = payHtml || '<div class="custom-option">No methods added by Admin</div>';
+
+                // Default to the first method (PhonePe, if configured) so the field is never left empty
+                const currentSelection = document.getElementById('selected-pay-method').value;
+                if (!currentSelection && methodKeys.length > 0) {
+                    window.selectPayment(methodKeys[0], null);
+                }
             });
 
             onValue(ref(db, 'settings/socials'), (snap) => {
@@ -2508,31 +2555,17 @@
                     });
                 }
                 userDepositsList.sort((a, b) => b.timestamp - a.timestamp);
+
+                depositsCache = {};
+                userDepositsList.forEach(p => { depositsCache[p.id] = p; });
                 
                 let html = '';
-                let recentHtml = '';
-                
-                userDepositsList.forEach((p, index) => {
+                userDepositsList.forEach(p => {
                     let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
-                    if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; 
-                    if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
-                    
-                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td>${badge}</td></tr>`;
-                    
-                    // Populate Recent Transactions under Add Funds (Top 5 only)
-                    if (index < 5) {
-                        recentHtml += `<tr>
-                            <td style="font-family:monospace;">${window.safeHTML(p.txid)}</td>
-                            <td style="color:var(--success); font-weight:600;">+₹${parseFloat(p.amount).toFixed(2)}</td>
-                            <td>${badge}</td>
-                            <td><small>${new Date(p.timestamp).toLocaleDateString()}</small></td>
-                        </tr>`;
-                    }
+                    if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
+                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'UPI')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
                 });
-                
-                document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="4" align="center">No deposit history found.</td></tr>';
-                const addFundsTxns = document.getElementById('add-funds-recent-txns');
-                if (addFundsTxns) addFundsTxns.innerHTML = recentHtml || '<tr><td colspan="4" align="center">No recent transactions</td></tr>';
+                document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="6" align="center">No deposit history found.</td></tr>';
 
                 const transElement = document.getElementById('stat-total-transactions');
                 if (transElement) transElement.innerText = userDepositsList.length;
@@ -2801,20 +2834,11 @@
                     throw new Error("Validation");
                 }
 
-                // 🚀 FIXED: Secure Backend Integration (Order Endpoint)
-                const idToken = await currentUser.getIdToken(true);
                 const commentsGroup = document.getElementById('comments-group');
                 const commentsData = (commentsGroup && commentsGroup.style.display !== 'none') ? document.getElementById('order-comments').value.trim() : null;
 
-                console.log("Submitting Order Payload:", { uid: currentUser.uid, srvId, link, qty });
-
-                const response = await fetch(`${window.API_BASE_URL}/order`, {
+                const { ok, data } = await apiFetch('/api/order', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${idToken}` 
-                    },
                     body: JSON.stringify({
                         uid: currentUser.uid, 
                         srvId: srvId,
@@ -2824,10 +2848,7 @@
                     })
                 });
                 
-                const data = await response.json().catch(() => ({}));
-                console.log("Order API Response:", data);
-                
-                if (response.ok) {
+                if (ok) {
                     window.showToast("Order Placed Successfully!", "success");
                     document.getElementById('order-form').reset(); 
                     window.updateServiceDetails(); 
@@ -2852,65 +2873,116 @@
 
         window.submitPaymentProof = async function(e) {
             e.preventDefault();
-            
-            const amount = document.getElementById('proof-amount').value;
-            const utr = document.getElementById('proof-utr').value.trim();
-            const methodKey = document.getElementById('selected-pay-method').value;
-            
-            if(utr.length < 8 || utr.length > 20 || !/^[a-zA-Z0-9]+$/.test(utr)) {
-                return window.showToast("Invalid UTR! Must be 8-20 alphanumeric characters.", "error");
+
+            // ===== TASK 3: validation (UTR 8-20 alphanumeric, Amount > 0, Method required) =====
+            const utr = document.getElementById('proof-txid').value.trim();
+            const amountInput = document.getElementById('proof-amount').value;
+            const amount = parseFloat(amountInput);
+            const methodId = document.getElementById('selected-pay-method').value;
+
+            if (!/^[a-zA-Z0-9]{8,20}$/.test(utr)) {
+                return window.showToast("Invalid Transaction ID! UTR must be 8-20 letters/numbers.", "error");
             }
-            if(!amount || amount <= 0) {
-                return window.showToast("Invalid Amount!", "error");
+            if (!amountInput || isNaN(amount) || amount <= 0) {
+                return window.showToast("Please enter a valid amount greater than 0.", "error");
+            }
+            if (!methodId) {
+                return window.showToast("Please select a payment method.", "error");
+            }
+            if (!currentUser) {
+                return window.showToast("Please sign in again before submitting.", "error");
             }
 
-            // 🚀 PhonePe UX: Hide Form -> Show Loader
-            document.getElementById('payment-form-section').style.display = 'none';
-            document.getElementById('verification-ux').style.display = 'block';
-            document.getElementById('ux-loading').style.display = 'block';
-            document.getElementById('ux-success').style.display = 'none';
+            const methodName = (globalPaymentMethods[methodId] && globalPaymentMethods[methodId].name) || 'UPI';
+
+            const btn = document.getElementById('proof-submit-btn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+
+            // ===== TASK 5: open the premium "Verifying Payment..." modal right away =====
+            window.openVerifyModal();
+            const verifyStartedAt = Date.now();
+            const MIN_LOADING_MS = 1100; // keeps the loader from flashing instantly if the API is very fast
 
             try {
-                // Fetch secure token
-                const idToken = await currentUser.getIdToken(true);
-                console.log("Verifying UPI...", { utr, amount, methodKey });
+                // ===== TASK 10: temporary debug log of the outgoing payload =====
+                console.log("[DEBUG] Verify-UPI payload:", { utr, amount, method: methodName, methodId });
 
-                // 🚀 FIXED: Secure Backend API Integration
-                const response = await fetch(`${window.API_BASE_URL}/verify-upi`, {
+                // ===== TASK 1/2/9: real backend call via API_BASE_URL + Firebase Bearer token (was a dead yourdomain.com placeholder before) =====
+                const { ok, data } = await apiFetch('/api/verify-upi', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${idToken}`
-                    },
-                    body: JSON.stringify({ 
-                        utr: utr, 
-                        amount: Number(amount) 
-                    })
+                    body: JSON.stringify({ utr, amount, method: methodName, methodId })
                 });
-                
-                const data = await response.json();
-                console.log("UPI API Response:", data);
 
-                if (response.ok && data.success) {
-                    // Payment Verified - PhonePe Success UX
-                    document.getElementById('ux-loading').style.display = 'none';
-                    document.getElementById('ux-success').style.display = 'block';
-                    document.getElementById('ux-success-details').innerHTML = `Amount Added: <b style="color:var(--success);">₹${amount}</b><br>UTR: <b>${utr}</b>`;
-                    
-                    // Assign dynamic download receipt logic
-                    document.getElementById('btn-download-receipt').onclick = () => window.downloadReceipt(
-                        data.txnId || 'TXN'+Date.now(), utr, amount, 'Verified', new Date().toLocaleString()
-                    );
-                    window.showToast(`Success! ₹${amount} added to your wallet.`, "success"); 
-                } else {
-                    // Transaction failed/used - Revert to Form
-                    window.resetAddFundsUX();
-                    window.showToast(data.message || data.error || "Payment not found. Wait 1 min.", "error");
-                }
-            } catch(error) { 
-                window.resetAddFundsUX();
-                window.showToast("Error connecting to Verification Server.", "error"); 
-                console.error("UPI Verification Error:", error);
+                const remainingDelay = Math.max(0, MIN_LOADING_MS - (Date.now() - verifyStartedAt));
+
+                setTimeout(async () => {
+                    if (ok && data.success) {
+                        try {
+                            // Backend confirms (and may correct) the amount; fall back to what the user typed.
+                            const amountAdded = data.amount ? parseFloat(data.amount) : amount;
+                            const newBal = rawBalance + amountAdded;
+
+                            // 1. Update User Balance
+                            await update(ref(db), { [`users/${currentUser.uid}/balance`]: newBal });
+
+                            // 2. Log Payment Proof as "Approved" instantly
+                            const proofRef = push(ref(db, 'payment_proofs'));
+                            const proofData = {
+                                userId: currentUser.uid,
+                                email: currentUser.email,
+                                amount: amountAdded,
+                                txid: utr,
+                                method: methodName,
+                                status: 'Approved',
+                                timestamp: Date.now()
+                            };
+                            await set(proofRef, proofData);
+                            depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
+
+                            // 3. Send Notification to User
+                            let depNotifRef = push(ref(db, `notifications/${currentUser.uid}`));
+                            await set(depNotifRef, {
+                                id: depNotifRef.key,
+                                title: "Auto-Payment Verified! ✅",
+                                message: `Your payment of ₹${amountAdded.toFixed(2)} (UTR: ${utr}) has been instantly verified and added to your balance.`,
+                                timestamp: Date.now(),
+                                seen: false,
+                                destination: 'transactions'
+                            });
+
+                            window.showVerifySuccess({ id: proofRef.key, amount: amountAdded, utr: utr, method: methodName, newBalance: newBal });
+
+                            e.target.reset();
+                            document.getElementById('selected-pay-method').value = '';
+                            document.getElementById('pay-trigger').innerHTML = '💳 Select Method...';
+                            document.getElementById('qr-instruction-area').style.display = 'none';
+                            window.switchView('deposit-history');
+                        } catch (writeErr) {
+                            console.error("[DEBUG] Firebase write after verification failed:", writeErr);
+                            window.showVerifyError("Payment verified but saving to your wallet failed. Please contact support with your UTR.");
+                        }
+                    } else {
+                        // Transaction not found, already used, or backend rejected it
+                        console.warn("[DEBUG] Verify-UPI rejected:", data);
+                        window.showVerifyError(data.message || data.error || "Payment not found. If you just paid, please wait a minute and try again.");
+                    }
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }, remainingDelay);
+
+            } catch (error) {
+                console.error("[DEBUG] Verify-UPI request failed:", error);
+                const remainingDelay = Math.max(0, MIN_LOADING_MS - (Date.now() - verifyStartedAt));
+                setTimeout(() => {
+                    if (error.message === "AUTH_REQUIRED") {
+                        window.showVerifyError("Your session expired. Please log in again.");
+                    } else {
+                        window.showVerifyError("Error connecting to the verification server. Check your connection.");
+                    }
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }, remainingDelay);
             }
         };
 
