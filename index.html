@@ -1157,8 +1157,8 @@
                             <form id="proof-form" onsubmit="window.submitPaymentProof(event)">
                                 <div class="flex-row">
                                     <div class="input-group">
-                                        <label>UTR (12 Digits)</label>
-                                        <input type="text" id="proof-txid" placeholder="Paste UTR / Transaction ID here" minlength="8" maxlength="20" required>
+                                        <label>Transaction ID / UTR (12 Digits)</label>
+                                        <input type="text" id="proof-txid" placeholder="Paste 12-digit UTR here" inputmode="numeric" minlength="12" maxlength="12" pattern="\d{12}" required>
                                     </div>
                                     <div class="input-group">
                                         <label>Amount Paid (₹)</label>
@@ -1676,41 +1676,23 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Triggering Matrix Sync...';
 
             try {
-                const subRef = push(ref(db, `freefire_subs/${currentUser.uid}`));
-                const startTime = Date.now();
-                const endTime = startTime + (runtimeDays * 86400000);
-
-                const subPayload = {
-                    id: subRef.key,
-                    uid: uidString,
-                    region: regionNode,
-                    price: priceVal,
-                    packageName: tierName,
-                    totalDays: runtimeDays,
-                    likesDelivered: 0,
-                    likesRemaining: runtimeDays * 200,
-                    purchaseTime: startTime,
-                    expiryTime: endTime,
-                    lastDropHourstamp: new Date(startTime).getHours()
-                };
-
-                const orderRef = push(ref(db, 'orders'));
-                const orderPayload = {
-                    userId: currentUser.uid,
-                    serviceId: `FF_LIKES_TIER_${runtimeDays}`,
-                    serviceName: `Free Fire MAX: ${tierName}`,
-                    link: `UID: ${uidString} | Region: ${regionNode}`,
-                    quantity: runtimeDays * 200,
-                    charge: priceVal,
-                    status: 'Completed',
-                    timestamp: startTime
-                };
-
-                await update(ref(db), {
-                    [`users/${currentUser.uid}/balance`]: rawBalance - priceVal,
-                    [`freefire_subs/${currentUser.uid}/${subRef.key}`]: subPayload,
-                    [`orders/${orderRef.key}`]: orderPayload
+                // SECURITY FIX: balance debit + subscription enrollment now happen server-side
+                // (atomic Firebase Admin transaction + Zod validation in /api/order) instead of a
+                // direct client-side Firebase write, which anyone could tamper with via devtools.
+                const { ok, data } = await apiFetch('/api/order', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        uidString: uidString,
+                        regionNode: regionNode,
+                        chargeAmount: priceVal,
+                        packageName: tierName,
+                        totalDays: runtimeDays
+                    })
                 });
+
+                if (!ok) {
+                    return window.showToast(data.error || 'Automation gateway sync error.', 'error');
+                }
 
                 window.showToast('Premium Automation Membership Activated Successfully!', 'success');
                 document.getElementById('ff-order-form').reset();
@@ -2880,8 +2862,8 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             const amount = parseFloat(amountInput);
             const methodId = document.getElementById('selected-pay-method').value;
 
-            if (!/^[a-zA-Z0-9]{8,20}$/.test(utr)) {
-                return window.showToast("Invalid Transaction ID! UTR must be 8-20 letters/numbers.", "error");
+            if (!/^\d{12}$/.test(utr)) {
+                return window.showToast("Invalid Transaction ID! UTR must be exactly 12 digits.", "error");
             }
             if (!amountInput || isNaN(amount) || amount <= 0) {
                 return window.showToast("Please enter a valid amount greater than 0.", "error");
@@ -2919,14 +2901,15 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 setTimeout(async () => {
                     if (ok && data.success) {
                         try {
-                            // Backend confirms (and may correct) the amount; fall back to what the user typed.
-                            const amountAdded = data.amount ? parseFloat(data.amount) : amount;
-                            const newBal = rawBalance + amountAdded;
+                            // IMPORTANT: /api/verify-upi already credited the wallet server-side via an atomic
+                            // Firebase Admin transaction before returning success. DO NOT write to
+                            // users/{uid}/balance again here -- that would credit the user twice for one payment.
+                            // The existing real-time balance listener reflects the new balance automatically.
+                            const amountAdded = parseFloat(data.amount);
+                            const estimatedNewBalance = rawBalance + amountAdded; // display-only, for the modal
 
-                            // 1. Update User Balance
-                            await update(ref(db), { [`users/${currentUser.uid}/balance`]: newBal });
-
-                            // 2. Log Payment Proof as "Approved" instantly
+                            // verify-upi doesn't write a payment_proofs record -- log one here purely so it
+                            // shows up in Deposit History and can generate a receipt.
                             const proofRef = push(ref(db, 'payment_proofs'));
                             const proofData = {
                                 userId: currentUser.uid,
@@ -2951,7 +2934,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                                 destination: 'transactions'
                             });
 
-                            window.showVerifySuccess({ id: proofRef.key, amount: amountAdded, utr: utr, method: methodName, newBalance: newBal });
+                            window.showVerifySuccess({ id: proofRef.key, amount: amountAdded, utr: utr, method: methodName, newBalance: estimatedNewBalance });
 
                             e.target.reset();
                             document.getElementById('selected-pay-method').value = '';
