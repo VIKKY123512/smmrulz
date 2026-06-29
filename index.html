@@ -127,15 +127,19 @@
             --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
         }
         
-        /* Dark Theme Variables */
+        /* Dark Theme Variables - Discord dark theme palette */
         body.dark-mode {
-            --bg-top: #1e1e1e; 
-            --bg-bottom: #121212; 
-            --dark-card: #2d2d2d;
-            --text-dark: #f3f4f6; 
-            --text-gray: #9ca3af;
-            --border-color: #374151;
-            --primary-light: rgba(59, 73, 223, 0.15);
+            --primary: #5865F2;
+            --primary-dark: #4752C4;
+            --primary-light: rgba(88, 101, 242, 0.18);
+            --gradient-top: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
+            --bg-top: #2b2d31; 
+            --bg-bottom: #313338; 
+            --dark-card: #1e1f22;
+            --text-dark: #f2f3f5; 
+            --text-gray: #949ba4;
+            --border-color: #1e1f22;
+            --danger: #f23f42; --success: #23a55a; --warning: #f0b132;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -1246,6 +1250,14 @@
 
     <script>
         window.safeHTML = function(text) { return DOMPurify.sanitize(text || ''); };
+        window.formatHourSlot = function(hour) {
+            const d = new Date();
+            d.setHours(hour, 0, 0, 0);
+            const start = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            d.setHours((hour + 1) % 24, 0, 0, 0);
+            const end = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            return `${start} - ${end}`;
+        };
         
         if(localStorage.getItem('theme') === 'dark') { 
             document.body.classList.add('dark-mode'); 
@@ -1661,7 +1673,8 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             const tierName = document.getElementById('ff-selected-tier-name').value;
             const runtimeDays = parseInt(document.getElementById('ff-selected-tier-days').value);
 
-            if (!uidString || !regionNode) return window.showToast('Provide standard UID and regional server node.', 'error');
+            if (!/^\d{5,15}$/.test(uidString)) return window.showToast('Player UID must be 5-15 digits, numbers only.', 'error');
+            if (!regionNode) return window.showToast('Select a regional server node.', 'error');
             if (isNaN(priceVal) || !tierName || isNaN(runtimeDays)) return window.showToast('Tap a premium pack card to select it!', 'error');
 
             if (rawBalance < priceVal) {
@@ -2466,6 +2479,12 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 for (let key in activeSubs) {
                     const sub = activeSubs[key];
                     const daysRemaining = Math.max(0, Math.ceil((sub.expiryTime - Date.now()) / 86400000));
+                    const totalLikesPlanned = (sub.totalDays || 0) * 200;
+                    const scheduleHour = (sub.lastDropHourstamp !== undefined && sub.lastDropHourstamp !== null) ? sub.lastDropHourstamp : new Date(sub.purchaseTime).getHours();
+                    const deliveredToday = sub.lastDropDate === new Date().toDateString();
+                    const todayStatusHtml = deliveredToday
+                        ? `<span style="display:inline-flex; align-items:center; gap:6px; color:var(--success); font-weight:700; font-size:12px;"><i class="fa-solid fa-circle-check"></i> Today's 200 Likes Delivered</span>`
+                        : `<span style="display:inline-flex; align-items:center; gap:6px; color:var(--warning); font-weight:700; font-size:12px;"><i class="fa-regular fa-clock"></i> Pending - Arrives ${window.formatHourSlot(scheduleHour)}</span>`;
                     
                     html += `
                         <div class="card" style="background:var(--bg-top); border-color:var(--border-color); padding:20px; position:relative; margin-bottom:20px; border-left: 4px solid #ec4899;">
@@ -2479,11 +2498,21 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                                     <small style="display:block; color:var(--text-gray); margin-top:4px;">Expires in: <b>${daysRemaining} Days</b></small>
                                 </div>
                             </div>
+
+                            <div style="background:var(--bg-bottom); border:1px solid var(--border-color); border-radius:10px; padding:10px 14px; margin-bottom:15px;">
+                                ${todayStatusHtml}
+                            </div>
                             
                             <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:13px; flex-wrap:wrap; gap:10px;">
-                                <div><span style="color:var(--text-gray);">Purchased:</span> <b>${new Date(sub.purchaseTime).toLocaleDateString()}</b></div>
                                 <div><span style="color:var(--text-gray);">Delivered:</span> <b style="color:#10b981;">${window.safeHTML(String(sub.likesDelivered))} ❤️</b></div>
                                 <div><span style="color:var(--text-gray);">Remaining:</span> <b>${window.safeHTML(String(sub.likesRemaining))}</b></div>
+                                <div><span style="color:var(--text-gray);">Total Plan:</span> <b>${totalLikesPlanned}</b></div>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:12px; flex-wrap:wrap; gap:10px; color:var(--text-gray);">
+                                <div>Subscribed: <b style="color:var(--text-dark);">${new Date(sub.purchaseTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</b></div>
+                                <div>Ends: <b style="color:var(--text-dark);">${new Date(sub.expiryTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</b></div>
+                                <div>Daily Slot: <b style="color:var(--text-dark);">${window.formatHourSlot(scheduleHour)}</b></div>
                             </div>
 
                             <h4 style="font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-gray); margin-bottom:8px;"><i class="fa-regular fa-calendar-check"></i> Day-by-Day Drop Progress Log Timeline</h4>
