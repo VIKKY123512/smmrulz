@@ -1497,7 +1497,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         // (e.g. Next.js serving both the app and the /api routes, or a reverse proxy in front of both).
         // If your backend lives on a DIFFERENT domain, put the full origin here instead, e.g:
         //   const API_BASE_URL = "https://api.yourdomain.com";
-        const API_BASE_URL = "https://perfect-smm-backend.vercel.app";
+        const API_BASE_URL = "";
 
         // ===== SHARED AUTH HELPER (TASK 2) =====
         // Every authenticated backend call should go through this so we never forget the token.
@@ -1505,15 +1505,25 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             if (!currentUser) throw new Error("AUTH_REQUIRED");
             const idToken = await currentUser.getIdToken(true);
             console.log("[DEBUG] apiFetch ->", API_BASE_URL + path, options.body ? JSON.parse(options.body) : null);
-            const res = await fetch(API_BASE_URL + path, {
-                ...options,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${idToken}`,
-                    ...(options.headers || {})
-                }
-            });
+            let res;
+            try {
+                res = await fetch(API_BASE_URL + path, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${idToken}`,
+                        ...(options.headers || {})
+                    }
+                });
+            } catch (networkErr) {
+                // fetch() throws here for network failures, DNS errors, and CORS rejections --
+                // there is no HTTP status at all because the browser blocked/never got a response.
+                console.error("[DEBUG] apiFetch NETWORK/CORS failure:", path, networkErr);
+                const err = new Error(`Could not reach ${API_BASE_URL || '(same origin)'}${path}. This is a network or CORS failure, not a server error -- check the backend's CORS headers and that the domain is correct.`);
+                err.type = 'NETWORK';
+                throw err;
+            }
             const data = await res.json().catch(() => ({}));
             console.log("[DEBUG] apiFetch <-", path, res.status, data);
             return { ok: res.ok, status: res.status, data };
@@ -1692,7 +1702,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 // SECURITY FIX: balance debit + subscription enrollment now happen server-side
                 // (atomic Firebase Admin transaction + Zod validation in /api/order) instead of a
                 // direct client-side Firebase write, which anyone could tamper with via devtools.
-                const { ok, data } = await apiFetch('/api/order', {
+                const { ok, status, data } = await apiFetch('/api/order', {
                     method: 'POST',
                     body: JSON.stringify({
                         uidString: uidString,
@@ -1704,7 +1714,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 });
 
                 if (!ok) {
-                    return window.showToast(data.error || 'Automation gateway sync error.', 'error');
+                    return window.showToast(`Server Error (${status}): ${data.error || data.message || 'Automation gateway rejected the request.'}`, 'error');
                 }
 
                 window.showToast('Premium Automation Membership Activated Successfully!', 'success');
@@ -1713,7 +1723,13 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 window.switchView('ff-my-subscriptions');
             } catch (err) {
                 console.error(err);
-                window.showToast('Automation gateway sync error.', 'error');
+                if (err.message === 'AUTH_REQUIRED') {
+                    window.showToast('Session expired - please log in again.', 'error');
+                } else if (err.type === 'NETWORK') {
+                    window.showToast(`Network/CORS Error: ${err.message}`, 'error');
+                } else {
+                    window.showToast(`Unexpected Error: ${err.message}`, 'error');
+                }
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> GET LIKES NOW';
@@ -2848,7 +2864,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 const commentsGroup = document.getElementById('comments-group');
                 const commentsData = (commentsGroup && commentsGroup.style.display !== 'none') ? document.getElementById('order-comments').value.trim() : null;
 
-                const { ok, data } = await apiFetch('/api/order', {
+                const { ok, status, data } = await apiFetch('/api/order', {
                     method: 'POST',
                     body: JSON.stringify({
                         uid: currentUser.uid, 
@@ -2865,12 +2881,18 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     window.updateServiceDetails(); 
                     window.switchView('orders-history');
                 } else {
-                    window.showToast(data.error || "Transaction Failed", "error");
+                    window.showToast(`Server Error (${status}): ${data.error || data.message || "Transaction Failed"}`, "error");
                 }
             } catch(error) { 
                 if (error.message !== "Validation") {
                     console.error("API Error:", error);
-                    window.showToast("Server Connection Failed.", "error"); 
+                    if (error.type === 'NETWORK') {
+                        window.showToast(`Network/CORS Error: ${error.message}`, "error");
+                    } else if (error.message === "AUTH_REQUIRED") {
+                        window.showToast("Session expired - please log in again.", "error");
+                    } else {
+                        window.showToast("Server Connection Failed.", "error"); 
+                    }
                 }
             } finally { 
                 setTimeout(() => {
@@ -2885,7 +2907,10 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         window.submitPaymentProof = async function(e) {
             e.preventDefault();
 
-            // ===== TASK 3: validation (UTR 8-20 alphanumeric, Amount > 0, Method required) =====
+            // ===== TASK 3: validation =====
+            // CORRECTED: your real /api/verify-upi + the SMS-forwarder webhook both work off a
+            // 12-digit numeric UTR (standard UPI format) -- "8-20 alphanumeric" doesn't match
+            // what your backend actually accepts, so this reverts to the real format.
             const utr = document.getElementById('proof-txid').value.trim();
             const amountInput = document.getElementById('proof-amount').value;
             const amount = parseFloat(amountInput);
@@ -2919,8 +2944,10 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 // ===== TASK 10: temporary debug log of the outgoing payload =====
                 console.log("[DEBUG] Verify-UPI payload:", { utr, amount, method: methodName, methodId });
 
-                // ===== TASK 1/2/9: real backend call via API_BASE_URL + Firebase Bearer token (was a dead yourdomain.com placeholder before) =====
-                const { ok, data } = await apiFetch('/api/verify-upi', {
+                // Your real backend only reads `utr` from this payload today (it looks the UTR up in
+                // upi_transactions, synced earlier by your SMS-forwarder webhook). We still send amount/method
+                // so a future backend update can cross-check the user's claimed amount against the webhook's.
+                const { ok, status, data } = await apiFetch('/api/verify-upi', {
                     method: 'POST',
                     body: JSON.stringify({ utr, amount, method: methodName, methodId })
                 });
@@ -2933,7 +2960,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                             // IMPORTANT: /api/verify-upi already credited the wallet server-side via an atomic
                             // Firebase Admin transaction before returning success. DO NOT write to
                             // users/{uid}/balance again here -- that would credit the user twice for one payment.
-                            // The existing real-time balance listener reflects the new balance automatically.
+                            // The existing real-time balance listener will reflect the new balance automatically.
                             const amountAdded = parseFloat(data.amount);
                             const estimatedNewBalance = rawBalance + amountAdded; // display-only, for the modal
 
@@ -2952,7 +2979,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                             await set(proofRef, proofData);
                             depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
 
-                            // 3. Send Notification to User
+                            // Send Notification to User
                             let depNotifRef = push(ref(db, `notifications/${currentUser.uid}`));
                             await set(depNotifRef, {
                                 id: depNotifRef.key,
@@ -2972,12 +2999,12 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                             window.switchView('deposit-history');
                         } catch (writeErr) {
                             console.error("[DEBUG] Firebase write after verification failed:", writeErr);
-                            window.showVerifyError("Payment verified but saving to your wallet failed. Please contact support with your UTR.");
+                            window.showVerifyError("Payment verified and credited, but logging your receipt failed. Your balance is correct -- contact support if Deposit History looks wrong.");
                         }
                     } else {
                         // Transaction not found, already used, or backend rejected it
-                        console.warn("[DEBUG] Verify-UPI rejected:", data);
-                        window.showVerifyError(data.message || data.error || "Payment not found. If you just paid, please wait a minute and try again.");
+                        console.warn("[DEBUG] Verify-UPI rejected:", status, data);
+                        window.showVerifyError(`(${status}) ` + (data.message || data.error || "Payment not found. If you just paid, please wait a minute and try again."));
                     }
                     btn.disabled = false;
                     btn.innerHTML = originalText;
@@ -2989,6 +3016,8 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 setTimeout(() => {
                     if (error.message === "AUTH_REQUIRED") {
                         window.showVerifyError("Your session expired. Please log in again.");
+                    } else if (error.type === 'NETWORK') {
+                        window.showVerifyError(`Network/CORS Error: ${error.message}`);
                     } else {
                         window.showVerifyError("Error connecting to the verification server. Check your connection.");
                     }
