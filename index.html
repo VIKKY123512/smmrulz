@@ -1134,44 +1134,55 @@
                         </div>
 
                         <div class="card" id="payment-details-section" style="display: none;">
-                            
-                            <div class="input-group" style="margin-bottom: 25px;">
-                                <label>Select Payment Method</label>
-                                <div class="custom-select-wrapper" onclick="window.toggleDropdown('pay-options', event)">
-                                    <div class="custom-select-trigger" id="pay-trigger" style="background:var(--bg-top); color:var(--text-dark); border-color:var(--border-color);">💳 Select Method...</div>
-                                    <div class="custom-select-options" id="pay-options"></div>
-                                </div>
-                                <input type="hidden" id="selected-pay-method" required>
-                            </div>
-
-                            <div id="qr-instruction-area" style="display:none;">
-                                <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--primary); text-align: center;">Scan QR Code to Pay</h3>
-                                <div style="text-align: center; margin-bottom: 20px;">
-                                    <img id="payment-qr-img" src="" alt="Payment QR Code" style="max-width: 250px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: 0 auto 15px auto;">
-                                </div>
+                            <!-- Input State -->
+                            <div id="seedhape-input-container">
+                                <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--primary);"><i class="fa-solid fa-bolt"></i> Instant Deposit via UPI</h3>
+                                <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 20px;">Enter the amount you wish to add. Our system will generate a dynamic, single-use QR code linked directly to your session.</p>
                                 
-                                <div class="glowing-warning">
-                                    <h4><i class="fa-solid fa-triangle-exclamation"></i> Important Warning</h4>
-                                    <p id="payment-instructions" style="font-size: 13.5px; color: #ffffff; white-space: pre-wrap; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"></p>
-                                </div>
+                                <form id="seedhape-order-form" onsubmit="window.createDepositOrder(event)">
+                                    <div class="flex-row">
+                                        <div class="input-group">
+                                            <label>Amount (₹) (Min ₹10)</label>
+                                            <input type="number" id="seedhape-amount" placeholder="100" min="10" max="100000" step="1" required>
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Expected UPI Sender Name (Required for Auto-Match)</label>
+                                            <input type="text" id="seedhape-sender-name" placeholder="Name as seen in PhonePe/GPay" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn" id="seedhape-submit-btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-qrcode"></i> Generate Payment QR</button>
+                                </form>
+                                <button class="btn" onclick="window.hidePaymentDetails()" style="background: var(--bg-bottom); color: var(--text-dark); margin-top: 15px; box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Go Back</button>
                             </div>
 
-                            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 25px 0;">
-                            <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--primary);">Submit Payment Details</h3>
-                            <form id="proof-form" onsubmit="window.submitPaymentProof(event)">
-                                <div class="flex-row">
-                                    <div class="input-group">
-                                        <label>Transaction ID / UTR (12 Digits)</label>
-                                        <input type="text" id="proof-txid" placeholder="Paste 12-digit UTR here" inputmode="numeric" minlength="12" maxlength="12" pattern="\d{12}" required>
-                                    </div>
-                                    <div class="input-group">
-                                        <label>Amount Paid (₹)</label>
-                                        <input type="number" id="proof-amount" placeholder="Enter amount you paid" min="1" step="0.01" required>
+                            <!-- Payment State -->
+                            <div id="seedhape-pay-container" style="display: none; text-align: center; padding: 10px 0;">
+                                <h3 style="font-size: 18px; color: var(--primary); margin-bottom: 4px;">Dynamic UPI QR Code</h3>
+                                <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 20px;">Pay exactly <b style="color: var(--primary); font-size: 16px;">₹<span id="seedhape-pay-amount">0.00</span></b> using any UPI App</p>
+                                
+                                <div style="position: relative; display: inline-block; margin-bottom: 20px;">
+                                    <img id="seedhape-qr-img" src="" alt="UPI QR Code" style="max-width: 250px; width: 100%; border-radius: 16px; border: 4px solid var(--primary-light); background: #ffffff; padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+                                </div>
+
+                                <div style="margin-bottom: 25px;">
+                                    <a id="seedhape-upi-btn" href="#" class="btn btn-success" style="max-width: 250px; margin: 0 auto 15px auto; display: flex;"><i class="fa-solid fa-mobile-screen-button"></i> Pay via UPI App</a>
+                                    <div style="font-size: 13px; color: var(--text-gray); font-weight: 500;">
+                                        UPI ID: <span id="seedhape-upi-id" style="font-weight: 700; color: var(--text-dark); font-family: monospace;">7075265860@axl</span>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn" id="proof-submit-btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-bolt"></i> Auto Verify Payment</button>
-                            </form>
-                            <button class="btn" onclick="window.hidePaymentDetails()" style="background: var(--bg-bottom); color: var(--text-dark); margin-top: 15px; box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Go Back</button>
+
+                                <div style="background: var(--bg-bottom); border-radius: 12px; padding: 15px; border: 1px solid var(--border-color); max-width: 400px; margin: 0 auto 20px auto;">
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--primary); font-weight: 700; font-size: 14px; margin-bottom: 5px;">
+                                        <i class="fa-solid fa-spinner fa-spin"></i> Auto-Matching System Active
+                                    </div>
+                                    <p style="font-size: 12px; color: var(--text-gray); margin: 0;">Do not refresh or close this page. Once paid, the gateway will verify the transaction and credit your wallet instantly.</p>
+                                    <div style="margin-top: 10px; font-weight: 700; font-size: 13px; color: var(--danger);">
+                                        Time remaining: <span id="seedhape-timer">15:00</span>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-warning" onclick="window.cancelSeedhapePayment()" style="max-width: 200px; margin: 0 auto; background: var(--bg-bottom); color: var(--text-dark); border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Cancel Payment</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1475,6 +1486,37 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { getDatabase, ref, get, set, update, onValue, push, query, orderByChild, equalTo, onChildChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+
+        // ===== BACKEND API CONFIG (TASK 1) =====
+        // Leave empty for same domain or specify Vercel Backend URL
+        const API_BASE_URL = "";
+
+        // ===== SHARED AUTH HELPER (TASK 2) =====
+        async function apiFetch(path, options = {}) {
+            if (!currentUser) throw new Error("AUTH_REQUIRED");
+            const idToken = await currentUser.getIdToken(true);
+            console.log("[DEBUG] apiFetch ->", API_BASE_URL + path, options.body ? JSON.parse(options.body) : null);
+            let res;
+            try {
+                res = await fetch(API_BASE_URL + path, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${idToken}`,
+                        ...(options.headers || {})
+                    }
+                });
+            } catch (networkErr) {
+                console.error("[DEBUG] apiFetch NETWORK/CORS failure:", path, networkErr);
+                const err = new Error(`Could not reach ${API_BASE_URL}${path}. Network or CORS failure.`);
+                err.type = 'NETWORK';
+                throw err;
+            }
+            const data = await res.json().catch(() => ({}));
+            console.log("[DEBUG] apiFetch <-", path, res.status, data);
+            return { ok: res.ok, status: res.status, data };
+        }
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
@@ -2904,127 +2946,131 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
         };
 
-        window.submitPaymentProof = async function(e) {
+        let activeOrderListener = null;
+        let qrTimerInterval = null;
+
+        window.cancelSeedhapePayment = function() {
+            if (activeOrderListener) {
+                activeOrderListener();
+                activeOrderListener = null;
+            }
+            if (qrTimerInterval) {
+                clearInterval(qrTimerInterval);
+                qrTimerInterval = null;
+            }
+            document.getElementById('seedhape-pay-container').style.display = 'none';
+            document.getElementById('seedhape-input-container').style.display = 'block';
+            document.getElementById('seedhape-order-form').reset();
+        };
+
+        window.createDepositOrder = async function(e) {
             e.preventDefault();
-
-            // ===== TASK 3: validation =====
-            // CORRECTED: your real /api/verify-upi + the SMS-forwarder webhook both work off a
-            // 12-digit numeric UTR (standard UPI format) -- "8-20 alphanumeric" doesn't match
-            // what your backend actually accepts, so this reverts to the real format.
-            const utr = document.getElementById('proof-txid').value.trim();
-            const amountInput = document.getElementById('proof-amount').value;
+            const amountInput = document.getElementById('seedhape-amount').value;
             const amount = parseFloat(amountInput);
-            const methodId = document.getElementById('selected-pay-method').value;
+            const senderName = document.getElementById('seedhape-sender-name').value.trim();
 
-            if (!/^\d{12}$/.test(utr)) {
-                return window.showToast("Invalid Transaction ID! UTR must be exactly 12 digits.", "error");
+            if (isNaN(amount) || amount < 10 || amount > 100000) {
+                return window.showToast("Please enter an amount between ₹10 and ₹1,00,000.", "error");
             }
-            if (!amountInput || isNaN(amount) || amount <= 0) {
-                return window.showToast("Please enter a valid amount greater than 0.", "error");
-            }
-            if (!methodId) {
-                return window.showToast("Please select a payment method.", "error");
-            }
-            if (!currentUser) {
-                return window.showToast("Please sign in again before submitting.", "error");
+            if (!senderName) {
+                return window.showToast("Please enter your exact UPI Sender Name for matching.", "error");
             }
 
-            const methodName = (globalPaymentMethods[methodId] && globalPaymentMethods[methodId].name) || 'UPI';
-
-            const btn = document.getElementById('proof-submit-btn');
+            const btn = document.getElementById('seedhape-submit-btn');
             const originalText = btn.innerHTML;
             btn.disabled = true;
-
-            // ===== TASK 5: open the premium "Verifying Payment..." modal right away =====
-            window.openVerifyModal();
-            const verifyStartedAt = Date.now();
-            const MIN_LOADING_MS = 1100; // keeps the loader from flashing instantly if the API is very fast
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Securing Gateway...';
 
             try {
-                // ===== TASK 10: temporary debug log of the outgoing payload =====
-                console.log("[DEBUG] Verify-UPI payload:", { utr, amount, method: methodName, methodId });
-
-                // Your real backend only reads `utr` from this payload today (it looks the UTR up in
-                // upi_transactions, synced earlier by your SMS-forwarder webhook). We still send amount/method
-                // so a future backend update can cross-check the user's claimed amount against the webhook's.
-                const { ok, status, data } = await apiFetch('/api/verify-upi', {
+                // Call create-order endpoint
+                const { ok, status, data } = await apiFetch('/api/seedhape/create-order', {
                     method: 'POST',
-                    body: JSON.stringify({ utr, amount, method: methodName, methodId })
+                    body: JSON.stringify({ amount: amount, expectedSenderName: senderName })
                 });
 
-                const remainingDelay = Math.max(0, MIN_LOADING_MS - (Date.now() - verifyStartedAt));
+                if (!ok) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    return window.showToast(data.error || "Gateway connection failed.", "error");
+                }
 
-                setTimeout(async () => {
-                    if (ok && data.success) {
-                        try {
-                            // IMPORTANT: /api/verify-upi already credited the wallet server-side via an atomic
-                            // Firebase Admin transaction before returning success. DO NOT write to
-                            // users/{uid}/balance again here -- that would credit the user twice for one payment.
-                            // The existing real-time balance listener will reflect the new balance automatically.
-                            const amountAdded = parseFloat(data.amount);
-                            const estimatedNewBalance = rawBalance + amountAdded; // display-only, for the modal
+                // Show QR Code UI State
+                document.getElementById('seedhape-input-container').style.display = 'none';
+                document.getElementById('seedhape-pay-container').style.display = 'block';
+                
+                document.getElementById('seedhape-pay-amount').innerText = data.amount.toFixed(2);
+                document.getElementById('seedhape-qr-img').src = data.qrCode;
+                document.getElementById('seedhape-upi-btn').href = data.upiUri;
+                document.getElementById('seedhape-upi-id').innerText = data.upiId;
 
-                            // verify-upi doesn't write a payment_proofs record -- log one here purely so it
-                            // shows up in Deposit History and can generate a receipt.
-                            const proofRef = push(ref(db, 'payment_proofs'));
-                            const proofData = {
-                                userId: currentUser.uid,
-                                email: currentUser.email,
-                                amount: amountAdded,
-                                txid: utr,
-                                method: methodName,
-                                status: 'Approved',
-                                timestamp: Date.now()
-                            };
-                            await set(proofRef, proofData);
-                            depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
+                // Set up exact countdown timer (expires in 15 mins)
+                const expiryTime = new Date(data.expiresAt).getTime();
+                if (qrTimerInterval) clearInterval(qrTimerInterval);
+                
+                qrTimerInterval = setInterval(() => {
+                    const now = Date.now();
+                    const timeLeft = expiryTime - now;
+                    if (timeLeft <= 0) {
+                        clearInterval(qrTimerInterval);
+                        document.getElementById('seedhape-timer').innerText = "00:00";
+                        window.showToast("Payment window expired. Please create a new deposit.", "error");
+                        window.cancelSeedhapePayment();
+                    } else {
+                        const m = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                        const s = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                        document.getElementById('seedhape-timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    }
+                }, 1000);
 
-                            // Send Notification to User
-                            let depNotifRef = push(ref(db, `notifications/${currentUser.uid}`));
-                            await set(depNotifRef, {
-                                id: depNotifRef.key,
-                                title: "Auto-Payment Verified! ✅",
-                                message: `Your payment of ₹${amountAdded.toFixed(2)} (UTR: ${utr}) has been instantly verified and added to your balance.`,
-                                timestamp: Date.now(),
-                                seen: false,
-                                destination: 'transactions'
+                // Start real-time Firestore database listener for instant credits
+                const orderRef = ref(db, `seedhape_orders/${data.orderId}`);
+                if (activeOrderListener) activeOrderListener();
+                
+                activeOrderListener = onValue(orderRef, (snapshot) => {
+                    if (snapshot.exists()) {
+                        const orderData = snapshot.val();
+                        if (orderData.credited === true || orderData.status === 'VERIFIED') {
+                            // Payment Success! Stop timers & listeners
+                            if (qrTimerInterval) clearInterval(qrTimerInterval);
+                            if (activeOrderListener) { activeOrderListener(); activeOrderListener = null; }
+
+                            window.openVerifyModal();
+                            window.showVerifySuccess({
+                                id: data.orderId,
+                                amount: orderData.amountRupees,
+                                utr: orderData.utr || 'Auto UPI',
+                                method: 'SeedhaPe (Auto-UPI)',
+                                newBalance: rawBalance + orderData.amountRupees
                             });
 
-                            window.showVerifySuccess({ id: proofRef.key, amount: amountAdded, utr: utr, method: methodName, newBalance: estimatedNewBalance });
-
-                            e.target.reset();
-                            document.getElementById('selected-pay-method').value = '';
-                            document.getElementById('pay-trigger').innerHTML = '💳 Select Method...';
-                            document.getElementById('qr-instruction-area').style.display = 'none';
-                            window.switchView('deposit-history');
-                        } catch (writeErr) {
-                            console.error("[DEBUG] Firebase write after verification failed:", writeErr);
-                            window.showVerifyError("Payment verified and credited, but logging your receipt failed. Your balance is correct -- contact support if Deposit History looks wrong.");
+                            window.cancelSeedhapePayment();
+                        } else if (orderData.status === 'EXPIRED') {
+                            if (qrTimerInterval) clearInterval(qrTimerInterval);
+                            if (activeOrderListener) { activeOrderListener(); activeOrderListener = null; }
+                            window.showToast("UPI Transaction expired. Please request a new QR.", "error");
+                            window.cancelSeedhapePayment();
+                        } else if (orderData.status === 'DISPUTED') {
+                            if (qrTimerInterval) clearInterval(qrTimerInterval);
+                            if (activeOrderListener) { activeOrderListener(); activeOrderListener = null; }
+                            window.showToast("Transaction marked as disputed. Please contact support.", "error");
+                            window.resetAddFundsUX();
                         }
-                    } else {
-                        // Transaction not found, already used, or backend rejected it
-                        console.warn("[DEBUG] Verify-UPI rejected:", status, data);
-                        window.showVerifyError(`(${status}) ` + (data.message || data.error || "Payment not found. If you just paid, please wait a minute and try again."));
                     }
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }, remainingDelay);
+                });
 
-            } catch (error) {
-                console.error("[DEBUG] Verify-UPI request failed:", error);
-                const remainingDelay = Math.max(0, MIN_LOADING_MS - (Date.now() - verifyStartedAt));
-                setTimeout(() => {
-                    if (error.message === "AUTH_REQUIRED") {
-                        window.showVerifyError("Your session expired. Please log in again.");
-                    } else if (error.type === 'NETWORK') {
-                        window.showVerifyError(`Network/CORS Error: ${error.message}`);
-                    } else {
-                        window.showVerifyError("Error connecting to the verification server. Check your connection.");
-                    }
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }, remainingDelay);
+            } catch (err) {
+                console.error("Payment Order generation error:", err);
+                window.showToast("Gateway offline. Try again shortly.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
+        };
+
+        // Fallback backward compatibility reset function
+        window.resetAddFundsUX = function() {
+            window.cancelSeedhapePayment();
+            window.closeVerifyModal();
         };
 
         window.requestRefill = async function(orderId) {
