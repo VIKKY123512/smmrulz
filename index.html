@@ -754,7 +754,25 @@
         </div>
     </div>
 
-    <div id="username-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
+    <!-- EDIT MANUAL PAYMENT REQUEST MODAL -->
+    <div id="edit-payment-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
+        <div class="card" style="max-width:380px; width:90%; padding: 25px; text-align: center; margin:0; background: var(--bg-top); border: 1px solid var(--border-color); border-radius: 12px;">
+            <h3 style="margin-bottom:15px; color:var(--primary); font-size: 18px;"><i class="fa-solid fa-pen-to-square"></i> Edit Payment Request</h3>
+            <input type="hidden" id="edit-pay-id">
+            <div class="input-group">
+                <label style="color: var(--text-dark); font-size: 12px; margin-bottom: 6px; font-weight: 600;">Transaction ID / UTR (Exactly 12 Digits)</label>
+                <input type="text" id="edit-pay-utr" placeholder="12-digit UTR" minlength="12" maxlength="12" pattern="\d{12}" style="margin-bottom:15px; text-align: center;">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dark); font-size: 12px; margin-bottom: 6px; font-weight: 600;">Amount Paid (₹)</label>
+                <input type="number" id="edit-pay-amount" placeholder="Amount" min="1" step="0.01" style="margin-bottom:20px; text-align: center;">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="window.savePaymentEdit()" style="flex:1;">Save changes</button>
+                <button class="btn btn-warning" onclick="window.closePaymentEditModal()" style="flex:1; background: #f1f5f9; color: var(--text-dark);">Cancel</button>
+            </div>
+        </div>
+    </div>
         <div class="card" style="max-width:350px; width:90%; animation: fadeIn 0.3s ease; padding: 25px; text-align: center; margin:0;">
             <h3 style="margin-bottom:15px; color:var(--primary); font-size: 18px;">Edit Profile Name</h3>
             <input type="text" id="new-username-input" placeholder="Enter new username" style="margin-bottom:20px; width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; text-align: center;">
@@ -2588,9 +2606,28 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 
                 let html = '';
                 userDepositsList.forEach(p => {
-                    let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
-                    if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
-                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'UPI')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
+                    let badge = '<span class="badge bg-pending">Pending</span>'; 
+                    let statusText = p.status || 'Pending';
+                    let isPending = statusText.toLowerCase() === 'pending';
+                    
+                    if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; 
+                    if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
+                    
+                    let actionsHtml = `<button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;" title="Download Receipt"><i class="fa-solid fa-download"></i></button>`;
+                    
+                    // Show Edit button ONLY when status is Pending (before verification)
+                    if (isPending) {
+                        actionsHtml += ` <button class="btn btn-warning" onclick="window.openPaymentEditModal('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px; margin-left:5px; background:var(--warning);" title="Edit Request"><i class="fa-solid fa-pen-to-square"></i> Edit</button>`;
+                    }
+
+                    html += `<tr>
+                        <td><small>${new Date(p.timestamp).toLocaleString()}</small></td>
+                        <td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td>
+                        <td><small>${window.safeHTML(p.txid)}</small></td>
+                        <td><small>${window.safeHTML(p.method || 'UPI')}</small></td>
+                        <td>${badge}</td>
+                        <td><div style="display:flex; gap:5px;">${actionsHtml}</div></td>
+                    </tr>`;
                 });
                 document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="6" align="center">No deposit history found.</td></tr>';
 
@@ -2906,11 +2943,6 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
 
         window.submitPaymentProof = async function(e) {
             e.preventDefault();
-
-            // ===== TASK 3: validation =====
-            // CORRECTED: your real /api/verify-upi + the SMS-forwarder webhook both work off a
-            // 12-digit numeric UTR (standard UPI format) -- "8-20 alphanumeric" doesn't match
-            // what your backend actually accepts, so this reverts to the real format.
             const utr = document.getElementById('proof-txid').value.trim();
             const amountInput = document.getElementById('proof-amount').value;
             const amount = parseFloat(amountInput);
@@ -2930,100 +2962,143 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
 
             const methodName = (globalPaymentMethods[methodId] && globalPaymentMethods[methodId].name) || 'UPI';
-
             const btn = document.getElementById('proof-submit-btn');
             const originalText = btn.innerHTML;
             btn.disabled = true;
 
-            // ===== TASK 5: open the premium "Verifying Payment..." modal right away =====
-            window.openVerifyModal();
-            const verifyStartedAt = Date.now();
-            const MIN_LOADING_MS = 1100; // keeps the loader from flashing instantly if the API is very fast
-
             try {
-                // ===== TASK 10: temporary debug log of the outgoing payload =====
-                console.log("[DEBUG] Verify-UPI payload:", { utr, amount, method: methodName, methodId });
-
-                // Your real backend only reads `utr` from this payload today (it looks the UTR up in
-                // upi_transactions, synced earlier by your SMS-forwarder webhook). We still send amount/method
-                // so a future backend update can cross-check the user's claimed amount against the webhook's.
-                const { ok, status, data } = await apiFetch('/api/verify-upi', {
-                    method: 'POST',
-                    body: JSON.stringify({ utr, amount, method: methodName, methodId })
-                });
-
-                const remainingDelay = Math.max(0, MIN_LOADING_MS - (Date.now() - verifyStartedAt));
-
-                setTimeout(async () => {
-                    if (ok && data.success) {
-                        try {
-                            // IMPORTANT: /api/verify-upi already credited the wallet server-side via an atomic
-                            // Firebase Admin transaction before returning success. DO NOT write to
-                            // users/{uid}/balance again here -- that would credit the user twice for one payment.
-                            // The existing real-time balance listener will reflect the new balance automatically.
-                            const amountAdded = parseFloat(data.amount);
-                            const estimatedNewBalance = rawBalance + amountAdded; // display-only, for the modal
-
-                            // verify-upi doesn't write a payment_proofs record -- log one here purely so it
-                            // shows up in Deposit History and can generate a receipt.
-                            const proofRef = push(ref(db, 'payment_proofs'));
-                            const proofData = {
-                                userId: currentUser.uid,
-                                email: currentUser.email,
-                                amount: amountAdded,
-                                txid: utr,
-                                method: methodName,
-                                status: 'Approved',
-                                timestamp: Date.now()
-                            };
-                            await set(proofRef, proofData);
-                            depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
-
-                            // Send Notification to User
-                            let depNotifRef = push(ref(db, `notifications/${currentUser.uid}`));
-                            await set(depNotifRef, {
-                                id: depNotifRef.key,
-                                title: "Auto-Payment Verified! ✅",
-                                message: `Your payment of ₹${amountAdded.toFixed(2)} (UTR: ${utr}) has been instantly verified and added to your balance.`,
-                                timestamp: Date.now(),
-                                seen: false,
-                                destination: 'transactions'
-                            });
-
-                            window.showVerifySuccess({ id: proofRef.key, amount: amountAdded, utr: utr, method: methodName, newBalance: estimatedNewBalance });
-
-                            e.target.reset();
-                            document.getElementById('selected-pay-method').value = '';
-                            document.getElementById('pay-trigger').innerHTML = '💳 Select Method...';
-                            document.getElementById('qr-instruction-area').style.display = 'none';
-                            window.switchView('deposit-history');
-                        } catch (writeErr) {
-                            console.error("[DEBUG] Firebase write after verification failed:", writeErr);
-                            window.showVerifyError("Payment verified and credited, but logging your receipt failed. Your balance is correct -- contact support if Deposit History looks wrong.");
+                // Duplicate UTR prevention logic
+                const proofsSnap = await get(ref(db, 'payment_proofs'));
+                if (proofsSnap.exists()) {
+                    const allProofs = proofsSnap.val();
+                    for (let pid in allProofs) {
+                        if (allProofs[pid].txid === utr) {
+                            window.showToast("This UTR has already been submitted! Duplicate blocked.", "error");
+                            btn.disabled = false;
+                            return;
                         }
-                    } else {
-                        // Transaction not found, already used, or backend rejected it
-                        console.warn("[DEBUG] Verify-UPI rejected:", status, data);
-                        window.showVerifyError(`(${status}) ` + (data.message || data.error || "Payment not found. If you just paid, please wait a minute and try again."));
                     }
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }, remainingDelay);
+                }
+
+                // Write manual review payload to Database
+                const proofRef = push(ref(db, 'payment_proofs'));
+                const proofData = {
+                    userId: currentUser.uid,
+                    email: currentUser.email,
+                    amount: amount,
+                    txid: utr,
+                    method: methodName,
+                    status: 'Pending',
+                    timestamp: Date.now()
+                };
+                await set(proofRef, proofData);
+
+                window.showToast("Payment request submitted successfully for manual review!", "success");
+                e.target.reset();
+                document.getElementById('selected-pay-method').value = '';
+                document.getElementById('pay-trigger').innerHTML = '💳 Select Method...';
+                document.getElementById('qr-instruction-area').style.display = 'none';
+                window.switchView('deposit-history');
 
             } catch (error) {
-                console.error("[DEBUG] Verify-UPI request failed:", error);
-                const remainingDelay = Math.max(0, MIN_LOADING_MS - (Date.now() - verifyStartedAt));
-                setTimeout(() => {
-                    if (error.message === "AUTH_REQUIRED") {
-                        window.showVerifyError("Your session expired. Please log in again.");
-                    } else if (error.type === 'NETWORK') {
-                        window.showVerifyError(`Network/CORS Error: ${error.message}`);
-                    } else {
-                        window.showVerifyError("Error connecting to the verification server. Check your connection.");
+                console.error("Payment submission failed:", error);
+                window.showToast("Error submitting request.", "error");
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        // Supporting payment request edit JS logic securely exposed to the window context
+        window.openPaymentEditModal = function(id) {
+            const p = depositsCache[id];
+            if (!p) return;
+            document.getElementById('edit-pay-id').value = id;
+            document.getElementById('edit-pay-utr').value = p.txid || '';
+            document.getElementById('edit-pay-amount').value = p.amount || '';
+            document.getElementById('edit-payment-modal').style.display = 'flex';
+        };
+
+        window.closePaymentEditModal = function() {
+            document.getElementById('edit-payment-modal').style.display = 'none';
+        };
+
+        window.savePaymentEdit = async function() {
+            const id = document.getElementById('edit-pay-id').value;
+            const utr = document.getElementById('edit-pay-utr').value.trim();
+            const amountInput = document.getElementById('edit-pay-amount').value;
+            const amount = parseFloat(amountInput);
+
+            if (!/^\d{12}$/.test(utr)) {
+                return window.showToast("UTR must be exactly 12 digits.", "error");
+            }
+            if (isNaN(amount) || amount <= 0) {
+                return window.showToast("Please enter a valid positive amount.", "error");
+            }
+
+            try {
+                // Verify edited UTR doesn't collide with another record
+                const proofsSnap = await get(ref(db, 'payment_proofs'));
+                if (proofsSnap.exists()) {
+                    const allProofs = proofsSnap.val();
+                    for (let pid in allProofs) {
+                        if (allProofs[pid].txid === utr && pid !== id) {
+                            window.showToast("UTR already submitted or verified! Duplicate blocked.", "error");
+                            return;
+                        }
                     }
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }, remainingDelay);
+                }
+
+                await update(ref(db, `payment_proofs/${id}`), {
+                    txid: utr,
+                    amount: amount,
+                    timestamp: Date.now()
+                });
+
+                window.showToast("Payment request updated successfully!", "success");
+                window.closePaymentEditModal();
+
+            } catch (error) {
+                console.error("Failed to edit payment request:", error);
+                window.showToast("Error updating request.", "error");
+            }
+        };
+            const id = document.getElementById('edit-pay-id').value;
+            const utr = document.getElementById('edit-pay-utr').value.trim();
+            const amountInput = document.getElementById('edit-pay-amount').value;
+            const amount = parseFloat(amountInput);
+
+            if (!/^\d{12}$/.test(utr)) {
+                return window.showToast("UTR must be exactly 12 digits.", "error");
+            }
+            if (isNaN(amount) || amount <= 0) {
+                return window.showToast("Please enter a valid positive amount.", "error");
+            }
+
+            try {
+                // Verify edited UTR doesn't collide with another record
+                const proofsSnap = await get(ref(db, 'payment_proofs'));
+                if (proofsSnap.exists()) {
+                    const allProofs = proofsSnap.val();
+                    for (let pid in allProofs) {
+                        if (allProofs[pid].txid === utr && pid !== id) {
+                            window.showToast("UTR already submitted or verified! Duplicate blocked.", "error");
+                            return;
+                        }
+                    }
+                }
+
+                await update(ref(db, `payment_proofs/${id}`), {
+                    txid: utr,
+                    amount: amount,
+                    timestamp: Date.now()
+                });
+
+                window.showToast("Payment request updated successfully!", "success");
+                window.closePaymentEditModal();
+
+            } catch (error) {
+                console.error("Failed to edit payment request:", error);
+                window.showToast("Error updating request.", "error");
             }
         };
 
