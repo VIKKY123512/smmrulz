@@ -1525,7 +1525,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         // before it ever reached your real backend. That file only understood SMM orders and
         // had ZERO auth-token verification (it trusted a raw `uid` from the request body).
         // It has been deleted. Point this at your actual deployed backend domain:
-        const API_BASE_URL = "https://perfect-smm-backend.vercel.app";
+        const API_BASE_URL = "https://smmrulz-backend.vercel.app";
         // ^ Replace with your real backend URL if it differs. Verify by opening
         //   <that-url>/api/order in a browser -- it should return {"error":"Method Not Allowed"}
         //   (proves Next.js is serving it), NOT a 404.
