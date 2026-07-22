@@ -779,14 +779,14 @@
         <div class="verify-modal-box">
             <div id="verify-state-loading" class="verify-state">
                 <div class="verify-spinner-ring"><i class="fa-solid fa-bolt"></i></div>
-                <h3>Verifying Payment...</h3>
-                <p class="verify-sub">Please wait while we confirm your UPI transaction</p>
+                <h3 id="verify-loading-title">Submitting Payment Request...</h3>
+                <p class="verify-sub">Please wait while we send your request to the admin for review</p>
             </div>
             <div id="verify-state-success" class="verify-state" style="display:none;">
                 <div class="verify-check-circle">
                     <svg viewBox="0 0 52 52"><circle class="verify-check-circle-bg" cx="26" cy="26" r="23"/><path class="verify-check-mark" d="M14 27l7 7 16-16"/></svg>
                 </div>
-                <h3 style="color:var(--success);">Payment Verified Successfully</h3>
+                <h3 id="verify-success-title" style="color:var(--success);">Payment Request Submitted</h3>
                 <div id="verify-success-details" class="verify-details-box"></div>
                 <div style="display:flex; gap:10px; margin-top:20px;">
                     <button class="btn" onclick="window.closeVerifyModal()" style="flex:1;">Done</button>
@@ -799,6 +799,29 @@
                 <p class="verify-sub" id="verify-error-msg">Payment not found. If you just paid, please wait a minute and try again.</p>
                 <button class="btn" onclick="window.closeVerifyModal()" style="width:100%; margin-top:15px;">Close</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Manual Payment Request Edit modal (only shown while status = Pending) -->
+    <div id="edit-deposit-modal" class="verify-modal-overlay">
+        <div class="verify-modal-box" style="text-align:left;">
+            <h3 style="text-align:center; margin-top:0;"><i class="fa-solid fa-pen-to-square"></i> Edit Payment Request</h3>
+            <p class="verify-sub" style="text-align:center; margin-bottom:16px;">You can only edit a request while it is still pending review.</p>
+            <form id="edit-deposit-form" onsubmit="window.submitEditDeposit(event)">
+                <input type="hidden" id="edit-deposit-id">
+                <div class="form-group">
+                    <label>Transaction ID / UTR (12 Digits)</label>
+                    <input type="text" id="edit-deposit-utr" inputmode="numeric" minlength="12" maxlength="12" pattern="\d{12}" required>
+                </div>
+                <div class="form-group">
+                    <label>Amount Paid (₹)</label>
+                    <input type="number" id="edit-deposit-amount" min="1" step="0.01" required>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button type="submit" class="btn" id="edit-deposit-submit-btn" style="flex:1;"><i class="fa-solid fa-check"></i> Save Changes</button>
+                    <button type="button" class="btn" onclick="window.closeEditDepositModal()" style="flex:1; background:var(--bg-bottom); color:var(--text-dark); border:1px solid var(--border-color); box-shadow:none;">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1169,7 +1192,7 @@
                                         <input type="number" id="proof-amount" placeholder="Enter amount you paid" min="1" step="0.01" required>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn" id="proof-submit-btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-paper-plane"></i> Submit Payment Request</button>
+                                <button type="submit" class="btn" id="proof-submit-btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-bolt"></i> Auto Verify Payment</button>
                             </form>
                             <button class="btn" onclick="window.hidePaymentDetails()" style="background: var(--bg-bottom); color: var(--text-dark); margin-top: 15px; box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Go Back</button>
                         </div>
@@ -1182,7 +1205,7 @@
                         <div class="card" style="padding: 10px;">
                             <div class="table-wrapper" style="border: none;">
                                 <table>
-                                    <thead><tr><th>Date & Time</th><th>Amount (\u20b9)</th><th>Txn ID</th><th>Method</th><th>Status</th><th>Action</th></tr></thead>
+                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>Txn ID (UTR)</th><th>Method</th><th>Status</th><th>Actions</th></tr></thead>
                                     <tbody id="deposit-history-table"></tbody>
                                 </table>
                             </div>
@@ -1377,6 +1400,8 @@
             document.getElementById('verify-state-loading').style.display = 'block';
             document.getElementById('verify-state-success').style.display = 'none';
             document.getElementById('verify-state-error').style.display = 'none';
+            const receiptBtn = document.getElementById('verify-receipt-btn');
+            if (receiptBtn) receiptBtn.style.display = ''; // reset from any previous state
             document.getElementById('verify-payment-modal').classList.add('show');
         };
         window.closeVerifyModal = function() {
@@ -1385,15 +1410,16 @@
         window.showVerifySuccess = function(details) {
             document.getElementById('verify-state-loading').style.display = 'none';
             document.getElementById('verify-state-error').style.display = 'none';
+            document.getElementById('verify-success-title').innerText = 'Payment Request Submitted';
             document.getElementById('verify-success-details').innerHTML = `
-                <div>Amount Credited: <b>₹${details.amount.toFixed(2)}</b></div>
+                <div>Amount Claimed: <b>₹${details.amount.toFixed(2)}</b></div>
                 <div>UTR: <b>${window.safeHTML(details.utr)}</b></div>
                 <div>Method: <b>${window.safeHTML(details.method)}</b></div>
-                <div>New Balance: <b>₹${details.newBalance.toFixed(2)}</b></div>
+                <div style="margin-top:8px; color:var(--text-gray);">Your request is now <b>pending review</b>. An admin will verify your transaction and credit your wallet shortly. You can edit this request from Deposit History until it is reviewed.</div>
             `;
             document.getElementById('verify-state-success').style.display = 'block';
             const receiptBtn = document.getElementById('verify-receipt-btn');
-            if (receiptBtn) receiptBtn.onclick = () => window.downloadReceipt(details.id);
+            if (receiptBtn) receiptBtn.style.display = 'none'; // no receipt until admin approves
         };
         window.showVerifyError = function(message) {
             document.getElementById('verify-state-loading').style.display = 'none';
@@ -1474,7 +1500,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getDatabase, ref, get, set, update, onValue, push, query, orderByChild, equalTo, onChildChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+        import { getDatabase, ref, get, set, update, remove, runTransaction, onValue, push, query, orderByChild, equalTo, onChildChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
@@ -1492,11 +1518,17 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         const db = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
-        // ===== BACKEND API CONFIG (TASK 1) =====
-        // This is the base URL for your Next.js backend (perfect-smm-backend).
-        // All API calls (orders, payment-proofs, provider sync, seedhape) go through here.
-        // Change this to your actual deployed backend domain.
+        // ===== BACKEND API CONFIG =====
+        // CRITICAL: this frontend is a separate Vercel deployment from your Next.js backend
+        // (perfect-smm-backend). It must NOT be left as "" (same-origin) -- this frontend used
+        // to ship its own legacy /api/order.js which silently intercepted every order call
+        // before it ever reached your real backend. That file only understood SMM orders and
+        // had ZERO auth-token verification (it trusted a raw `uid` from the request body).
+        // It has been deleted. Point this at your actual deployed backend domain:
         const API_BASE_URL = "https://perfect-smm-backend.vercel.app";
+        // ^ Replace with your real backend URL if it differs. Verify by opening
+        //   <that-url>/api/order in a browser -- it should return {"error":"Method Not Allowed"}
+        //   (proves Next.js is serving it), NOT a 404.
 
         // ===== SHARED AUTH HELPER (TASK 2) =====
         // Every authenticated backend call should go through this so we never forget the token.
@@ -2587,15 +2619,20 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 
                 let html = '';
                 userDepositsList.forEach(p => {
-                    let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
-                    if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
-                    // Show Edit button ONLY when status is Pending (before admin verification).
-                    // Once the admin approves or rejects, the edit option is hidden.
-                    let editBtn = '';
-                    if (statusText.toLowerCase() === 'pending') {
-                        editBtn = `<button class="btn" onclick="window.editPaymentProof('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px; margin-left:4px; background:var(--primary); color:#fff;" title="Edit payment request"><i class="fa-solid fa-pen-to-square"></i></button>`;
-                    }
-                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">\u20b9${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'UPI')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button>${editBtn}</td></tr>`;
+                    let badge = '<span class="badge bg-pending">Pending Review</span>'; let statusText = (p.status || 'Pending').toLowerCase();
+                    const isPending = statusText === 'pending';
+                    if(statusText === 'successful' || statusText === 'approved') badge = '<span class="badge bg-completed">Approved</span>';
+                    if(statusText === 'failed' || statusText === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
+
+                    // Edit option is shown ONLY while the request is still Pending review.
+                    // Once an admin approves or rejects it, editing is permanently disabled --
+                    // this prevents a user from altering the UTR/amount of an already-verified
+                    // record to try to claim a second credit off the same edit.
+                    let actionsHtml = isPending
+                        ? `<button class="btn" onclick="window.openEditDepositModal('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px; background:var(--warning);" title="Edit request"><i class="fa-solid fa-pen"></i> Edit</button>`
+                        : `<button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;" title="Download receipt"><i class="fa-solid fa-download"></i></button>`;
+
+                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'UPI')}</small></td><td>${badge}</td><td>${actionsHtml}</td></tr>`;
                 });
                 document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="6" align="center">No deposit history found.</td></tr>';
 
@@ -2909,14 +2946,21 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
         };
 
-        // ================================================================
-        // MANUAL PAYMENT VERIFICATION — SUBMIT
-        // The user submits a payment request (12-digit UTR + amount + method).
-        // The request is sent to the backend /api/payment-proofs/submit which
-        // creates a "Pending" record. NO balance is credited here — the admin
-        // must manually verify/approve the request from the admin panel before
-        // the wallet is credited (server-side atomic transaction).
-        // ================================================================
+        // ===== MANUAL PAYMENT VERIFICATION SYSTEM =====
+        // There is no working auto-verify backend (the old /api/verify-upi endpoint referenced
+        // here does not exist anywhere in the backend project -- every submission through it was
+        // silently failing). Payments are verified manually by an admin instead. To keep this
+        // safe against spam/fraud without a server in the loop:
+        //   1. UTR must be exactly 12 digits (standard UPI reference format).
+        //   2. A given UTR can only ever be claimed by ONE payment request, enforced atomically
+        //      via a Firebase transaction on payment_utr_index/{utr} -- this stops the same real
+        //      transaction being submitted many times hoping one slips past review.
+        //   3. A user may have at most MAX_PENDING_REQUESTS requests awaiting review at once,
+        //      which stops a single account from flooding the admin queue with fake requests.
+        //   4. The request can be edited from Deposit History ONLY while status is "Pending" --
+        //      once an admin approves or rejects it, the Edit option disappears permanently.
+        const MAX_PENDING_REQUESTS = 3;
+
         window.submitPaymentProof = async function(e) {
             e.preventDefault();
 
@@ -2925,15 +2969,11 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             const amount = parseFloat(amountInput);
             const methodId = document.getElementById('selected-pay-method').value;
 
-            // CLIENT-SIDE VALIDATION (defense-in-depth — the backend re-validates everything)
             if (!/^\d{12}$/.test(utr)) {
                 return window.showToast("Invalid Transaction ID! UTR must be exactly 12 digits.", "error");
             }
             if (!amountInput || isNaN(amount) || amount <= 0) {
                 return window.showToast("Please enter a valid amount greater than 0.", "error");
-            }
-            if (amount < 10 || amount > 100000) {
-                return window.showToast("Amount must be between \u20b910 and \u20b91,00,000.", "error");
             }
             if (!methodId) {
                 return window.showToast("Please select a payment method.", "error");
@@ -2942,113 +2982,163 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 return window.showToast("Please sign in again before submitting.", "error");
             }
 
+            const pendingCount = Object.values(depositsCache || {}).filter(p => (p.status || 'Pending') === 'Pending').length;
+            if (pendingCount >= MAX_PENDING_REQUESTS) {
+                return window.showToast(`You already have ${pendingCount} payment requests awaiting review. Please wait for those to be verified before submitting more.`, "error");
+            }
+
             const methodName = (globalPaymentMethods[methodId] && globalPaymentMethods[methodId].name) || 'UPI';
 
             const btn = document.getElementById('proof-submit-btn');
             const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+
+            window.openVerifyModal();
+            document.getElementById('verify-loading-title').innerText = 'Submitting Payment Request...';
+            const startedAt = Date.now();
+            const MIN_LOADING_MS = 700;
 
             try {
-                console.log("[DEBUG] payment-proofs/submit payload:", { utr, amount, method: methodName, methodId });
-
-                const { ok, status, data } = await apiFetch('/api/payment-proofs/submit', {
-                    method: 'POST',
-                    body: JSON.stringify({ utr, amount, method: methodName, methodId })
+                // Atomically claim this UTR so it can never be used by more than one request,
+                // whether that's this user resubmitting or two different users trying the same
+                // number. transaction() only "wins" for one caller even under a race.
+                const utrClaimRef = ref(db, `payment_utr_index/${utr}`);
+                const claimResult = await runTransaction(utrClaimRef, (current) => {
+                    if (current !== null) return; // already claimed -- abort, no write
+                    return { userId: currentUser.uid, claimedAt: Date.now() };
                 });
 
-                if (ok && data.success) {
-                    // The backend created the Pending record and sent a notification.
-                    // NO balance credit happens until the admin approves.
-                    window.showToast(`\u2705 Payment request submitted! Status: Pending. Admin will verify your payment shortly.`, "success");
+                const finish = (fn) => {
+                    const remaining = Math.max(0, MIN_LOADING_MS - (Date.now() - startedAt));
+                    setTimeout(() => { fn(); btn.disabled = false; btn.innerHTML = originalText; }, remaining);
+                };
 
-                    // Reset the form
+                if (!claimResult.committed) {
+                    return finish(() => window.showVerifyError("This UTR has already been submitted for verification. Each transaction ID can only be used once. If this is a mistake, contact support."));
+                }
+
+                const proofRef = push(ref(db, 'payment_proofs'));
+                const proofData = {
+                    userId: currentUser.uid,
+                    email: currentUser.email,
+                    amount: amount,
+                    txid: utr,
+                    method: methodName,
+                    methodId: methodId,
+                    status: 'Pending',
+                    timestamp: Date.now()
+                };
+                await set(proofRef, proofData);
+                // Keep the UTR index pointing at this specific request so an edit/delete can
+                // release or reassign the claim correctly.
+                await set(utrClaimRef, { userId: currentUser.uid, proofId: proofRef.key, claimedAt: Date.now() });
+                depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
+
+                finish(() => {
+                    window.showVerifySuccess({ id: proofRef.key, amount: amount, utr: utr, method: methodName });
                     e.target.reset();
                     document.getElementById('selected-pay-method').value = '';
-                    document.getElementById('pay-trigger').innerHTML = '\ud83d\udcb3 Select Method...';
+                    document.getElementById('pay-trigger').innerHTML = '💳 Select Method...';
                     document.getElementById('qr-instruction-area').style.display = 'none';
                     window.switchView('deposit-history');
-                } else {
-                    // Backend rejected (duplicate UTR, too many pending, invalid data, etc.)
-                    console.warn("[DEBUG] payment-proofs/submit rejected:", status, data);
-                    window.showToast(`\u274c ${data.message || data.error || "Failed to submit payment request."}`, "error");
-                }
+                });
+
             } catch (error) {
-                console.error("[DEBUG] payment-proofs/submit failed:", error);
-                if (error.message === "AUTH_REQUIRED") {
-                    window.showToast("Your session expired. Please log in again.", "error");
-                } else if (error.type === 'NETWORK') {
-                    window.showToast(`Network/CORS Error: ${error.message}`, "error");
-                } else {
-                    window.showToast("Error connecting to the server. Check your connection.", "error");
+                console.error("[DEBUG] Payment proof submission failed:", error);
+                const remaining = Math.max(0, MIN_LOADING_MS - (Date.now() - startedAt));
+                setTimeout(() => {
+                    if (error.message === "AUTH_REQUIRED") {
+                        window.showVerifyError("Your session expired. Please log in again.");
+                    } else {
+                        window.showVerifyError("Could not submit your payment request. Please check your connection and try again.");
+                    }
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }, remaining);
+            }
+        };
+
+        // ===== Edit a Pending payment request =====
+        window.openEditDepositModal = function(depositId) {
+            const p = depositsCache[depositId];
+            if (!p) return window.showToast("Request not found.", "error");
+            if ((p.status || 'Pending') !== 'Pending') {
+                return window.showToast("This request has already been reviewed and can no longer be edited.", "error");
+            }
+            document.getElementById('edit-deposit-id').value = depositId;
+            document.getElementById('edit-deposit-utr').value = p.txid;
+            document.getElementById('edit-deposit-amount').value = p.amount;
+            document.getElementById('edit-deposit-modal').classList.add('show');
+        };
+        window.closeEditDepositModal = function() {
+            document.getElementById('edit-deposit-modal').classList.remove('show');
+        };
+
+        window.submitEditDeposit = async function(e) {
+            e.preventDefault();
+            const depositId = document.getElementById('edit-deposit-id').value;
+            const newUtr = document.getElementById('edit-deposit-utr').value.trim();
+            const newAmount = parseFloat(document.getElementById('edit-deposit-amount').value);
+
+            if (!/^\d{12}$/.test(newUtr)) {
+                return window.showToast("Invalid Transaction ID! UTR must be exactly 12 digits.", "error");
+            }
+            if (isNaN(newAmount) || newAmount <= 0) {
+                return window.showToast("Please enter a valid amount greater than 0.", "error");
+            }
+
+            const existing = depositsCache[depositId];
+            if (!existing) return window.showToast("Request not found.", "error");
+
+            const btn = document.getElementById('edit-deposit-submit-btn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+            try {
+                // Re-check the LIVE status server-side (not just the local cache) before writing,
+                // so a request that got approved/rejected a split-second ago can't be edited.
+                const liveSnap = await get(ref(db, `payment_proofs/${depositId}`));
+                if (!liveSnap.exists() || (liveSnap.val().status || 'Pending') !== 'Pending') {
+                    window.showToast("This request was already reviewed and can no longer be edited.", "error");
+                    window.closeEditDepositModal();
+                    return;
                 }
+
+                if (newUtr !== existing.txid) {
+                    // UTR changed -- move the uniqueness claim atomically: claim the new UTR first,
+                    // then release the old one. If the new UTR is already taken by someone else,
+                    // abort without touching anything.
+                    const newClaimRef = ref(db, `payment_utr_index/${newUtr}`);
+                    const claimResult = await runTransaction(newClaimRef, (current) => {
+                        if (current !== null) return;
+                        return { userId: currentUser.uid, proofId: depositId, claimedAt: Date.now() };
+                    });
+                    if (!claimResult.committed) {
+                        window.showToast("That UTR has already been used in another request.", "error");
+                        return;
+                    }
+                    await remove(ref(db, `payment_utr_index/${existing.txid}`));
+                }
+
+                await update(ref(db, `payment_proofs/${depositId}`), {
+                    txid: newUtr,
+                    amount: newAmount,
+                    editedAt: Date.now()
+                });
+
+                depositsCache[depositId] = { ...existing, txid: newUtr, amount: newAmount };
+                window.showToast("Payment request updated successfully!", "success");
+                window.closeEditDepositModal();
+            } catch (err) {
+                console.error("Edit deposit failed:", err);
+                window.showToast("Could not save changes. Please try again.", "error");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             }
         };
 
-        // ================================================================
-        // MANUAL PAYMENT VERIFICATION — EDIT (user side)
-        // The user can edit their own payment request's UTR and/or amount,
-        // but ONLY while the status is still "Pending" (before admin verification).
-        // Once the admin approves or rejects, editing is locked.
-        // ================================================================
-        window.editPaymentProof = function(proofId) {
-            const p = depositsCache[proofId];
-            if (!p) {
-                return window.showToast("Payment record not found. Please refresh.", "error");
-            }
-            if ((p.status || 'Pending').toLowerCase() !== 'pending') {
-                return window.showToast("This payment request has already been verified and can no longer be edited.", "error");
-            }
-
-            const newUtr = prompt("Enter new UTR (12 digits):", p.txid || '');
-            if (newUtr === null) return; // user cancelled
-
-            const newAmountStr = prompt("Enter new amount (\u20b9):", p.amount || '');
-            if (newAmountStr === null) return; // user cancelled
-
-            const newUtrTrimmed = newUtr.trim();
-            const newAmount = parseFloat(newAmountStr);
-
-            // Client-side validation
-            if (!/^\d{12}$/.test(newUtrTrimmed)) {
-                return window.showToast("Invalid UTR! Must be exactly 12 digits.", "error");
-            }
-            if (isNaN(newAmount) || newAmount < 10 || newAmount > 100000) {
-                return window.showToast("Invalid amount! Must be between \u20b910 and \u20b91,00,000.", "error");
-            }
-
-            // If nothing changed, no need to call the API
-            if (newUtrTrimmed === (p.txid || '') && newAmount === parseFloat(p.amount)) {
-                return window.showToast("No changes made.", "info");
-            }
-
-            // Call the backend edit endpoint
-            (async () => {
-                try {
-                    const { ok, status, data } = await apiFetch('/api/payment-proofs/edit', {
-                        method: 'POST',
-                        body: JSON.stringify({ proofId, utr: newUtrTrimmed, amount: newAmount })
-                    });
-
-                    if (ok && data.success) {
-                        window.showToast("\u2705 Payment request updated successfully.", "success");
-                        // The real-time Firebase listener will refresh the deposit history table automatically.
-                    } else {
-                        window.showToast(`\u274c ${data.message || data.error || "Failed to edit payment request."}`, "error");
-                    }
-                } catch (error) {
-                    console.error("[DEBUG] payment-proofs/edit failed:", error);
-                    if (error.type === 'NETWORK') {
-                        window.showToast(`Network/CORS Error: ${error.message}`, "error");
-                    } else {
-                        window.showToast("Error connecting to the server.", "error");
-                    }
-                }
-            })();
-        };
         window.requestRefill = async function(orderId) {
             if(confirm("Send a refill request for this order? Support will check if it is eligible.")) {
                 try {
