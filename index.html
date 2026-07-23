@@ -1253,9 +1253,9 @@
         window.formatHourSlot = function(hour) {
             const d = new Date();
             d.setHours(hour, 0, 0, 0);
-            const start = window.fmtTime(d);
+            const start = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
             d.setHours((hour + 1) % 24, 0, 0, 0);
-            const end = window.fmtTime(d);
+            const end = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
             return `${start} - ${end}`;
         };
         
@@ -1429,7 +1429,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
     <div class="row"><span>Amount</span><span>₹${parseFloat(p.amount).toFixed(2)}</span></div>
     <div class="row"><span>Payment Method</span><span>${window.safeHTML(p.method || 'UPI')}</span></div>
     <div class="row"><span>Status</span><span class="status">${window.safeHTML(statusText)}</span></div>
-    <div class="row" style="border-bottom:none;"><span>Date &amp; Time</span><span>${window.fmtDateTime(p.timestamp)}</span></div>
+    <div class="row" style="border-bottom:none;"><span>Date &amp; Time</span><span>${new Date(p.timestamp).toLocaleString()}</span></div>
   </div>
 </body></html>`;
 
@@ -1492,14 +1492,14 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         const db = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
-        // ===== BACKEND API CONFIG =====
-        // ROOT CAUSE FOUND: this was set to '' (same-origin), which meant every order/verify
-        // call was silently hitting the dead /api/order.js bundled in THIS repo instead of your
-        // real Next.js backend (perfect-smm-backend.vercel.app). That legacy function has no
-        // provider dispatch, no Firebase ID token verification (it trusted a client-supplied
-        // uid), and doesn't know about your new services/providers routing at all -- which is
-        // exactly why new orders on new services/APIs failed and never showed as dispatched in
-        // the admin panel. Restored to the real backend origin.
+        // ===== BACKEND API CONFIG (TASK 1) =====
+        // ROOT CAUSE FIX: this was blank, so every apiFetch('/api/order', ...) call was hitting
+        // THIS project's own /api/order.js (same-origin) instead of the real backend at
+        // smmrulz_backend (perfect-smm-backend.vercel.app). That legacy same-origin function has
+        // no provider dispatch and no Zod validation, which is why orders sat stuck in "Pending"
+        // and never reached a provider. The legacy file has now been deprecated (see api/order.js)
+        // -- this MUST point at your deployed smmrulz_backend project.
+        // If your smmrulz_backend deployment URL is different, update it here.
         const API_BASE_URL = "https://perfect-smm-backend.vercel.app";
 
         // ===== SHARED AUTH HELPER (TASK 2) =====
@@ -1531,17 +1531,6 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             console.log("[DEBUG] apiFetch <-", path, res.status, data);
             return { ok: res.ok, status: res.status, data };
         }
-
-        // ===== SHARED 12-HOUR DATE/TIME FORMATTERS =====
-        // en-IN's default toLocaleString()/toLocaleTimeString() render a 24-hour clock, which is
-        // why every timestamp in the panel showed as e.g. "14:23" instead of "2:23 PM". hour12
-        // must be passed explicitly every time or the browser's locale decides for you.
-        window.fmtDateTime = function(ts) {
-            return new Date(ts).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short', hour12: true });
-        };
-        window.fmtTime = function(ts) {
-            return new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-        };
 
         let currentUser = null;
         let rawBalance = 0;
@@ -1781,7 +1770,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                                 <span class="seen-dot ${n.seen ? 'seen' : 'unseen'}"></span>
                             </div>
                             <p style="font-size:11px; color:var(--text-gray); margin:0; white-space:normal;">${window.safeHTML(n.message)}</p>
-                            <small style="font-size:9px; color:var(--primary); margin-top:2px;">${window.fmtDateTime(n.timestamp)}</small>
+                            <small style="font-size:9px; color:var(--primary); margin-top:2px;">${new Date(n.timestamp).toLocaleString()}</small>
                         </div>
                     `;
                 });
@@ -2540,8 +2529,8 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                             </div>
 
                             <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:12px; flex-wrap:wrap; gap:10px; color:var(--text-gray);">
-                                <div>Subscribed: <b style="color:var(--text-dark);">${window.fmtDateTime(sub.purchaseTime)}</b></div>
-                                <div>Ends: <b style="color:var(--text-dark);">${window.fmtDateTime(sub.expiryTime)}</b></div>
+                                <div>Subscribed: <b style="color:var(--text-dark);">${new Date(sub.purchaseTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</b></div>
+                                <div>Ends: <b style="color:var(--text-dark);">${new Date(sub.expiryTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</b></div>
                                 <div>Daily Slot: <b style="color:var(--text-dark);">${window.formatHourSlot(scheduleHour)}</b></div>
                             </div>
 
@@ -2604,7 +2593,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 userDepositsList.forEach(p => {
                     let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
                     if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
-                    html += `<tr><td><small>${window.fmtDateTime(p.timestamp)}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'UPI')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
+                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'UPI')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
                 });
                 document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="6" align="center">No deposit history found.</td></tr>';
 
@@ -2621,7 +2610,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     let senderReceiverInfo = `Sender: ${window.safeHTML(p.email)}<br><small style="color:var(--text-gray);">Receiver: Admin Wallet</small>`;
                     
                     transHtml += `<tr>
-                        <td><small>${window.fmtDateTime(p.timestamp)}</small></td>
+                        <td><small>${new Date(p.timestamp).toLocaleString()}</small></td>
                         <td>${senderReceiverInfo}</td>
                         <td style="color:var(--success); font-weight:700;">+₹${parseFloat(p.amount).toFixed(2)}</td>
                         <td>${badge}</td>
