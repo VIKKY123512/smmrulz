@@ -1,6 +1,7 @@
 {
-  "name": "smmrulz-frontend",
+  "name": "smm-backend",
   "version": "1.0.0",
-  "private": true,
-  "description": "Static frontend for SMMRulz — no backend logic lives here anymore. All API calls go to the Next.js backend (perfect-smm-backend.vercel.app). See index.html API_BASE_URL."
+  "dependencies": {
+    "firebase-admin": "^11.11.0"
+  }
 }
