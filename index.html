@@ -1028,7 +1028,17 @@
                         <div class="ff-banner-title">
                             <i class="fa-solid fa-shield-halved"></i> SECURE CONFIGURATION SYSTEM
                         </div>
-                        
+
+                        <!-- Shown instead of the form when the user already has an active subscription.
+                             One subscription per user at a time -- enforced for real server-side in
+                             /api/order, this is just the matching UI state. -->
+                        <div id="ff-already-subscribed-banner" style="display:none; text-align:center; padding:30px 20px; background:var(--bg-top); border:1px solid var(--border-color); border-radius:14px; margin-bottom:20px;">
+                            <i class="fa-solid fa-circle-check" style="font-size:32px; color:#10b981; margin-bottom:12px; display:block;"></i>
+                            <h3 style="margin:0 0 6px; color:var(--text-dark);">You Already Have an Active Subscription</h3>
+                            <p style="color:var(--text-gray); font-size:13px; margin-bottom:16px;">Only one FFMax subscription can run at a time. Wait for your current plan to finish, or check its progress below.</p>
+                            <button type="button" class="btn" onclick="window.switchView('ff-my-subscriptions')" style="width:auto; padding:10px 24px;"><i class="fa-solid fa-calendar-check"></i> View My Subscription</button>
+                        </div>
+
                         <form id="ff-order-form" onsubmit="window.executeFreeFireOrder(event)">
                             <input type="hidden" id="ff-selected-tier-price" value="">
                             <input type="hidden" id="ff-selected-tier-name" value="">
@@ -1493,13 +1503,16 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         const provider = new GoogleAuthProvider();
 
         // ===== BACKEND API CONFIG (TASK 1) =====
-        // ROOT CAUSE FIX: this was blank, so every apiFetch('/api/order', ...) call was hitting
-        // THIS project's own /api/order.js (same-origin) instead of the real backend at
-        // smmrulz_backend (perfect-smm-backend.vercel.app). That legacy same-origin function has
-        // no provider dispatch and no Zod validation, which is why orders sat stuck in "Pending"
-        // and never reached a provider. The legacy file has now been deprecated (see api/order.js)
-        // -- this MUST point at your deployed smmrulz_backend project.
-        // If your smmrulz_backend deployment URL is different, update it here.
+        // Leave as '' if this HTML is served from the SAME domain as your Node/Next.js backend
+        // (e.g. Next.js serving both the app and the /api routes, or a reverse proxy in front of both).
+        // If your backend lives on a DIFFERENT domain, put the full origin here instead, e.g:
+        //   const API_BASE_URL = "https://perfect-smm-backend.vercel.app";
+        // IMPORTANT: this must be your backend's ACTUAL live Vercel URL. You redeployed the
+        // backend under a new project name ("smmrulz_backend" / "smmrulz-backend"), so the guess
+        // below is a placeholder based on that name -- open your Vercel dashboard, copy the exact
+        // domain shown for that project, and paste it in here if it differs even slightly
+        // (a wrong subdomain here reproduces the exact "Server Error 400: Missing fields" bug,
+        // since the request silently falls back to same-origin instead).
         const API_BASE_URL = "https://smmrulz-backend.vercel.app";
 
         // ===== SHARED AUTH HELPER (TASK 2) =====
@@ -2484,6 +2497,18 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }, (error) => { console.error("Firebase Live Query Error (Orders):", error); });
 
             onValue(ref(db, `freefire_subs/${uid}`), (snap) => {
+                // ===== One-subscription-per-user UI lock =====
+                // Real enforcement lives server-side in /api/order (a client check alone is
+                // bypassable) -- this just keeps the button/form state honest with that rule so
+                // users aren't confused into filling out a form that will get rejected.
+                const hasActiveSub = snap.exists();
+                const banner = document.getElementById('ff-already-subscribed-banner');
+                const form = document.getElementById('ff-order-form');
+                if (banner && form) {
+                    banner.style.display = hasActiveSub ? 'block' : 'none';
+                    form.style.display = hasActiveSub ? 'none' : 'block';
+                }
+
                 const subsRoot = document.getElementById('ff-active-subs-root-feed');
                 if (!subsRoot) return;
 
