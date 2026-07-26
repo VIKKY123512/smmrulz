@@ -1179,7 +1179,7 @@
                         <div class="card" style="padding: 10px;">
                             <div class="table-wrapper" style="border: none;">
                                 <table>
-                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>Payment ID</th><th>Method</th><th>Status</th></tr></thead>
+                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>Payment ID</th><th>Method</th><th>Status</th><th>Receipt</th></tr></thead>
                                     <tbody id="deposit-history-table"></tbody>
                                 </table>
                             </div>
@@ -1411,9 +1411,9 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
     <h2>Payment Receipt</h2>
     <div class="sub">SMMRulz Wallet Top-up</div>
     <div class="row"><span>Transaction ID</span><span>${window.safeHTML(p.id)}</span></div>
-    <div class="row"><span>UTR Number</span><span>${window.safeHTML(p.txid)}</span></div>
+    <div class="row"><span>Payment ID</span><span>${window.safeHTML(p.txid)}</span></div>
     <div class="row"><span>Amount</span><span>₹${parseFloat(p.amount).toFixed(2)}</span></div>
-    <div class="row"><span>Payment Method</span><span>${window.safeHTML(p.method || 'UPI')}</span></div>
+    <div class="row"><span>Payment Method</span><span>${window.safeHTML(p.method || 'Razorpay')}</span></div>
     <div class="row"><span>Status</span><span class="status">${window.safeHTML(statusText)}</span></div>
     <div class="row" style="border-bottom:none;"><span>Date &amp; Time</span><span>${new Date(p.timestamp).toLocaleString()}</span></div>
   </div>
@@ -1482,7 +1482,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         // Leave as '' if this HTML is served from the SAME domain as your Node/Next.js backend
         // (e.g. Next.js serving both the app and the /api routes, or a reverse proxy in front of both).
         // If your backend lives on a DIFFERENT domain, put the full origin here instead, e.g:
-        //   const API_BASE_URL = "https://smmrulz-backend.vercel.app";
+        //   const API_BASE_URL = "https://perfect-smm-backend.vercel.app";
         // IMPORTANT: this must be your backend's ACTUAL live Vercel URL. You redeployed the
         // backend under a new project name ("smmrulz_backend" / "smmrulz-backend"), so the guess
         // below is a placeholder based on that name -- open your Vercel dashboard, copy the exact
@@ -2027,11 +2027,20 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
 
         window.saveNewUsername = async function() {
             const newName = window.safeHTML(document.getElementById('new-username-input').value.trim());
-            if(newName.length > 0) {
+            if (newName.length === 0) return window.showToast("Name cannot be empty", "error");
+            // Matches the Firebase rules constraint exactly (users/$uid/username .validate:
+            // length <= 30, no '<' or '>') -- checking here first avoids a confusing silent
+            // failure when the rules reject an oversized/invalid write server-side.
+            if (newName.length > 30) return window.showToast("Username must be 30 characters or less.", "error");
+            if (/[<>]/.test(newName)) return window.showToast("Username cannot contain < or > characters.", "error");
+            try {
                 await update(ref(db, `users/${currentUser.uid}`), { username: newName });
                 window.showToast("Username updated!");
                 window.closeUsernameModal();
-            } else { window.showToast("Name cannot be empty", "error"); }
+            } catch (err) {
+                console.error("saveNewUsername failed:", err);
+                window.showToast("Could not update username. Please try again.", "error");
+            }
         };
 
         onAuthStateChanged(auth, async (user) => {
@@ -2558,9 +2567,9 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 userDepositsList.forEach(p => {
                     let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
                     if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
-                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'Razorpay')}</small></td><td>${badge}</td></tr>`;
+                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'Razorpay')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
                 });
-                document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="5" align="center">No deposit history found.</td></tr>';
+                document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="6" align="center">No deposit history found.</td></tr>';
 
                 const transElement = document.getElementById('stat-total-transactions');
                 if (transElement) transElement.innerText = userDepositsList.length;
