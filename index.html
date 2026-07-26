@@ -116,30 +116,45 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Light Theme Variables */
-            --primary: #3b49df; 
-            --primary-dark: #2f3ab2;
-            --primary-light: #e0e7ff; 
-            --gradient-top: linear-gradient(135deg, #3b49df 0%, #4f46e5 100%);
-            --bg-top: #ffffff; --bg-bottom: #f4f7fa; --dark-card: #1e1e1e; 
-            --text-dark: #333333; --text-gray: #6b7280;
-            --border-color: #dce1e8; --radius: 12px; 
-            --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
+            /* ===== Material Design 3 tokens (Light, default) =====
+               Exact requested palette: Primary #2563EB, Secondary #06B6D4, Success #22C55E,
+               Warning #F59E0B, Error #EF4444, Background #F8FAFC, Surface #FFFFFF,
+               Text #111827, Border #E5E7EB. Retinted in place rather than restructuring the
+               theme mechanism below (body.dark-mode), which already works correctly.
+            */
+            --primary: #2563EB;
+            --primary-dark: #1D4ED8;
+            --primary-light: #DBEAFE;
+            --secondary: #06B6D4;
+            --gradient-top: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+            --bg-top: #FFFFFF; --bg-bottom: #F8FAFC; --dark-card: #1e1e1e; 
+            --text-dark: #111827; --text-gray: #6B7280;
+            --border-color: #E5E7EB; --radius: 14px; --radius-l: 20px;
+            --danger: #EF4444; --success: #22C55E; --warning: #F59E0B;
+
+            /* M3-style layered elevation instead of a single flat shadow */
+            --elevation-1: 0 1px 2px rgba(17,24,39,0.06), 0 1px 3px rgba(17,24,39,0.08);
+            --elevation-2: 0 4px 12px rgba(17,24,39,0.08), 0 2px 4px rgba(17,24,39,0.06);
         }
         
-        /* Dark Theme Variables - Discord dark theme palette */
+        /* Dark Theme Variables - retinted to the same M3 primary/secondary, on elevated-dark
+           surfaces rather than pure black, matching the admin panel's dark palette for
+           consistency across the whole product. */
         body.dark-mode {
-            --primary: #5865F2;
-            --primary-dark: #4752C4;
-            --primary-light: rgba(88, 101, 242, 0.18);
-            --gradient-top: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
-            --bg-top: #2b2d31; 
-            --bg-bottom: #313338; 
-            --dark-card: #1e1f22;
-            --text-dark: #f2f3f5; 
-            --text-gray: #949ba4;
-            --border-color: #1e1f22;
-            --danger: #f23f42; --success: #23a55a; --warning: #f0b132;
+            --primary: #2563EB;
+            --primary-dark: #1D4ED8;
+            --primary-light: rgba(37, 99, 235, 0.18);
+            --secondary: #06B6D4;
+            --gradient-top: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+            --bg-top: #111827; 
+            --bg-bottom: #0B0F19; 
+            --dark-card: #1F2937;
+            --text-dark: #F1F5F9; 
+            --text-gray: #94A3B8;
+            --border-color: rgba(255,255,255,0.08);
+            --danger: #EF4444; --success: #22C55E; --warning: #F59E0B;
+            --elevation-1: 0 1px 2px rgba(0,0,0,0.24), 0 1px 3px rgba(0,0,0,0.12);
+            --elevation-2: 0 4px 12px rgba(0,0,0,0.28), 0 2px 4px rgba(0,0,0,0.16);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -339,7 +354,7 @@
 
         .page-content { flex: 1; padding: 20px; width: 100%; box-sizing: border-box; }
         .page-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; color: var(--text-dark); }
-        .card { background: var(--bg-top); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--border-color); margin-bottom: 20px; width: 100%; box-sizing: border-box; }
+        .card { background: var(--bg-top); border-radius: var(--radius); padding: 20px; box-shadow: var(--elevation-1); border: 1px solid var(--border-color); margin-bottom: 20px; width: 100%; box-sizing: border-box; }
         
         #order-form-card { background: var(--gradient-top); color: white; box-shadow: 0 10px 20px rgba(59, 73, 223, 0.2); border: none; }
         #order-form-card .page-title { color: white; margin-bottom: 15px; }
@@ -470,6 +485,7 @@
         @media (min-width: 769px) { .menu-btn { display: none; } aside { position: relative; left: 0; transform: none; width: 260px; border-right: 1px solid var(--border-color); box-shadow: none; z-index: 1; } #drawer-overlay { display: none !important; } }
     </style>
 </head>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <body>
 
     <div id="toast-container" class="toast-container"></div>
@@ -779,8 +795,8 @@
         <div class="verify-modal-box">
             <div id="verify-state-loading" class="verify-state">
                 <div class="verify-spinner-ring"><i class="fa-solid fa-bolt"></i></div>
-                <h3>Verifying Payment...</h3>
-                <p class="verify-sub">Please wait while we confirm your UPI transaction</p>
+                <h3>Confirming Payment...</h3>
+                <p class="verify-sub">Please wait while we confirm your payment with Razorpay</p>
             </div>
             <div id="verify-state-success" class="verify-state" style="display:none;">
                 <div class="verify-check-circle">
@@ -1137,51 +1153,22 @@
                     <div class="page-content">
                         <h1 class="page-title">Add Funds</h1>
 
-                        <div id="add-funds-intro" class="card" style="text-align: center; padding: 40px 20px;">
-                            <i class="fa-solid fa-wallet" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
-                            <h3 style="margin-bottom: 20px; color: var(--text-dark);">Ready to top up your wallet?</h3>
-                            <button class="btn" onclick="window.showPaymentDetails()" style="max-width: 250px; margin: 0 auto; padding: 14px;"><i class="fa-solid fa-plus-circle"></i> Click here to Add Funds</button>
-                        </div>
+                        <div class="card" style="text-align: center; padding: 30px 20px;">
+                            <i class="fa-solid fa-wallet" style="font-size: 46px; color: var(--primary); margin-bottom: 16px;"></i>
+                            <h3 style="margin-bottom: 6px; color: var(--text-dark);">Add money to your wallet</h3>
+                            <p style="color: var(--text-gray); font-size: 13px; margin-bottom: 24px;">Secured by Razorpay. Instant credit — no waiting for manual review.</p>
 
-                        <div class="card" id="payment-details-section" style="display: none;">
-                            
-                            <div class="input-group" style="margin-bottom: 25px;">
-                                <label>Select Payment Method</label>
-                                <div class="custom-select-wrapper" onclick="window.toggleDropdown('pay-options', event)">
-                                    <div class="custom-select-trigger" id="pay-trigger" style="background:var(--bg-top); color:var(--text-dark); border-color:var(--border-color);">💳 Select Method...</div>
-                                    <div class="custom-select-options" id="pay-options"></div>
-                                </div>
-                                <input type="hidden" id="selected-pay-method" required>
+                            <div id="preset-amount-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 420px; margin: 0 auto 20px;"></div>
+
+                            <div class="input-group" style="max-width: 300px; margin: 0 auto 20px; text-align: left;">
+                                <label>Or enter a custom amount (₹)</label>
+                                <input type="number" id="custom-amount-input" placeholder="Minimum ₹10" min="10" step="1" oninput="window.onCustomAmountInput()">
                             </div>
 
-                            <div id="qr-instruction-area" style="display:none;">
-                                <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--primary); text-align: center;">Scan QR Code to Pay</h3>
-                                <div style="text-align: center; margin-bottom: 20px;">
-                                    <img id="payment-qr-img" src="" alt="Payment QR Code" style="max-width: 250px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: 0 auto 15px auto;">
-                                </div>
-                                
-                                <div class="glowing-warning">
-                                    <h4><i class="fa-solid fa-triangle-exclamation"></i> Important Warning</h4>
-                                    <p id="payment-instructions" style="font-size: 13.5px; color: #ffffff; white-space: pre-wrap; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"></p>
-                                </div>
-                            </div>
-
-                            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 25px 0;">
-                            <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--primary);">Submit Payment Details</h3>
-                            <form id="proof-form" onsubmit="window.submitPaymentProof(event)">
-                                <div class="flex-row">
-                                    <div class="input-group">
-                                        <label>Transaction ID / UTR (12 Digits)</label>
-                                        <input type="text" id="proof-txid" placeholder="Paste 12-digit UTR here" inputmode="numeric" minlength="12" maxlength="12" pattern="\d{12}" required>
-                                    </div>
-                                    <div class="input-group">
-                                        <label>Amount Paid (₹)</label>
-                                        <input type="number" id="proof-amount" placeholder="Enter amount you paid" min="1" step="0.01" required>
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn" id="proof-submit-btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-bolt"></i> Auto Verify Payment</button>
-                            </form>
-                            <button class="btn" onclick="window.hidePaymentDetails()" style="background: var(--bg-bottom); color: var(--text-dark); margin-top: 15px; box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Go Back</button>
+                            <button class="btn" id="razorpay-pay-btn" onclick="window.startRazorpayPayment()" disabled style="max-width: 280px; margin: 0 auto; padding: 14px; opacity: 0.5;">
+                                <i class="fa-solid fa-shield-halved"></i> Pay <span id="razorpay-pay-btn-amount">₹0</span> Securely
+                            </button>
+                            <p style="font-size: 11px; color: var(--text-gray); margin-top: 14px;"><i class="fa-solid fa-lock"></i> Your card/UPI details are handled entirely by Razorpay — this site never sees them.</p>
                         </div>
                     </div>
                 </div>
@@ -1192,7 +1179,7 @@
                         <div class="card" style="padding: 10px;">
                             <div class="table-wrapper" style="border: none;">
                                 <table>
-                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>Txn ID</th><th>Method</th><th>Status</th><th>Receipt</th></tr></thead>
+                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>Payment ID</th><th>Method</th><th>Status</th></tr></thead>
                                     <tbody id="deposit-history-table"></tbody>
                                 </table>
                             </div>
@@ -1372,17 +1359,7 @@
             if(isOpened){ overlay.classList.add('show'); } else { overlay.classList.remove('show'); }
         };
 
-        window.showPaymentDetails = function() {
-            document.getElementById('add-funds-intro').style.display = 'none';
-            document.getElementById('payment-details-section').style.display = 'block';
-        };
-
-        window.hidePaymentDetails = function() {
-            document.getElementById('payment-details-section').style.display = 'none';
-            document.getElementById('add-funds-intro').style.display = 'block';
-        };
-
-        // ===== TASK 5: Premium Auto-Verify Payment modal controllers =====
+        // ===== Razorpay payment modal controllers (reuses the existing modal shell) =====
         window.openVerifyModal = function() {
             document.getElementById('verify-state-loading').style.display = 'block';
             document.getElementById('verify-state-success').style.display = 'none';
@@ -1397,18 +1374,17 @@
             document.getElementById('verify-state-error').style.display = 'none';
             document.getElementById('verify-success-details').innerHTML = `
                 <div>Amount Credited: <b>₹${details.amount.toFixed(2)}</b></div>
-                <div>UTR: <b>${window.safeHTML(details.utr)}</b></div>
-                <div>Method: <b>${window.safeHTML(details.method)}</b></div>
-                <div>New Balance: <b>₹${details.newBalance.toFixed(2)}</b></div>
+                <div>Payment ID: <b>${window.safeHTML(details.paymentId)}</b></div>
+                <div>Method: <b>Razorpay</b></div>
             `;
             document.getElementById('verify-state-success').style.display = 'block';
             const receiptBtn = document.getElementById('verify-receipt-btn');
-            if (receiptBtn) receiptBtn.onclick = () => window.downloadReceipt(details.id);
+            if (receiptBtn) receiptBtn.style.display = 'none'; // Razorpay emails their own receipt
         };
         window.showVerifyError = function(message) {
             document.getElementById('verify-state-loading').style.display = 'none';
             document.getElementById('verify-state-success').style.display = 'none';
-            document.getElementById('verify-error-msg').innerText = message || 'Payment not found. If you just paid, please wait a minute and try again.';
+            document.getElementById('verify-error-msg').innerText = message || 'Payment verification failed. If money was deducted, contact support.';
             document.getElementById('verify-state-error').style.display = 'block';
         };
 
@@ -1506,7 +1482,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         // Leave as '' if this HTML is served from the SAME domain as your Node/Next.js backend
         // (e.g. Next.js serving both the app and the /api routes, or a reverse proxy in front of both).
         // If your backend lives on a DIFFERENT domain, put the full origin here instead, e.g:
-        //   const API_BASE_URL = "https://perfect-smm-backend.vercel.app";
+        //   const API_BASE_URL = "https://smmrulz-backend.vercel.app";
         // IMPORTANT: this must be your backend's ACTUAL live Vercel URL. You redeployed the
         // backend under a new project name ("smmrulz_backend" / "smmrulz-backend"), so the guess
         // below is a placeholder based on that name -- open your Vercel dashboard, copy the exact
@@ -2259,28 +2235,6 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
         };
 
-        window.selectPayment = function(payId, event) {
-            if(event) event.stopPropagation();
-            document.querySelectorAll('.custom-select-options').forEach(el => el.classList.remove('show'));
-            let p = globalPaymentMethods[payId];
-            if(p) {
-                document.getElementById('selected-pay-method').value = window.safeHTML(payId);
-                document.getElementById('pay-trigger').innerHTML = `💳 ${window.safeHTML(p.name)}`;
-                
-                let qrImg = document.getElementById('payment-qr-img');
-                if (p.qrUrl) {
-                    qrImg.src = p.qrUrl;
-                    qrImg.style.display = 'block';
-                } else { 
-                    qrImg.src = '';
-                    qrImg.style.display = 'none';
-                }
-                
-                document.getElementById('payment-instructions').innerText = p.instructions || '';
-                document.getElementById('qr-instruction-area').style.display = 'block';
-            }
-        };
-
         function loadAppData() {
             onValue(ref(db, 'categories'), (snap) => { 
                 globalCategories = snap.val() || {}; 
@@ -2328,34 +2282,6 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 }
             });
             
-            onValue(ref(db, 'payment_methods'), (snap) => {
-                globalPaymentMethods = snap.val() || {};
-
-                // TASK 4: never show a method literally named "None", and put PhonePe first if present
-                let methodKeys = Object.keys(globalPaymentMethods).filter(k => {
-                    const nm = (globalPaymentMethods[k].name || '').trim().toLowerCase();
-                    return nm !== 'none' && nm !== '';
-                });
-                methodKeys.sort((a, b) => {
-                    const aPhone = (globalPaymentMethods[a].name || '').toLowerCase().includes('phonepe') ? 0 : 1;
-                    const bPhone = (globalPaymentMethods[b].name || '').toLowerCase().includes('phonepe') ? 0 : 1;
-                    return aPhone - bPhone;
-                });
-
-                let payHtml = '';
-                methodKeys.forEach(k => {
-                    let pName = window.safeHTML(globalPaymentMethods[k].name);
-                    payHtml += `<div class="custom-option" onclick="window.selectPayment('${k}', event)">💳 ${pName}</div>`;
-                });
-                document.getElementById('pay-options').innerHTML = payHtml || '<div class="custom-option">No methods added by Admin</div>';
-
-                // Default to the first method (PhonePe, if configured) so the field is never left empty
-                const currentSelection = document.getElementById('selected-pay-method').value;
-                if (!currentSelection && methodKeys.length > 0) {
-                    window.selectPayment(methodKeys[0], null);
-                }
-            });
-
             onValue(ref(db, 'settings/socials'), (snap) => {
                 const s = snap.val() || {};
                 
@@ -2490,11 +2416,25 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                         actionBtn += `<br><button onclick="window.requestRefill('${o.id}')" style="background:var(--primary-light); color:var(--primary); border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer; margin-top:5px; transition:0.2s;"><i class="fa-solid fa-rotate"></i> Request Refill</button>`;
                     } 
                     else if(o.status === 'Canceled' || o.status === 'Refunded') badge = '<span class="badge bg-canceled">Refunded</span>';
+
+                    // FFMax orders store "UID: X | Region: Y" in the link field, not a real URL --
+                    // treating it as an <a href> produced a broken/nonsensical link. Show it as
+                    // plain info instead, and point to the subscription tracker.
+                    if ((o.serviceId || '').startsWith('FF_MAX_')) {
+                        actionBtn = `<small style="color:var(--text-gray);">${window.safeHTML(o.link)}</small><br><a href="#" onclick="window.switchView('ff-my-subscriptions'); return false;" style="color:var(--primary); font-size:11px;"><i class="fa-solid fa-chart-line"></i> Track Progress</a>`;
+                    }
                     
                     html += `<tr><td><small><b>ORD_${o.id.slice(-6).toUpperCase()}</b></small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td>${actionBtn}</td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
                 });
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
-            }, (error) => { console.error("Firebase Live Query Error (Orders):", error); });
+            }, (error) => {
+                // Was silently console-only before -- if this fires, the user's Orders page just
+                // shows an empty/blank table with NO indication anything is wrong. Most likely
+                // cause: the Firebase rules actually live in your Firebase console don't match
+                // what you think is deployed (double-check Realtime Database > Rules directly).
+                console.error("Firebase Live Query Error (Orders):", error);
+                document.getElementById('user-orders-table').innerHTML = `<tr><td colspan="6" align="center" style="color:var(--danger);">Could not load orders (permission error). Please refresh, or contact support if this persists.</td></tr>`;
+            });
 
             onValue(ref(db, `freefire_subs/${uid}`), (snap) => {
                 // ===== One-subscription-per-user UI lock =====
@@ -2618,9 +2558,9 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 userDepositsList.forEach(p => {
                     let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
                     if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
-                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'UPI')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
+                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'Razorpay')}</small></td><td>${badge}</td></tr>`;
                 });
-                document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="6" align="center">No deposit history found.</td></tr>';
+                document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="5" align="center">No deposit history found.</td></tr>';
 
                 const transElement = document.getElementById('stat-total-transactions');
                 if (transElement) transElement.innerText = userDepositsList.length;
@@ -2932,126 +2872,145 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
         };
 
-        window.submitPaymentProof = async function(e) {
-            e.preventDefault();
+        // ===== RAZORPAY ADD FUNDS FLOW =====
+        // Manual UPI/UTR payment submission has been removed entirely. All payments now go
+        // through Razorpay Checkout, verified server-side via HMAC signature (see
+        // /api/razorpay/verify-payment) and confirmed independently by a webhook regardless of
+        // what happens in this browser tab.
+        const PRESET_AMOUNTS = [50, 100, 200, 500, 1000, 2000];
+        let selectedAddFundsAmount = 0;
 
-            // ===== TASK 3: validation =====
-            // CORRECTED: your real /api/verify-upi + the SMS-forwarder webhook both work off a
-            // 12-digit numeric UTR (standard UPI format) -- "8-20 alphanumeric" doesn't match
-            // what your backend actually accepts, so this reverts to the real format.
-            const utr = document.getElementById('proof-txid').value.trim();
-            const amountInput = document.getElementById('proof-amount').value;
-            const amount = parseFloat(amountInput);
-            const methodId = document.getElementById('selected-pay-method').value;
+        function renderPresetAmounts() {
+            const grid = document.getElementById('preset-amount-grid');
+            if (!grid) return;
+            grid.innerHTML = PRESET_AMOUNTS.map(amt => `
+                <button type="button" class="preset-amount-btn" data-amount="${amt}" onclick="window.selectPresetAmount(${amt})"
+                    style="padding:14px 8px; border-radius:12px; border:1px solid var(--border-color); background:var(--bg-top); color:var(--text-dark); font-weight:700; cursor:pointer; transition:0.15s;">
+                    ₹${amt}
+                </button>
+            `).join('');
+        }
 
-            if (!/^\d{12}$/.test(utr)) {
-                return window.showToast("Invalid Transaction ID! UTR must be exactly 12 digits.", "error");
+        window.selectPresetAmount = function(amount) {
+            selectedAddFundsAmount = amount;
+            document.getElementById('custom-amount-input').value = '';
+            document.querySelectorAll('.preset-amount-btn').forEach(b => {
+                const isSelected = parseInt(b.dataset.amount) === amount;
+                b.style.background = isSelected ? 'var(--primary)' : 'var(--bg-top)';
+                b.style.color = isSelected ? '#fff' : 'var(--text-dark)';
+                b.style.borderColor = isSelected ? 'var(--primary)' : 'var(--border-color)';
+            });
+            updatePayButtonState();
+        };
+
+        window.onCustomAmountInput = function() {
+            const val = parseFloat(document.getElementById('custom-amount-input').value);
+            selectedAddFundsAmount = isNaN(val) ? 0 : val;
+            document.querySelectorAll('.preset-amount-btn').forEach(b => {
+                b.style.background = 'var(--bg-top)'; b.style.color = 'var(--text-dark)'; b.style.borderColor = 'var(--border-color)';
+            });
+            updatePayButtonState();
+        };
+
+        function updatePayButtonState() {
+            const btn = document.getElementById('razorpay-pay-btn');
+            const amountLabel = document.getElementById('razorpay-pay-btn-amount');
+            // Minimum ₹10 as requested, no maximum -- user can type any amount above that.
+            const valid = selectedAddFundsAmount >= 10;
+            btn.disabled = !valid;
+            btn.style.opacity = valid ? '1' : '0.5';
+            amountLabel.innerText = `₹${selectedAddFundsAmount || 0}`;
+        }
+        renderPresetAmounts();
+
+        window.startRazorpayPayment = async function() {
+            if (selectedAddFundsAmount < 10) {
+                return window.showToast("Minimum add-funds amount is ₹10.", "error");
             }
-            if (!amountInput || isNaN(amount) || amount <= 0) {
-                return window.showToast("Please enter a valid amount greater than 0.", "error");
-            }
-            if (!methodId) {
-                return window.showToast("Please select a payment method.", "error");
-            }
-            if (!currentUser) {
-                return window.showToast("Please sign in again before submitting.", "error");
+            if (!currentUser) return window.showToast("Please sign in again.", "error");
+            if (typeof Razorpay === 'undefined') {
+                return window.showToast("Payment gateway failed to load. Check your connection and refresh.", "error");
             }
 
-            const methodName = (globalPaymentMethods[methodId] && globalPaymentMethods[methodId].name) || 'UPI';
-
-            const btn = document.getElementById('proof-submit-btn');
+            const btn = document.getElementById('razorpay-pay-btn');
             const originalText = btn.innerHTML;
             btn.disabled = true;
-
-            // ===== TASK 5: open the premium "Verifying Payment..." modal right away =====
-            window.openVerifyModal();
-            const verifyStartedAt = Date.now();
-            const MIN_LOADING_MS = 1100; // keeps the loader from flashing instantly if the API is very fast
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparing...';
 
             try {
-                // ===== TASK 10: temporary debug log of the outgoing payload =====
-                console.log("[DEBUG] Verify-UPI payload:", { utr, amount, method: methodName, methodId });
-
-                // Your real backend only reads `utr` from this payload today (it looks the UTR up in
-                // upi_transactions, synced earlier by your SMS-forwarder webhook). We still send amount/method
-                // so a future backend update can cross-check the user's claimed amount against the webhook's.
-                const { ok, status, data } = await apiFetch('/api/verify-upi', {
+                // Step 1: ask our backend to create a Razorpay order for this exact amount.
+                // The backend records who this order belongs to and for how much -- the
+                // verification step later never trusts anything the browser says about the
+                // amount, only what was recorded here and what Razorpay itself confirms.
+                const { ok, data } = await apiFetch('/api/razorpay/create-order', {
                     method: 'POST',
-                    body: JSON.stringify({ utr, amount, method: methodName, methodId })
+                    body: JSON.stringify({ amount: selectedAddFundsAmount })
                 });
 
-                const remainingDelay = Math.max(0, MIN_LOADING_MS - (Date.now() - verifyStartedAt));
+                if (!ok || !data.success) {
+                    window.showToast(data.error || "Could not start payment. Please try again.", "error");
+                    btn.disabled = false; btn.innerHTML = originalText;
+                    return;
+                }
 
-                setTimeout(async () => {
-                    if (ok && data.success) {
+                btn.disabled = false; btn.innerHTML = originalText;
+
+                // Step 2: open Razorpay's own Checkout modal. Card/UPI/netbanking details are
+                // entered directly into Razorpay's iframe -- this page never sees or touches them.
+                const rzp = new Razorpay({
+                    key: data.keyId,
+                    amount: data.amount,
+                    currency: data.currency,
+                    order_id: data.orderId,
+                    name: "SMMRulz",
+                    description: `Add ₹${selectedAddFundsAmount} to wallet`,
+                    prefill: { email: currentUser.email || '' },
+                    theme: { color: '#5865F2' },
+                    handler: async function(response) {
+                        // Step 3: Razorpay calls this ONLY after a successful payment, handing
+                        // back an order_id/payment_id/signature triplet. We send it straight to
+                        // our backend, which verifies the signature (proves it really came from
+                        // Razorpay, not a forged client-side call) before crediting anything.
+                        window.openVerifyModal();
                         try {
-                            // IMPORTANT: /api/verify-upi already credited the wallet server-side via an atomic
-                            // Firebase Admin transaction before returning success. DO NOT write to
-                            // users/{uid}/balance again here -- that would credit the user twice for one payment.
-                            // The existing real-time balance listener will reflect the new balance automatically.
-                            const amountAdded = parseFloat(data.amount);
-                            const estimatedNewBalance = rawBalance + amountAdded; // display-only, for the modal
-
-                            // verify-upi doesn't write a payment_proofs record -- log one here purely so it
-                            // shows up in Deposit History and can generate a receipt.
-                            const proofRef = push(ref(db, 'payment_proofs'));
-                            const proofData = {
-                                userId: currentUser.uid,
-                                email: currentUser.email,
-                                amount: amountAdded,
-                                txid: utr,
-                                method: methodName,
-                                status: 'Approved',
-                                timestamp: Date.now()
-                            };
-                            await set(proofRef, proofData);
-                            depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
-
-                            // Send Notification to User
-                            let depNotifRef = push(ref(db, `notifications/${currentUser.uid}`));
-                            await set(depNotifRef, {
-                                id: depNotifRef.key,
-                                title: "Auto-Payment Verified! ✅",
-                                message: `Your payment of ₹${amountAdded.toFixed(2)} (UTR: ${utr}) has been instantly verified and added to your balance.`,
-                                timestamp: Date.now(),
-                                seen: false,
-                                destination: 'transactions'
+                            const verifyRes = await apiFetch('/api/razorpay/verify-payment', {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature
+                                })
                             });
-
-                            window.showVerifySuccess({ id: proofRef.key, amount: amountAdded, utr: utr, method: methodName, newBalance: estimatedNewBalance });
-
-                            e.target.reset();
-                            document.getElementById('selected-pay-method').value = '';
-                            document.getElementById('pay-trigger').innerHTML = '💳 Select Method...';
-                            document.getElementById('qr-instruction-area').style.display = 'none';
-                            window.switchView('deposit-history');
-                        } catch (writeErr) {
-                            console.error("[DEBUG] Firebase write after verification failed:", writeErr);
-                            window.showVerifyError("Payment verified and credited, but logging your receipt failed. Your balance is correct -- contact support if Deposit History looks wrong.");
+                            if (verifyRes.ok && verifyRes.data.success) {
+                                window.showVerifySuccess({
+                                    amount: verifyRes.data.amount || selectedAddFundsAmount,
+                                    paymentId: response.razorpay_payment_id
+                                });
+                                window.switchView('deposit-history');
+                            } else {
+                                window.showVerifyError(verifyRes.data.error || "Could not confirm payment. If money was deducted, contact support with this payment ID: " + response.razorpay_payment_id);
+                            }
+                        } catch (verifyErr) {
+                            console.error("Razorpay verify call failed:", verifyErr);
+                            window.showVerifyError("Network error while confirming payment. If money was deducted, it will still be credited automatically within a few minutes via our backend webhook -- contact support if it isn't, with payment ID: " + response.razorpay_payment_id);
                         }
-                    } else {
-                        // Transaction not found, already used, or backend rejected it
-                        console.warn("[DEBUG] Verify-UPI rejected:", status, data);
-                        window.showVerifyError(`(${status}) ` + (data.message || data.error || "Payment not found. If you just paid, please wait a minute and try again."));
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            window.showToast("Payment cancelled.", "info");
+                        }
                     }
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }, remainingDelay);
+                });
 
-            } catch (error) {
-                console.error("[DEBUG] Verify-UPI request failed:", error);
-                const remainingDelay = Math.max(0, MIN_LOADING_MS - (Date.now() - verifyStartedAt));
-                setTimeout(() => {
-                    if (error.message === "AUTH_REQUIRED") {
-                        window.showVerifyError("Your session expired. Please log in again.");
-                    } else if (error.type === 'NETWORK') {
-                        window.showVerifyError(`Network/CORS Error: ${error.message}`);
-                    } else {
-                        window.showVerifyError("Error connecting to the verification server. Check your connection.");
-                    }
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                }, remainingDelay);
+                rzp.on('payment.failed', function(response) {
+                    window.showToast("Payment failed: " + (response.error?.description || "Unknown error"), "error");
+                });
+
+                rzp.open();
+            } catch (err) {
+                console.error("startRazorpayPayment error:", err);
+                window.showToast("Could not start payment. Please try again.", "error");
+                btn.disabled = false; btn.innerHTML = originalText;
             }
         };
 
