@@ -866,6 +866,7 @@
                     <div class="nav-item deposit-history" onclick="window.switchView('deposit-history')"><i class="fa-solid fa-file-invoice-dollar"></i> Deposit History</div>
                     <div class="nav-item transactions" onclick="window.switchView('transactions')"><i class="fa-solid fa-money-bill-transfer"></i> Transactions</div>
                     <div class="nav-item support" onclick="window.switchView('support')"><i class="fa-solid fa-headset"></i> Support</div>
+                    <div class="nav-item account-settings" onclick="window.switchView('account-settings')"><i class="fa-solid fa-user-gear"></i> Account</div>
                     
                     <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
                         <span style="font-size: 11px; color: var(--text-gray); font-weight: 600; text-transform: uppercase;">Live Updates & Support</span>
@@ -1206,6 +1207,63 @@
                     </div>
                 </div>
 
+                <div id="account-settings" class="view">
+                    <div class="page-content">
+                        <h1 class="page-title">Account Settings</h1>
+
+                        <div class="card">
+                            <h3 style="margin-bottom:14px; color:var(--primary);"><i class="fa-solid fa-id-card"></i> Profile Details</h3>
+                            <form id="account-name-form" onsubmit="window.saveAccountName(event)">
+                                <div class="input-group">
+                                    <label>Display Name</label>
+                                    <input type="text" id="account-name-input" maxlength="30" placeholder="Your name">
+                                </div>
+                                <div class="input-group">
+                                    <label>Phone Number</label>
+                                    <input type="tel" id="account-phone-input" maxlength="15" placeholder="e.g. 9876543210">
+                                </div>
+                                <button type="submit" class="btn" style="width:100%; padding:12px;"><i class="fa-solid fa-check"></i> Save Profile Details</button>
+                            </form>
+                        </div>
+
+                        <div class="card">
+                            <h3 style="margin-bottom:6px; color:var(--primary);"><i class="fa-solid fa-envelope"></i> Change Email</h3>
+                            <p style="font-size:12px; color:var(--text-gray); margin-bottom:14px;">Requires your current password to confirm it's really you.</p>
+                            <form id="account-email-form" onsubmit="window.saveAccountEmail(event)">
+                                <div class="input-group">
+                                    <label>New Email Address</label>
+                                    <input type="email" id="account-new-email-input" placeholder="new@email.com" required>
+                                </div>
+                                <div class="input-group">
+                                    <label>Current Password</label>
+                                    <input type="password" id="account-email-current-password" placeholder="Enter your current password" required>
+                                </div>
+                                <button type="submit" class="btn" style="width:100%; padding:12px;"><i class="fa-solid fa-shield-halved"></i> Update Email</button>
+                            </form>
+                        </div>
+
+                        <div class="card">
+                            <h3 style="margin-bottom:6px; color:var(--primary);"><i class="fa-solid fa-lock"></i> Change Password</h3>
+                            <p style="font-size:12px; color:var(--text-gray); margin-bottom:14px;">Requires your current password to confirm it's really you.</p>
+                            <form id="account-password-form" onsubmit="window.saveAccountPassword(event)">
+                                <div class="input-group">
+                                    <label>Current Password</label>
+                                    <input type="password" id="account-current-password" required>
+                                </div>
+                                <div class="input-group">
+                                    <label>New Password</label>
+                                    <input type="password" id="account-new-password" minlength="8" placeholder="At least 8 characters" required>
+                                </div>
+                                <div class="input-group">
+                                    <label>Confirm New Password</label>
+                                    <input type="password" id="account-confirm-password" minlength="8" required>
+                                </div>
+                                <button type="submit" class="btn" style="width:100%; padding:12px;"><i class="fa-solid fa-key"></i> Update Password</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="support" class="view">
                     <div class="page-content">
                         <div class="chat-app">
@@ -1459,7 +1517,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence, EmailAuthProvider, reauthenticateWithCredential, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { getDatabase, ref, get, set, update, onValue, push, query, orderByChild, equalTo, onChildChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
         const firebaseConfig = {
@@ -2043,6 +2101,126 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
         };
 
+        // ===== ACCOUNT SETTINGS =====
+        // Name/phone are plain profile fields, writable directly (same self-write permission the
+        // rules already grant on users/{uid} for the account owner). Email and password are
+        // sensitive Firebase Auth operations -- both REQUIRE re-authentication with the current
+        // password first. This isn't optional: Firebase itself throws 'auth/requires-recent-login'
+        // if the session is more than a few minutes old, but more importantly, requiring the
+        // current password here is what stops someone who's grabbed a logged-in device/session
+        // from silently taking over the account by changing the email or password without
+        // knowing the original password at all.
+        window.saveAccountName = async function(e) {
+            e.preventDefault();
+            const name = window.safeHTML(document.getElementById('account-name-input').value.trim());
+            const phone = document.getElementById('account-phone-input').value.trim();
+
+            if (name.length === 0) return window.showToast("Name cannot be empty", "error");
+            if (name.length > 30) return window.showToast("Name must be 30 characters or less.", "error");
+            if (/[<>]/.test(name)) return window.showToast("Name cannot contain < or > characters.", "error");
+            if (phone && !/^[0-9+\-\s()]{7,15}$/.test(phone)) return window.showToast("Enter a valid phone number.", "error");
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            try {
+                await update(ref(db, `users/${currentUser.uid}`), { username: name, phone: phone || null });
+                document.getElementById('drawer-email').innerHTML = name;
+                document.getElementById('stat-username').innerHTML = name;
+                window.showToast("Profile updated!", "success");
+            } catch (err) {
+                console.error("saveAccountName failed:", err);
+                window.showToast("Could not update profile. Please try again.", "error");
+            } finally {
+                btn.disabled = false; btn.innerHTML = originalText;
+            }
+        };
+
+        async function reauthenticateCurrentUser(password) {
+            // Re-proves the user's identity right before a sensitive change. Works only for
+            // password-based accounts -- Google-signed-in users don't have a password to check
+            // here (handled by the caller before this is ever invoked).
+            const credential = EmailAuthProvider.credential(currentUser.email, password);
+            await reauthenticateWithCredential(currentUser, credential);
+        }
+
+        window.saveAccountEmail = async function(e) {
+            e.preventDefault();
+            const newEmail = document.getElementById('account-new-email-input').value.trim();
+            const currentPassword = document.getElementById('account-email-current-password').value;
+
+            if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+                return window.showToast("Enter a valid new email address.", "error");
+            }
+            if (newEmail.toLowerCase() === (currentUser.email || '').toLowerCase()) {
+                return window.showToast("That's already your current email.", "error");
+            }
+            if (!currentPassword) return window.showToast("Enter your current password to confirm.", "error");
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+
+            try {
+                await reauthenticateCurrentUser(currentPassword);
+                await updateEmail(currentUser, newEmail);
+                // Keep the database record in sync with Firebase Auth's actual email -- several
+                // other parts of this app (deposit receipts, admin panel user list) read
+                // users/{uid}/email directly rather than re-fetching from Auth every time.
+                await update(ref(db, `users/${currentUser.uid}`), { email: newEmail });
+                window.showToast("Email updated successfully!", "success");
+                e.target.reset();
+            } catch (err) {
+                console.error("saveAccountEmail failed:", err);
+                if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+                    window.showToast("Incorrect current password.", "error");
+                } else if (err.code === 'auth/email-already-in-use') {
+                    window.showToast("That email is already in use by another account.", "error");
+                } else if (err.code === 'auth/requires-recent-login') {
+                    window.showToast("Please log out and log back in, then try again.", "error");
+                } else {
+                    window.showToast("Could not update email: " + (err.message || "unknown error"), "error");
+                }
+            } finally {
+                btn.disabled = false; btn.innerHTML = originalText;
+            }
+        };
+
+        window.saveAccountPassword = async function(e) {
+            e.preventDefault();
+            const currentPassword = document.getElementById('account-current-password').value;
+            const newPassword = document.getElementById('account-new-password').value;
+            const confirmPassword = document.getElementById('account-confirm-password').value;
+
+            if (newPassword.length < 8) return window.showToast("New password must be at least 8 characters.", "error");
+            if (newPassword !== confirmPassword) return window.showToast("New passwords do not match.", "error");
+            if (newPassword === currentPassword) return window.showToast("New password must be different from your current one.", "error");
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+
+            try {
+                await reauthenticateCurrentUser(currentPassword);
+                await updatePassword(currentUser, newPassword);
+                window.showToast("Password updated successfully!", "success");
+                e.target.reset();
+            } catch (err) {
+                console.error("saveAccountPassword failed:", err);
+                if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+                    window.showToast("Incorrect current password.", "error");
+                } else if (err.code === 'auth/requires-recent-login') {
+                    window.showToast("Please log out and log back in, then try again.", "error");
+                } else if (err.code === 'auth/weak-password') {
+                    window.showToast("Password is too weak. Use at least 8 characters.", "error");
+                } else {
+                    window.showToast("Could not update password: " + (err.message || "unknown error"), "error");
+                }
+            } finally {
+                btn.disabled = false; btn.innerHTML = originalText;
+            }
+        };
+
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             
@@ -2075,13 +2253,30 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
 
                         document.getElementById('drawer-email').innerHTML = username;
                         document.getElementById('stat-username').innerHTML = username;
+                        document.getElementById('account-name-input').value = username;
                         rawBalance = 0;
                     } else {
                         const safeDbEmail = userSnap.val().email || user.email || 'user@smmrulz.com';
                         const finalUsername = window.safeHTML(userSnap.val().username || safeDbEmail.split('@')[0]);
                         document.getElementById('drawer-email').innerHTML = finalUsername;
                         document.getElementById('stat-username').innerHTML = finalUsername;
+                        document.getElementById('account-name-input').value = finalUsername;
+                        document.getElementById('account-phone-input').value = userSnap.val().phone || '';
                         rawBalance = parseFloat(userSnap.val().balance) || 0;
+                    }
+                    const currentEmailLabel = document.getElementById('account-new-email-input');
+                    if (currentEmailLabel) currentEmailLabel.placeholder = `Current: ${user.email || ''}`;
+
+                    // Email/password change requires re-authenticating with a password --
+                    // Google sign-in accounts don't have one. Rather than let them submit and
+                    // hit a confusing Firebase error, hide those two forms entirely and explain.
+                    const isPasswordAccount = user.providerData.some(p => p.providerId === 'password');
+                    if (!isPasswordAccount) {
+                        const emailForm = document.getElementById('account-email-form');
+                        const passwordForm = document.getElementById('account-password-form');
+                        const note = '<p style="font-size:12px; color:var(--text-gray);"><i class="fa-brands fa-google"></i> Your account uses Google Sign-In. Email and password are managed through your Google account, not here.</p>';
+                        if (emailForm) emailForm.outerHTML = note;
+                        if (passwordForm) passwordForm.outerHTML = note;
                     }
 
                     document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
@@ -2438,11 +2633,12 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
             }, (error) => {
                 // Was silently console-only before -- if this fires, the user's Orders page just
-                // shows an empty/blank table with NO indication anything is wrong. Most likely
-                // cause: the Firebase rules actually live in your Firebase console don't match
-                // what you think is deployed (double-check Realtime Database > Rules directly).
+                // shows an empty/blank table with NO indication anything is wrong. Showing the
+                // actual error.code here (not just a generic message) lets us tell definitively
+                // whether this is a rules mismatch (PERMISSION_DENIED) vs. a missing .indexOn
+                // (Index not defined) vs. something else entirely.
                 console.error("Firebase Live Query Error (Orders):", error);
-                document.getElementById('user-orders-table').innerHTML = `<tr><td colspan="6" align="center" style="color:var(--danger);">Could not load orders (permission error). Please refresh, or contact support if this persists.</td></tr>`;
+                document.getElementById('user-orders-table').innerHTML = `<tr><td colspan="6" align="center" style="color:var(--danger);">Could not load orders — <b>${window.safeHTML(error.code || error.message || 'unknown error')}</b>. Please refresh, or contact support with this error code if it persists.</td></tr>`;
             });
 
             onValue(ref(db, `freefire_subs/${uid}`), (snap) => {
