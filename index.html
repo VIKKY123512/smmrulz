@@ -818,6 +818,11 @@
         </div>
     </div>
 
+    <!-- BUILD VERSION MARKER: bump this string every time this file is delivered. If what you
+         see live on smmrulz.xyz doesn't show this exact version in the footer, the site is
+         running stale/cached code, not what's actually in the zip you deployed. This ends the
+         "is this even live" guessing game -- one glance at any page footer answers it. -->
+    <div id="build-version-tag" style="position:fixed; bottom:2px; right:6px; font-size:9px; color:#9CA3AF; z-index:9999; font-family:monospace; opacity:0.6; pointer-events:none;">v2026.07.26-13:40-orders-index-fix</div>
     <div id="app-layout">
         <header style="position: relative;">
             <div class="header-logo brand-glow"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
@@ -2596,17 +2601,23 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 }
             });
             
-            const ordersQ = query(ref(db, 'orders'), orderByChild('userId'), equalTo(uid));
-            onValue(ordersQ, (snap) => {
-                const userOrdersList = [];
-                if (snap.exists()) {
-                    snap.forEach((childSnap) => {
-                        userOrdersList.push({ id: childSnap.key, ...childSnap.val() });
-                    });
-                }
-                userOrdersList.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            // ===== ORDERS: index-based loading (replaces the old query-based approach) =====
+            // Previously used query(ref(db,'orders'), orderByChild('userId'), equalTo(uid)),
+            // which depends on Firebase's query.orderByChild/query.equalTo rule mechanism. That
+            // mechanism was syntactically correct and matched Firebase's own documented pattern,
+            // but could not be gotten to work reliably. Every OTHER per-user path in this app
+            // (users/{uid}, freefire_subs/{uid}, notifications/{uid}) uses a simple, direct
+            // auth.uid===$uid pattern instead, and none of those have ever shown this problem --
+            // so orders now follows that same proven pattern: read user_orders/{uid} to discover
+            // which order IDs are ours, then listen to each individual order directly (allowed
+            // via orders/$orderId's "data.child('userId').val()==auth.uid" rule, no query
+            // mechanism involved at all).
+            let userOrdersCache = {};
+            const activeOrderListeners = {};
 
-                document.getElementById('stat-total-orders').innerText = userOrdersList.length; 
+            function renderUserOrders() {
+                const userOrdersList = Object.values(userOrdersCache).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                document.getElementById('stat-total-orders').innerText = userOrdersList.length;
                 let html = '';
                 userOrdersList.forEach(o => {
                     let badge = '<span class="badge bg-pending">Pending</span>'; 
@@ -2621,9 +2632,6 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     } 
                     else if(o.status === 'Canceled' || o.status === 'Refunded') badge = '<span class="badge bg-canceled">Refunded</span>';
 
-                    // FFMax orders store "UID: X | Region: Y" in the link field, not a real URL --
-                    // treating it as an <a href> produced a broken/nonsensical link. Show it as
-                    // plain info instead, and point to the subscription tracker.
                     if ((o.serviceId || '').startsWith('FF_MAX_')) {
                         actionBtn = `<small style="color:var(--text-gray);">${window.safeHTML(o.link)}</small><br><a href="#" onclick="window.switchView('ff-my-subscriptions'); return false;" style="color:var(--primary); font-size:11px;"><i class="fa-solid fa-chart-line"></i> Track Progress</a>`;
                     }
@@ -2631,14 +2639,54 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     html += `<tr><td><small><b>ORD_${o.id.slice(-6).toUpperCase()}</b></small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td>${actionBtn}</td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
                 });
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
-            }, (error) => {
+            }
+
+            onValue(ref(db, `user_orders/${uid}`), (indexSnap) => {
+                const orderIds = indexSnap.exists() ? Object.keys(indexSnap.val()) : [];
+
+                // Attach a live listener for any order ID we haven't seen before -- keeps each
+                // order's status updating in real time (Pending -> Processing -> Completed etc.)
+                // exactly like the old query-based listener did.
+                orderIds.forEach(orderId => {
+                    if (activeOrderListeners[orderId]) return; // already listening
+                    activeOrderListeners[orderId] = true;
+                    onValue(ref(db, `orders/${orderId}`), (orderSnap) => {
+                        if (orderSnap.exists()) {
+                            userOrdersCache[orderId] = { id: orderId, ...orderSnap.val() };
+                        } else {
+                            delete userOrdersCache[orderId];
+                        }
+                        renderUserOrders();
+                    }, (error) => {
+                        console.error(`Order ${orderId} read failed:`, error);
+                    });
+                });
+            }, async (error) => {
                 // Was silently console-only before -- if this fires, the user's Orders page just
-                // shows an empty/blank table with NO indication anything is wrong. Showing the
-                // actual error.code here (not just a generic message) lets us tell definitively
-                // whether this is a rules mismatch (PERMISSION_DENIED) vs. a missing .indexOn
-                // (Index not defined) vs. something else entirely.
-                console.error("Firebase Live Query Error (Orders):", error);
-                document.getElementById('user-orders-table').innerHTML = `<tr><td colspan="6" align="center" style="color:var(--danger);">Could not load orders — <b>${window.safeHTML(error.code || error.message || 'unknown error')}</b>. Please refresh, or contact support with this error code if it persists.</td></tr>`;
+                // shows an empty/blank table with NO indication anything is wrong.
+                console.error("Firebase Live Query Error (user_orders index):", error);
+
+                let comparisonResult = 'not run';
+                try {
+                    const testSnap = await get(ref(db, `users/${uid}`));
+                    comparisonResult = testSnap.exists() ? 'OK (own profile read succeeded)' : 'OK but empty (still no permission error)';
+                } catch (compErr) {
+                    comparisonResult = `ALSO FAILED: ${compErr.code || compErr.message}`;
+                }
+
+                const buildTag = document.getElementById('build-version-tag');
+                const buildVersion = buildTag ? buildTag.innerText : 'unknown';
+
+                console.error("Diagnostic comparison (users/{uid} read):", comparisonResult);
+                document.getElementById('user-orders-table').innerHTML = `<tr><td colspan="6" style="color:var(--danger); font-size:12px; text-align:left; padding:14px;">
+                    <b>Could not load orders — ${window.safeHTML(error.code || error.message || 'unknown error')}</b><br><br>
+                    <div style="font-family:monospace; font-size:10px; background:var(--bg-bottom); padding:10px; border-radius:8px; word-break:break-all;">
+                        UID: ${window.safeHTML(uid)}<br>
+                        Build: ${window.safeHTML(buildVersion)}<br>
+                        Own-profile comparison test: ${window.safeHTML(comparisonResult)}
+                    </div><br>
+                    Please screenshot this ENTIRE box and send it — it now contains everything needed to diagnose this in one message.
+                </td></tr>`;
             });
 
             onValue(ref(db, `freefire_subs/${uid}`), (snap) => {
