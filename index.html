@@ -485,7 +485,6 @@
         @media (min-width: 769px) { .menu-btn { display: none; } aside { position: relative; left: 0; transform: none; width: 260px; border-right: 1px solid var(--border-color); box-shadow: none; z-index: 1; } #drawer-overlay { display: none !important; } }
     </style>
 </head>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <body>
 
     <div id="toast-container" class="toast-container"></div>
@@ -1159,22 +1158,41 @@
                     <div class="page-content">
                         <h1 class="page-title">Add Funds</h1>
 
-                        <div class="card" style="text-align: center; padding: 30px 20px;">
-                            <i class="fa-solid fa-wallet" style="font-size: 46px; color: var(--primary); margin-bottom: 16px;"></i>
-                            <h3 style="margin-bottom: 6px; color: var(--text-dark);">Add money to your wallet</h3>
-                            <p style="color: var(--text-gray); font-size: 13px; margin-bottom: 24px;">Secured by Razorpay. Instant credit — no waiting for manual review.</p>
+                        <div id="add-funds-intro" class="card" style="text-align: center; padding: 40px 20px;">
+                            <i class="fa-solid fa-wallet" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
+                            <h3 style="margin-bottom: 20px; color: var(--text-dark);">Ready to top up your wallet?</h3>
+                            <button class="btn" onclick="window.showPaymentDetails()" style="max-width: 250px; margin: 0 auto; padding: 14px;"><i class="fa-solid fa-plus-circle"></i> Click here to Add Funds</button>
+                        </div>
 
-                            <div id="preset-amount-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 420px; margin: 0 auto 20px;"></div>
-
-                            <div class="input-group" style="max-width: 300px; margin: 0 auto 20px; text-align: left;">
-                                <label>Or enter a custom amount (₹)</label>
-                                <input type="number" id="custom-amount-input" placeholder="Minimum ₹10" min="10" step="1" oninput="window.onCustomAmountInput()">
+                        <div class="card" id="payment-details-section" style="display: none;">
+                            <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--primary); text-align: center;">Scan QR Code to Pay</h3>
+                            <div style="text-align: center; margin-bottom: 20px;">
+                                <img id="payment-qr-img" src="" alt="Payment QR Code" style="max-width: 250px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: 0 auto 15px auto;">
+                                <p id="payment-upi-id" style="font-weight: 700; font-size: 15px; color: var(--text-dark);"></p>
                             </div>
 
-                            <button class="btn" id="razorpay-pay-btn" onclick="window.startRazorpayPayment()" disabled style="max-width: 280px; margin: 0 auto; padding: 14px; opacity: 0.5;">
-                                <i class="fa-solid fa-shield-halved"></i> Pay <span id="razorpay-pay-btn-amount">₹0</span> Securely
-                            </button>
-                            <p style="font-size: 11px; color: var(--text-gray); margin-top: 14px;"><i class="fa-solid fa-lock"></i> Your card/UPI details are handled entirely by Razorpay — this site never sees them.</p>
+                            <div class="glowing-warning">
+                                <h4><i class="fa-solid fa-triangle-exclamation"></i> Important</h4>
+                                <p style="font-size: 13.5px; color: #ffffff; font-weight: 600;">Minimum ₹10. Pay the exact amount you plan to submit below, then enter your 12-digit UTR/Reference number from the payment confirmation.</p>
+                            </div>
+
+                            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 25px 0;">
+                            <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--primary);">Submit Payment Details</h3>
+                            <form id="proof-form" onsubmit="window.submitPaymentProof(event)">
+                                <div class="flex-row">
+                                    <div class="input-group">
+                                        <label>Transaction ID / UTR (12 Digits)</label>
+                                        <input type="text" id="proof-txid" placeholder="Paste 12-digit UTR here" inputmode="numeric" minlength="12" maxlength="12" pattern="\d{12}" required>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Amount Paid (₹)</label>
+                                        <input type="number" id="proof-amount" placeholder="Minimum ₹10" min="10" step="0.01" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn" id="proof-submit-btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-bolt"></i> Verify Payment</button>
+                                <p style="font-size: 11px; color: var(--text-gray); margin-top: 10px; text-align: center;">We'll try to verify this instantly. If it's not matched right away, it goes to admin review — you'll be notified either way.</p>
+                            </form>
+                            <button class="btn" onclick="window.hidePaymentDetails()" style="background: var(--bg-bottom); color: var(--text-dark); margin-top: 15px; box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Go Back</button>
                         </div>
                     </div>
                 </div>
@@ -1435,14 +1453,23 @@
         window.showVerifySuccess = function(details) {
             document.getElementById('verify-state-loading').style.display = 'none';
             document.getElementById('verify-state-error').style.display = 'none';
-            document.getElementById('verify-success-details').innerHTML = `
-                <div>Amount Credited: <b>₹${details.amount.toFixed(2)}</b></div>
-                <div>Payment ID: <b>${window.safeHTML(details.paymentId)}</b></div>
-                <div>Method: <b>Razorpay</b></div>
-            `;
+            const title = details.pending ? 'Payment Request Submitted' : 'Payment Verified Successfully';
+            const heading = document.querySelector('#verify-state-success h3');
+            if (heading) { heading.innerText = title; heading.style.color = details.pending ? 'var(--warning)' : 'var(--success)'; }
+            document.getElementById('verify-success-details').innerHTML = details.pending
+                ? `
+                    <div>Amount Claimed: <b>₹${details.amount.toFixed(2)}</b></div>
+                    <div>UTR: <b>${window.safeHTML(details.utr)}</b></div>
+                    <div style="margin-top:8px; color:var(--text-gray);">Not instantly matched -- your request is now <b>pending admin review</b>. You'll be notified once it's verified.</div>
+                  `
+                : `
+                    <div>Amount Credited: <b>₹${details.amount.toFixed(2)}</b></div>
+                    <div>UTR: <b>${window.safeHTML(details.utr)}</b></div>
+                    <div>Method: <b>${window.safeHTML(details.method || 'UPI')}</b></div>
+                  `;
             document.getElementById('verify-state-success').style.display = 'block';
             const receiptBtn = document.getElementById('verify-receipt-btn');
-            if (receiptBtn) receiptBtn.style.display = 'none'; // Razorpay emails their own receipt
+            if (receiptBtn) receiptBtn.style.display = 'none';
         };
         window.showVerifyError = function(message) {
             document.getElementById('verify-state-loading').style.display = 'none';
@@ -1523,7 +1550,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence, EmailAuthProvider, reauthenticateWithCredential, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getDatabase, ref, get, set, update, onValue, push, query, orderByChild, equalTo, onChildChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+        import { getDatabase, ref, get, set, update, onValue, push, query, orderByChild, equalTo, onChildChanged, runTransaction } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
@@ -1915,6 +1942,13 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             onValue(ref(db, 'services'), (snap) => {
                 globalServices = snap.val() || {};
                 renderServices();
+            });
+            onValue(ref(db, 'settings/upiConfig'), (snap) => {
+                const u = snap.val() || {};
+                const qrImg = document.getElementById('payment-qr-img');
+                const upiIdText = document.getElementById('payment-upi-id');
+                if (qrImg) qrImg.src = u.qrUrl || '';
+                if (upiIdText) upiIdText.innerText = u.upiId ? `UPI ID: ${u.upiId}` : '';
             });
             onValue(ref(db, 'settings/socials'), (snap) => {
                 const s = snap.val() || {};
@@ -3125,145 +3159,119 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
         };
 
-        // ===== RAZORPAY ADD FUNDS FLOW =====
-        // Manual UPI/UTR payment submission has been removed entirely. All payments now go
-        // through Razorpay Checkout, verified server-side via HMAC signature (see
-        // /api/razorpay/verify-payment) and confirmed independently by a webhook regardless of
-        // what happens in this browser tab.
-        const PRESET_AMOUNTS = [50, 100, 200, 500, 1000, 2000];
-        let selectedAddFundsAmount = 0;
+        // ===== MANUAL UPI PAYMENT FLOW (Razorpay removed) =====
+        // Razorpay rejected this business under its Standard Web Checkout onboarding because
+        // "Social Media Boosting" falls outside categories it currently supports -- this isn't
+        // fixable by changing website copy, it's a category-level policy decision on their end.
+        // Reverted to manual UPI with an optional instant auto-verify path: if you've set up
+        // SMS-forwarding (see the admin panel's UPI Settings for setup instructions), a payment
+        // can be credited within seconds of the bank SMS arriving. If not, or if the SMS hasn't
+        // landed yet, it falls back to a Pending request for manual admin review -- exactly the
+        // system built earlier this conversation, restored here.
+        const MAX_PENDING_REQUESTS = 3;
 
-        function renderPresetAmounts() {
-            const grid = document.getElementById('preset-amount-grid');
-            if (!grid) return;
-            grid.innerHTML = PRESET_AMOUNTS.map(amt => `
-                <button type="button" class="preset-amount-btn" data-amount="${amt}" onclick="window.selectPresetAmount(${amt})"
-                    style="padding:14px 8px; border-radius:12px; border:1px solid var(--border-color); background:var(--bg-top); color:var(--text-dark); font-weight:700; cursor:pointer; transition:0.15s;">
-                    ₹${amt}
-                </button>
-            `).join('');
-        }
-
-        window.selectPresetAmount = function(amount) {
-            selectedAddFundsAmount = amount;
-            document.getElementById('custom-amount-input').value = '';
-            document.querySelectorAll('.preset-amount-btn').forEach(b => {
-                const isSelected = parseInt(b.dataset.amount) === amount;
-                b.style.background = isSelected ? 'var(--primary)' : 'var(--bg-top)';
-                b.style.color = isSelected ? '#fff' : 'var(--text-dark)';
-                b.style.borderColor = isSelected ? 'var(--primary)' : 'var(--border-color)';
-            });
-            updatePayButtonState();
+        window.showPaymentDetails = function() {
+            document.getElementById('add-funds-intro').style.display = 'none';
+            document.getElementById('payment-details-section').style.display = 'block';
+        };
+        window.hidePaymentDetails = function() {
+            document.getElementById('payment-details-section').style.display = 'none';
+            document.getElementById('add-funds-intro').style.display = 'block';
         };
 
-        window.onCustomAmountInput = function() {
-            const val = parseFloat(document.getElementById('custom-amount-input').value);
-            selectedAddFundsAmount = isNaN(val) ? 0 : val;
-            document.querySelectorAll('.preset-amount-btn').forEach(b => {
-                b.style.background = 'var(--bg-top)'; b.style.color = 'var(--text-dark)'; b.style.borderColor = 'var(--border-color)';
-            });
-            updatePayButtonState();
-        };
+        window.submitPaymentProof = async function(e) {
+            e.preventDefault();
 
-        function updatePayButtonState() {
-            const btn = document.getElementById('razorpay-pay-btn');
-            const amountLabel = document.getElementById('razorpay-pay-btn-amount');
-            // Minimum ₹10 as requested, no maximum -- user can type any amount above that.
-            const valid = selectedAddFundsAmount >= 10;
-            btn.disabled = !valid;
-            btn.style.opacity = valid ? '1' : '0.5';
-            amountLabel.innerText = `₹${selectedAddFundsAmount || 0}`;
-        }
-        renderPresetAmounts();
+            const utr = document.getElementById('proof-txid').value.trim();
+            const amountInput = document.getElementById('proof-amount').value;
+            const amount = parseFloat(amountInput);
 
-        window.startRazorpayPayment = async function() {
-            if (selectedAddFundsAmount < 10) {
-                return window.showToast("Minimum add-funds amount is ₹10.", "error");
+            if (!/^\d{12}$/.test(utr)) {
+                return window.showToast("Invalid Transaction ID! UTR must be exactly 12 digits.", "error");
             }
-            if (!currentUser) return window.showToast("Please sign in again.", "error");
-            if (typeof Razorpay === 'undefined') {
-                return window.showToast("Payment gateway failed to load. Check your connection and refresh.", "error");
+            if (!amountInput || isNaN(amount) || amount < 10) {
+                return window.showToast("Minimum amount is ₹10.", "error");
+            }
+            if (!currentUser) {
+                return window.showToast("Please sign in again before submitting.", "error");
             }
 
-            const btn = document.getElementById('razorpay-pay-btn');
+            const pendingCount = Object.values(depositsCache || {}).filter(p => (p.status || 'Pending') === 'Pending').length;
+            if (pendingCount >= MAX_PENDING_REQUESTS) {
+                return window.showToast(`You already have ${pendingCount} payment requests awaiting review. Please wait for those to be verified before submitting more.`, "error");
+            }
+
+            const btn = document.getElementById('proof-submit-btn');
             const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparing...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+
+            window.openVerifyModal();
+            const startedAt = Date.now();
+            const MIN_LOADING_MS = 900;
+            const finish = (fn) => {
+                const remaining = Math.max(0, MIN_LOADING_MS - (Date.now() - startedAt));
+                setTimeout(() => { fn(); btn.disabled = false; btn.innerHTML = originalText; }, remaining);
+            };
 
             try {
-                // Step 1: ask our backend to create a Razorpay order for this exact amount.
-                // The backend records who this order belongs to and for how much -- the
-                // verification step later never trusts anything the browser says about the
-                // amount, only what was recorded here and what Razorpay itself confirms.
-                const { ok, data } = await apiFetch('/api/razorpay/create-order', {
+                // Step 1: try instant auto-verify against SMS-forwarded transactions.
+                const { ok, data } = await apiFetch('/api/verify-upi', {
                     method: 'POST',
-                    body: JSON.stringify({ amount: selectedAddFundsAmount })
+                    body: JSON.stringify({ utr, amount })
                 });
 
-                if (!ok || !data.success) {
-                    window.showToast(data.error || "Could not start payment. Please try again.", "error");
-                    btn.disabled = false; btn.innerHTML = originalText;
-                    return;
+                if (ok && data.success && data.autoVerified) {
+                    return finish(() => {
+                        window.showVerifySuccess({ amount: data.amount, utr, method: 'UPI (Auto-Verified)' });
+                        e.target.reset();
+                        window.switchView('deposit-history');
+                    });
                 }
 
-                btn.disabled = false; btn.innerHTML = originalText;
+                // Step 2: not auto-matched (SMS hasn't arrived, or auto-verify isn't configured
+                // at all) -- fall back to filing a Pending request for manual admin review.
+                // Same duplicate-UTR protection as before: atomically claim the UTR so it can
+                // never be used by more than one request.
+                const utrClaimRef = ref(db, `payment_utr_index/${utr}`);
+                const claimResult = await runTransaction(utrClaimRef, (current) => {
+                    if (current !== null) return;
+                    return { userId: currentUser.uid, claimedAt: Date.now() };
+                });
 
-                // Step 2: open Razorpay's own Checkout modal. Card/UPI/netbanking details are
-                // entered directly into Razorpay's iframe -- this page never sees or touches them.
-                const rzp = new Razorpay({
-                    key: data.keyId,
-                    amount: data.amount,
-                    currency: data.currency,
-                    order_id: data.orderId,
-                    name: "SMMRulz",
-                    description: `Add ₹${selectedAddFundsAmount} to wallet`,
-                    prefill: { email: currentUser.email || '' },
-                    theme: { color: '#5865F2' },
-                    handler: async function(response) {
-                        // Step 3: Razorpay calls this ONLY after a successful payment, handing
-                        // back an order_id/payment_id/signature triplet. We send it straight to
-                        // our backend, which verifies the signature (proves it really came from
-                        // Razorpay, not a forged client-side call) before crediting anything.
-                        window.openVerifyModal();
-                        try {
-                            const verifyRes = await apiFetch('/api/razorpay/verify-payment', {
-                                method: 'POST',
-                                body: JSON.stringify({
-                                    razorpay_order_id: response.razorpay_order_id,
-                                    razorpay_payment_id: response.razorpay_payment_id,
-                                    razorpay_signature: response.razorpay_signature
-                                })
-                            });
-                            if (verifyRes.ok && verifyRes.data.success) {
-                                window.showVerifySuccess({
-                                    amount: verifyRes.data.amount || selectedAddFundsAmount,
-                                    paymentId: response.razorpay_payment_id
-                                });
-                                window.switchView('deposit-history');
-                            } else {
-                                window.showVerifyError(verifyRes.data.error || "Could not confirm payment. If money was deducted, contact support with this payment ID: " + response.razorpay_payment_id);
-                            }
-                        } catch (verifyErr) {
-                            console.error("Razorpay verify call failed:", verifyErr);
-                            window.showVerifyError("Network error while confirming payment. If money was deducted, it will still be credited automatically within a few minutes via our backend webhook -- contact support if it isn't, with payment ID: " + response.razorpay_payment_id);
-                        }
-                    },
-                    modal: {
-                        ondismiss: function() {
-                            window.showToast("Payment cancelled.", "info");
-                        }
+                if (!claimResult.committed) {
+                    return finish(() => window.showVerifyError("This UTR has already been submitted for verification. Each transaction ID can only be used once. If this is a mistake, contact support."));
+                }
+
+                const proofRef = push(ref(db, 'payment_proofs'));
+                const proofData = {
+                    userId: currentUser.uid,
+                    email: currentUser.email,
+                    amount: amount,
+                    txid: utr,
+                    method: 'UPI',
+                    status: 'Pending',
+                    timestamp: Date.now()
+                };
+                await set(proofRef, proofData);
+                await set(utrClaimRef, { userId: currentUser.uid, proofId: proofRef.key, claimedAt: Date.now() });
+                depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
+
+                finish(() => {
+                    window.showVerifySuccess({ amount: amount, utr: utr, method: 'UPI (Pending Review)', pending: true });
+                    e.target.reset();
+                    window.hidePaymentDetails();
+                    window.switchView('deposit-history');
+                });
+            } catch (error) {
+                console.error("[DEBUG] Payment proof submission failed:", error);
+                finish(() => {
+                    if (error.message === "AUTH_REQUIRED") {
+                        window.showVerifyError("Your session expired. Please log in again.");
+                    } else {
+                        window.showVerifyError("Could not submit your payment request. Please check your connection and try again.");
                     }
                 });
-
-                rzp.on('payment.failed', function(response) {
-                    window.showToast("Payment failed: " + (response.error?.description || "Unknown error"), "error");
-                });
-
-                rzp.open();
-            } catch (err) {
-                console.error("startRazorpayPayment error:", err);
-                window.showToast("Could not start payment. Please try again.", "error");
-                btn.disabled = false; btn.innerHTML = originalText;
             }
         };
 
