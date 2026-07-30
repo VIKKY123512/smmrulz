@@ -500,7 +500,7 @@
                     <tr>
                         <th style="width: 60px; text-align: center;">ID</th>
                         <th>Service Name & Details</th>
-                        <th>Rate/1k (₹)</th>
+                        <th>Rate/1k (<span class="cur-sym">₹</span>)</th>
                         <th>Min/Max</th>
                     </tr>
                 </thead>
@@ -826,12 +826,27 @@
         <header style="position: relative;">
             <div class="header-logo brand-glow"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
             <div style="display:flex; align-items:center; gap: 20px;">
+                <div style="position: relative; cursor: pointer;" onclick="window.toggleCurrencyDropdown(event)" title="Switch display currency">
+                    <span id="currency-toggle-btn" style="font-size: 15px; font-weight:700; color: var(--text-gray); border:1.5px solid var(--border-color); border-radius:6px; padding:2px 6px; display:inline-block; min-width:22px; text-align:center;">₹</span>
+                </div>
                 <div style="position: relative; cursor: pointer;" onclick="window.toggleNotificationDropdown(event)">
                     <i class="fa-solid fa-bell" style="font-size: 20px; color: var(--text-gray);"></i>
                     <span id="notif-badge-dot" style="position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: red; border-radius: 50%; display: none;"></span>
                 </div>
                 <i class="fa-solid fa-moon" id="theme-toggle" onclick="window.toggleTheme()" style="font-size: 20px; color: var(--text-gray); cursor: pointer; transition: 0.3s;"></i>
                 <i class="fa-solid fa-bars menu-btn" onclick="window.toggleDrawer()"></i>
+            </div>
+
+            <div id="currency-dropdown" class="notif-dropdown" style="right: 90px; min-width: 190px;">
+                <div style="font-weight: 700; font-size: 13px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; color: var(--primary); margin-bottom: 4px;">
+                    <i class="fa-solid fa-money-bill-transfer"></i> Display Currency
+                </div>
+                <div class="currency-option-row" data-code="INR" onclick="window.setCurrency('INR')" style="padding:8px 6px; cursor:pointer; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">🇮🇳 INR <b>₹</b></div>
+                <div class="currency-option-row" data-code="USD" onclick="window.setCurrency('USD')" style="padding:8px 6px; cursor:pointer; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">🇺🇸 USD <b>$</b></div>
+                <div class="currency-option-row" data-code="EUR" onclick="window.setCurrency('EUR')" style="padding:8px 6px; cursor:pointer; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">🇪🇺 EUR <b>€</b></div>
+                <div class="currency-option-row" data-code="GBP" onclick="window.setCurrency('GBP')" style="padding:8px 6px; cursor:pointer; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">🇬🇧 GBP <b>£</b></div>
+                <div class="currency-option-row" data-code="PKR" onclick="window.setCurrency('PKR')" style="padding:8px 6px; cursor:pointer; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">🇵🇰 PKR <b>₨</b></div>
+                <small style="display:block; margin-top:6px; color:var(--text-gray); font-size:10px; line-height:1.4;">Display only. Deposits/payments are always processed in INR (₹).</small>
             </div>
 
             <div id="user-notif-dropdown" class="notif-dropdown">
@@ -909,11 +924,14 @@
                             <div class="stat-value" id="stat-total-orders">0</div>
                             <div class="stat-desc">Boosts delivered.</div>
                         </div>
-                        <div class="stat-card colorful-2">
+                        <div class="stat-card colorful-2" style="position:relative;">
                             <i class="fa-solid fa-wallet stat-icon"></i>
                             <div class="stat-title">Available Funds</div>
-                            <div class="stat-value">₹<span id="stat-balance">0.00</span></div>
-                            <div class="stat-desc">Add more in Wallet.</div>
+                            <div class="stat-value" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                <span id="stat-balance">₹0.00</span>
+                                <button type="button" class="btn" onclick="window.switchView('add-funds')" title="Add Funds" style="width:auto; padding:4px 10px; font-size:11px; border-radius:20px; margin:0; box-shadow:none;"><i class="fa-solid fa-plus"></i> Add Funds</button>
+                            </div>
+                            <div class="stat-desc">Top up anytime, instantly.</div>
                         </div>
                     </div>
                 </div>
@@ -1003,7 +1021,7 @@
                                         <small id="qty-limits" style="display:block; color:rgba(255,255,255,0.7); font-size: 11px; margin-top:4px;">Min: 0 - Max: 0</small>
                                     </div>
                                     <div class="input-group">
-                                        <label>Estimated Charge (₹)</label>
+                                        <label>Estimated Charge (<span class="cur-sym">₹</span>)</label>
                                         <input type="text" id="order-charge" value="0.00" readonly>
                                     </div>
                                 </div>
@@ -1132,7 +1150,7 @@
                         <div class="card" style="padding: 10px;">
                             <div class="table-wrapper" style="border: none;">
                                 <table>
-                                    <thead><tr><th style="width: 60px; text-align: center;">ID</th><th>Service Name & Details</th><th>Rate/1k (₹)</th><th>Min/Max</th></tr></thead>
+                                    <thead><tr><th style="width: 60px; text-align: center;">ID</th><th>Service Name & Details</th><th>Rate/1k (<span class="cur-sym">₹</span>)</th><th>Min/Max</th></tr></thead>
                                     <tbody id="app-services-table"></tbody>
                                 </table>
                             </div>
@@ -1146,7 +1164,7 @@
                         <div class="card" style="padding: 10px;">
                             <div class="table-wrapper" style="border: none;">
                                 <table>
-                                    <thead><tr><th>Order ID</th><th>Service</th><th>Link</th><th>Charge (₹)</th><th>Qty</th><th>Status</th></tr></thead>
+                                    <thead><tr><th>Order ID</th><th>Service</th><th>Link</th><th>Charge (<span class="cur-sym">₹</span>)</th><th>Qty</th><th>Status</th></tr></thead>
                                     <tbody id="user-orders-table"></tbody>
                                 </table>
                             </div>
@@ -1348,6 +1366,63 @@
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
         };
 
+        // ==========================================
+        // 💲 DISPLAY CURRENCY SWITCHER
+        // ==========================================
+        // All amounts are stored and charged in INR in the database (Razorpay/UPI only
+        // support INR). This only converts what the user SEES using fixed approximate
+        // rates -- it never changes what gets deposited, charged, or stored. Every money
+        // render in the app should call window.fmtMoney(amountInINR) instead of hardcoding
+        // '₹' + amount.toFixed(2), so a currency switch is reflected everywhere at once.
+        window.CURRENCY_RATES = {
+            INR: { symbol: '₹', rate: 1 },
+            USD: { symbol: '$', rate: 0.0114 },
+            EUR: { symbol: '€', rate: 0.0104 },
+            GBP: { symbol: '£', rate: 0.0090 },
+            PKR: { symbol: '₨', rate: 3.19 }
+        };
+        window.getCurrencyCode = function() {
+            const code = localStorage.getItem('smmrulz_currency');
+            return (code && window.CURRENCY_RATES[code]) ? code : 'INR';
+        };
+        window.getCurrencySymbol = function() {
+            return window.CURRENCY_RATES[window.getCurrencyCode()].symbol;
+        };
+        // amountInINR is always the raw stored value (e.g. order.charge, user balance).
+        window.fmtMoney = function(amountInINR, decimals) {
+            if (decimals === undefined) decimals = 2;
+            const code = window.getCurrencyCode();
+            const c = window.CURRENCY_RATES[code];
+            const val = (parseFloat(amountInINR) || 0) * c.rate;
+            return c.symbol + val.toFixed(decimals);
+        };
+        window.toggleCurrencyDropdown = function(event) {
+            if (event) event.stopPropagation();
+            const dd = document.getElementById('currency-dropdown');
+            const notifDd = document.getElementById('user-notif-dropdown');
+            if (notifDd) notifDd.classList.remove('active');
+            dd.classList.toggle('active');
+        };
+        window.setCurrency = function(code) {
+            if (!window.CURRENCY_RATES[code]) code = 'INR';
+            localStorage.setItem('smmrulz_currency', code);
+            // A full reload is the simplest way to guarantee every rendered table, card,
+            // and label (all populated from live Firebase listeners) re-renders using the
+            // new currency consistently, instead of tracking down every DOM node by hand.
+            location.reload();
+        };
+        window.syncCurrencyLabels = function() {
+            const sym = window.getCurrencySymbol();
+            const btn = document.getElementById('currency-toggle-btn');
+            if (btn) btn.innerText = sym;
+            document.querySelectorAll('.cur-sym').forEach(el => el.innerText = sym);
+            document.querySelectorAll('.currency-option-row').forEach(el => {
+                el.style.background = (el.getAttribute('data-code') === window.getCurrencyCode()) ? 'var(--primary-light)' : '';
+            });
+        };
+        document.addEventListener('DOMContentLoaded', window.syncCurrencyLabels);
+        window.syncCurrencyLabels();
+
         window.showToast = function(msg, type = 'success') {
             const container = document.getElementById('toast-container');
             const t = document.createElement('div'); t.className = `toast toast-${type}`;
@@ -1528,6 +1603,8 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         document.addEventListener('click', function() {
             const dropdown = document.getElementById('user-notif-dropdown');
             if(dropdown) dropdown.classList.remove('active');
+            const curDropdown = document.getElementById('currency-dropdown');
+            if(curDropdown) curDropdown.classList.remove('active');
         });
 
         window.toggleDropdown = function(id, event) {
@@ -1744,7 +1821,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
             
             if (element && typeof window.showToast === 'function') {
-                window.showToast(`Selected Package: ${name} (₹${price} / ${days} Days)`, 'info');
+                window.showToast(`Selected Package: ${name} (${window.fmtMoney(price)} / ${days} Days)`, 'info');
             }
         };
 
@@ -1770,11 +1847,11 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             if (isNaN(priceVal) || !tierName || isNaN(runtimeDays)) return window.showToast('Tap a premium pack card to select it!', 'error');
 
             if (rawBalance < priceVal) {
-                window.showToast(`Low Balance! Redirecting to add funds for your ₹${priceVal.toFixed(2)} selection.`, 'error');
+                window.showToast(`Low Balance! Redirecting to add funds for your ${window.fmtMoney(priceVal)} selection.`, 'error');
                 return window.switchView('add-funds');
             }
 
-            if (!confirm(`Deploy ${tierName} for Player UID ${uidString}? Amount ₹${priceVal.toFixed(2)} will be debited instantly.`)) return;
+            if (!confirm(`Deploy ${tierName} for Player UID ${uidString}? Amount ${window.fmtMoney(priceVal)} will be debited instantly.`)) return;
 
             const submitBtn = document.getElementById('ff-submit-btn');
             submitBtn.disabled = true;
@@ -2318,7 +2395,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                         if (passwordForm) passwordForm.outerHTML = note;
                     }
 
-                    document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
+                    document.getElementById('stat-balance').innerText = window.fmtMoney(rawBalance);
                     update(userRef, { lastActive: Date.now() }).catch(()=>{});
 
                 } catch(e) {
@@ -2398,7 +2475,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             let icon = window.getCatIcon(catName);
             
             document.getElementById('order-srv').value = window.safeHTML(srvId);
-            document.getElementById('srv-trigger').innerHTML = `${icon} ${window.safeHTML(s.name)} - ₹${parseFloat(s.price).toFixed(2)}/1k`;
+            document.getElementById('srv-trigger').innerHTML = `${icon} ${window.safeHTML(s.name)} - ${window.fmtMoney(s.price)}/1k`;
             window.updateServiceDetails();
         };
 
@@ -2631,7 +2708,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             onValue(ref(db, `users/${uid}/balance`), (snap) => { 
                 if(snap.exists()) {
                     rawBalance = parseFloat(snap.val()) || 0; 
-                    document.getElementById('stat-balance').innerText = rawBalance.toFixed(2);
+                    document.getElementById('stat-balance').innerText = window.fmtMoney(rawBalance);
                 }
             });
             
@@ -2670,7 +2747,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                         actionBtn = `<small style="color:var(--text-gray);">${window.safeHTML(o.link)}</small><br><a href="#" onclick="window.switchView('ff-my-subscriptions'); return false;" style="color:var(--primary); font-size:11px;"><i class="fa-solid fa-chart-line"></i> Track Progress</a>`;
                     }
                     
-                    html += `<tr><td><small><b>ORD_${o.id.slice(-6).toUpperCase()}</b></small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td>${actionBtn}</td><td style="font-weight:700;">₹${parseFloat(o.charge || 0).toFixed(2)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
+                    html += `<tr><td><small><b>ORD_${o.id.slice(-6).toUpperCase()}</b></small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td>${actionBtn}</td><td style="font-weight:700;">${window.fmtMoney(o.charge || 0)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
                 });
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
             }
@@ -2934,7 +3011,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                                 <button type="button" onclick="navigator.clipboard.writeText('${s.id} - ${safeSrvName.replace(/'/g, "\\'")}'); window.showToast('Service copied!');" style="background: transparent; border: none; color: var(--text-gray); cursor: pointer; font-size: 13px; flex-shrink: 0;" title="Copy Service ID & Name"><i class="fa-solid fa-copy"></i></button>
                             </div>
                         </td>
-                        <td style="color:var(--primary); font-weight:700;">₹${parseFloat(s.price || 0).toFixed(2)}</td>
+                        <td style="color:var(--primary); font-weight:700;">${window.fmtMoney(s.price || 0)}</td>
                         <td><small>${s.min} / ${s.max}</small></td>
                     </tr>`;
                 });
@@ -3017,7 +3094,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
 
         window.calculateCharge = function() {
             const srvId = document.getElementById('order-srv').value; const qty = parseInt(document.getElementById('order-qty').value);
-            if(srvId && globalServices[srvId] && qty && !isNaN(qty) && qty > 0) { const baseCharge = (globalServices[srvId].price / 1000) * qty; document.getElementById('order-charge').value = baseCharge.toFixed(2); } else { document.getElementById('order-charge').value = '0.00'; }
+            if(srvId && globalServices[srvId] && qty && !isNaN(qty) && qty > 0) { const baseCharge = (globalServices[srvId].price / 1000) * qty; document.getElementById('order-charge').value = (baseCharge * window.CURRENCY_RATES[window.getCurrencyCode()].rate).toFixed(2); } else { document.getElementById('order-charge').value = '0.00'; }
         };
 
         let isOrderProcessing = false;
