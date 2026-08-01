@@ -913,6 +913,7 @@
                     <div class="nav-item orders-history" onclick="window.switchView('orders-history')"><i class="fa-solid fa-clock-rotate-left"></i> Order History</div>
                     <div class="nav-item add-funds" onclick="window.switchView('add-funds')"><i class="fa-solid fa-money-bill-transfer"></i> Add Funds</div>
                     <div class="nav-item deposit-history" onclick="window.switchView('deposit-history')"><i class="fa-solid fa-file-invoice-dollar"></i> Deposit History</div>
+                    <div class="nav-item pending-payments" onclick="window.switchView('pending-payments')"><i class="fa-solid fa-hourglass-half"></i> Pending Payments <span id="badge-pending-payments" style="background:var(--warning); color:#000; font-size:10px; font-weight:800; padding:1px 7px; border-radius:50px; margin-left:auto; display:none;">0</span></div>
                     <div class="nav-item transactions" onclick="window.switchView('transactions')"><i class="fa-solid fa-money-bill-transfer"></i> Transactions</div>
                     <div class="nav-item support" onclick="window.switchView('support')"><i class="fa-solid fa-headset"></i> Support</div>
                     <div class="nav-item account-settings" onclick="window.switchView('account-settings')"><i class="fa-solid fa-user-gear"></i> Account</div>
@@ -1253,6 +1254,21 @@
                                 <table>
                                     <thead><tr><th>Date & Time</th><th>Amount (<span class="cur-sym">₹</span>)</th><th>Payment ID</th><th>Method</th><th>Status</th><th>Receipt</th></tr></thead>
                                     <tbody id="deposit-history-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pending-payments" class="view">
+                    <div class="page-content">
+                        <h1 class="page-title">⏳ Pending Payments</h1>
+                        <p style="color:var(--text-gray); margin-top:-10px; margin-bottom:16px; font-size:13.5px;">Payments here are waiting for admin manual review (auto-verification didn't find a match in time). Your wallet updates automatically the moment admin approves -- no refresh needed.</p>
+                        <div class="card" style="padding: 10px;">
+                            <div class="table-wrapper" style="border: none;">
+                                <table>
+                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>UTR</th><th>Status</th></tr></thead>
+                                    <tbody id="pending-payments-table"><tr><td colspan="4" align="center">No pending payments. 🎉</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -3027,6 +3043,21 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">${window.fmtMoney(p.amount)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'Razorpay')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
                 });
                 document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="6" align="center">No deposit history found.</td></tr>';
+
+                // Dedicated Pending Payments page -- same underlying data, filtered to items still
+                // waiting on admin review. Amount shown in real ₹ here deliberately (matches what
+                // the user actually paid via UPI), not the display-currency conversion used
+                // elsewhere, to avoid any confusion about what was really submitted.
+                const pendingOnly = userDepositsList.filter(p => (p.status || 'Pending') === 'Pending');
+                let pendingHtml = '';
+                pendingOnly.forEach(p => {
+                    const statusLabel = '<span class="badge bg-pending">Waiting for Admin</span>';
+                    pendingHtml += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td>${statusLabel}</td></tr>`;
+                });
+                const pendingTableEl = document.getElementById('pending-payments-table');
+                if (pendingTableEl) pendingTableEl.innerHTML = pendingHtml || '<tr><td colspan="4" align="center">No pending payments. 🎉</td></tr>';
+                const pendingBadgeEl = document.getElementById('badge-pending-payments');
+                if (pendingBadgeEl) { pendingBadgeEl.style.display = pendingOnly.length ? 'inline-block' : 'none'; pendingBadgeEl.innerText = pendingOnly.length; }
 
                 const transElement = document.getElementById('stat-total-transactions');
                 if (transElement) transElement.innerText = userDepositsList.length;
