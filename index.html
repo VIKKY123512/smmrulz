@@ -487,6 +487,12 @@
 </head>
 <body>
 
+    <div id="global-loader">
+        <div class="loader-brand"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Loading your dashboard...</div>
+    </div>
+
     <div id="toast-container" class="toast-container"></div>
 
     <div id="public-services-modal" class="public-services-overlay">
@@ -830,18 +836,45 @@
                     <i class="fa-solid fa-bell" style="font-size: 20px; color: var(--text-gray);"></i>
                     <span id="notif-badge-dot" style="position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: red; border-radius: 50%; display: none;"></span>
                 </div>
-                <select class="currency-select-control" onchange="window.setDisplayCurrency(this.value)" title="Display Currency" style="font-size:12px; font-weight:700; color:var(--text-gray); background:var(--bg-bottom); border:1px solid var(--border-color); border-radius:50px; padding:4px 8px; cursor:pointer; outline:none;">
-                    <option value="INR">₹ INR</option>
-                    <option value="USD">$ USD</option>
-                    <option value="EUR">€ EUR</option>
-                    <option value="GBP">£ GBP</option>
-                    <option value="PKR">₨ PKR</option>
-                    <option value="BDT">৳ BDT</option>
-                    <option value="NGN">₦ NGN</option>
-                    <option value="AED">د.إ AED</option>
-                    <option value="CAD">CA$ CAD</option>
-                    <option value="AUD">A$ AUD</option>
-                </select>
+                <style>
+                    .currency-dd { position: relative; }
+                    .currency-dd-trigger {
+                        display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
+                        color: var(--text-dark); background: var(--bg-bottom); border: 1px solid var(--border-color);
+                        border-radius: 50px; padding: 6px 12px; cursor: pointer; transition: all 0.2s ease;
+                    }
+                    .currency-dd-trigger:hover { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+                    .currency-dd-trigger .chev { font-size: 9px; color: var(--text-gray); transition: transform 0.2s ease; }
+                    .currency-dd.open .currency-dd-trigger .chev { transform: rotate(180deg); }
+                    .currency-dd-panel {
+                        position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; z-index: 500;
+                        background: var(--bg-top); border: 1px solid var(--border-color); border-radius: var(--radius);
+                        box-shadow: var(--elevation-2); padding: 6px; opacity: 0; visibility: hidden;
+                        transform: translateY(-6px) scale(0.98); transform-origin: top right;
+                        transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+                        max-height: 320px; overflow-y: auto;
+                    }
+                    .currency-dd.open .currency-dd-panel { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+                    .currency-dd-option {
+                        display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px;
+                        cursor: pointer; transition: background-color 0.15s ease; font-size: 13px; color: var(--text-dark);
+                    }
+                    .currency-dd-option:hover { background: var(--primary-light); }
+                    .currency-dd-option .flag { font-size: 17px; line-height: 1; }
+                    .currency-dd-option .code { font-weight: 700; min-width: 36px; }
+                    .currency-dd-option .name { color: var(--text-gray); font-size: 11.5px; flex: 1; }
+                    .currency-dd-option .check { color: var(--primary); font-size: 13px; opacity: 0; }
+                    .currency-dd-option.active { background: var(--primary-light); }
+                    .currency-dd-option.active .check { opacity: 1; }
+                </style>
+                <div class="currency-dd" id="currency-dd">
+                    <button type="button" class="currency-dd-trigger" onclick="window.toggleCurrencyDropdown()" title="Display Currency">
+                        <span id="currency-dd-flag">🇮🇳</span>
+                        <span id="currency-dd-code">INR</span>
+                        <i class="fa-solid fa-chevron-down chev"></i>
+                    </button>
+                    <div class="currency-dd-panel" id="currency-dd-panel"></div>
+                </div>
                 <i class="fa-solid fa-moon" id="theme-toggle" onclick="window.toggleTheme()" style="font-size: 20px; color: var(--text-gray); cursor: pointer; transition: 0.3s;"></i>
                 <i class="fa-solid fa-bars menu-btn" onclick="window.toggleDrawer()"></i>
             </div>
@@ -1376,6 +1409,18 @@
         // ==========================================
         const CURRENCY_SYMBOLS = { INR: '₹', USD: '$', EUR: '€', GBP: '£', PKR: '₨', BDT: '৳', NGN: '₦', AED: 'د.إ', CAD: 'CA$', AUD: 'A$' };
         const CURRENCY_RATES_FALLBACK = { INR: 1, USD: 0.012, EUR: 0.011, GBP: 0.0094, PKR: 3.35, BDT: 1.32, NGN: 19.5, AED: 0.044, CAD: 0.0165, AUD: 0.0183 };
+        const CURRENCY_META = [
+            { code: 'INR', flag: '🇮🇳', name: 'Indian Rupee' },
+            { code: 'USD', flag: '🇺🇸', name: 'US Dollar' },
+            { code: 'EUR', flag: '🇪🇺', name: 'Euro' },
+            { code: 'GBP', flag: '🇬🇧', name: 'British Pound' },
+            { code: 'PKR', flag: '🇵🇰', name: 'Pakistani Rupee' },
+            { code: 'BDT', flag: '🇧🇩', name: 'Bangladeshi Taka' },
+            { code: 'NGN', flag: '🇳🇬', name: 'Nigerian Naira' },
+            { code: 'AED', flag: '🇦🇪', name: 'UAE Dirham' },
+            { code: 'CAD', flag: '🇨🇦', name: 'Canadian Dollar' },
+            { code: 'AUD', flag: '🇦🇺', name: 'Australian Dollar' },
+        ];
         let currentCurrency = localStorage.getItem('displayCurrency') || 'INR';
         let currencyRates = { ...CURRENCY_RATES_FALLBACK };
 
@@ -1417,10 +1462,43 @@
         };
         window.currencySymbolNow = function() { return CURRENCY_SYMBOLS[currentCurrency] || currentCurrency; };
 
+        // Builds the dropdown panel's option list once. Called on load and re-run cheaply on
+        // every switch to move the checkmark -- ten rows, no measurable cost.
+        function renderCurrencyDropdownPanel() {
+            const panel = document.getElementById('currency-dd-panel');
+            if (!panel) return;
+            panel.innerHTML = CURRENCY_META.map(c => `
+                <div class="currency-dd-option ${c.code === currentCurrency ? 'active' : ''}" onclick="window.selectCurrencyOption('${c.code}')">
+                    <span class="flag">${c.flag}</span>
+                    <span class="code">${c.code}</span>
+                    <span class="name">${c.name}</span>
+                    <span class="check"><i class="fa-solid fa-check"></i></span>
+                </div>
+            `).join('');
+        }
+
+        window.toggleCurrencyDropdown = function() {
+            document.getElementById('currency-dd')?.classList.toggle('open');
+        };
+        window.selectCurrencyOption = function(code) {
+            window.setDisplayCurrency(code);
+            document.getElementById('currency-dd')?.classList.remove('open');
+        };
+        // Close the dropdown on any click outside of it, standard dropdown UX.
+        document.addEventListener('click', (e) => {
+            const dd = document.getElementById('currency-dd');
+            if (dd && dd.classList.contains('open') && !dd.contains(e.target)) dd.classList.remove('open');
+        });
+
         window.setDisplayCurrency = function(code) {
             currentCurrency = code;
             localStorage.setItem('displayCurrency', code);
-            document.querySelectorAll('.currency-select-control').forEach(s => { s.value = code; });
+            const meta = CURRENCY_META.find(c => c.code === code);
+            const flagEl = document.getElementById('currency-dd-flag');
+            const codeEl = document.getElementById('currency-dd-code');
+            if (meta && flagEl) flagEl.textContent = meta.flag;
+            if (meta && codeEl) codeEl.textContent = meta.code;
+            renderCurrencyDropdownPanel();
             window.refreshAllCurrencyDisplays();
         };
 
@@ -1436,7 +1514,12 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.currency-select-control').forEach(s => { s.value = currentCurrency; });
+            const meta = CURRENCY_META.find(c => c.code === currentCurrency);
+            const flagEl = document.getElementById('currency-dd-flag');
+            const codeEl = document.getElementById('currency-dd-code');
+            if (meta && flagEl) flagEl.textContent = meta.flag;
+            if (meta && codeEl) codeEl.textContent = meta.code;
+            renderCurrencyDropdownPanel();
             window.refreshAllCurrencyDisplays();
             fetchLiveCurrencyRates();
         });
@@ -1678,7 +1761,14 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         // Every authenticated backend call should go through this so we never forget the token.
         async function apiFetch(path, options = {}) {
             if (!currentUser) throw new Error("AUTH_REQUIRED");
-            const idToken = await currentUser.getIdToken(true);
+            // 🐛 BUG FIX: this used to call getIdToken(true), forcing a network round-trip to
+            // Google to refresh the token on EVERY single call. Firebase already refreshes the
+            // token proactively in the background before it actually expires (tokens are valid
+            // 1 hour) -- forcing it every time is pure waste, and during rapid repeated calls
+            // (like the UTR auto-verify poll below, which can call this up to ~15x in 60 seconds)
+            // it risks tripping Google's token-refresh rate limit, which throws and can silently
+            // kill an in-flight flow. Plain getIdToken() uses the cached token when still valid.
+            const idToken = await currentUser.getIdToken();
             console.log("[DEBUG] apiFetch ->", API_BASE_URL + path, options.body ? JSON.parse(options.body) : null);
             let res;
             try {
@@ -2545,10 +2635,12 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         };
 
         window.filterLandingServicesTable = function() {
-            const catId = document.getElementById('landing-service-cat-filter') ? document.getElementById('landing-service-cat-filter').value : 'all';
-            const searchInput = document.getElementById('landing-service-search').value.toLowerCase();
+            const searchEl = document.getElementById('landing-service-search');
             const tableBody = document.getElementById('landing-services-table');
-            if(!tableBody) return;
+            if (!tableBody || !searchEl) return; // optional UI not present on this page -- safe no-op
+            const catFilterEl = document.getElementById('landing-service-cat-filter');
+            const catId = catFilterEl ? catFilterEl.value : 'all';
+            const searchInput = searchEl.value.toLowerCase();
             const rows = tableBody.getElementsByTagName('tr');
             
             for (let i = 0; i < rows.length; i++) {
@@ -3333,14 +3425,24 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     const secsLeft = Math.max(1, Math.ceil((AUTO_VERIFY_TIMEOUT_MS - (Date.now() - startedAt)) / 1000));
                     if (loadingSub) loadingSub.innerText = `Checking with your bank for a match... ${secsLeft}s`;
 
-                    const { ok, data } = await apiFetch('/api/verify-upi', {
-                        method: 'POST',
-                        body: JSON.stringify({ utr, amount })
-                    });
-
-                    if (ok && data.success && data.autoVerified) {
-                        autoResult = data;
-                        break;
+                    // 🐛 BUG FIX: a single failed poll (transient network blip, brief 500 from a
+                    // cold-starting serverless function, etc.) used to throw out of this whole
+                    // while-loop into the OUTER catch below, which abandoned auto-verify entirely
+                    // and showed a generic error -- even though the SMS-forwarder side was working
+                    // fine and the very next poll would likely have succeeded. Now a failed
+                    // individual poll is just logged and the loop keeps going until the full
+                    // timeout is actually used up.
+                    try {
+                        const { ok, data } = await apiFetch('/api/verify-upi', {
+                            method: 'POST',
+                            body: JSON.stringify({ utr, amount })
+                        });
+                        if (ok && data.success && data.autoVerified) {
+                            autoResult = data;
+                            break;
+                        }
+                    } catch (pollErr) {
+                        console.warn('[UTR poll] one attempt failed, will retry:', pollErr);
                     }
 
                     const elapsed = Date.now() - startedAt;
