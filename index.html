@@ -437,6 +437,70 @@
         @keyframes verifyCheckDraw { to { stroke-dashoffset:0; } }
         @keyframes verifyPop { 0% { transform:scale(0.85); opacity:0; } 100% { transform:scale(1); opacity:1; } }
 
+        /* ===== Countdown progress ring + step indicator (replaces plain spinner-only loading state) ===== */
+        .verify-progress-ring { position:relative; width:112px; height:112px; margin:0 auto 4px; }
+        .verify-progress-ring svg { width:100%; height:100%; transform:rotate(-90deg); }
+        .verify-ring-track { fill:none; stroke:var(--primary-light); stroke-width:6; }
+        .verify-ring-bar { fill:none; stroke:var(--primary); stroke-width:6; stroke-linecap:round; stroke-dasharray:251.2; stroke-dashoffset:0; transition:stroke-dashoffset 0.25s linear; filter:drop-shadow(0 0 6px var(--primary)); }
+        .verify-ring-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; }
+        .verify-ring-center i { font-size:17px; color:var(--primary); animation:verifyBoltPulse 1.2s ease-in-out infinite; }
+        @keyframes verifyBoltPulse { 0%,100% { opacity:0.45; transform:scale(1); } 50% { opacity:1; transform:scale(1.12); } }
+        #verify-countdown-text { font-size:16px; font-weight:800; color:var(--text-dark); font-variant-numeric:tabular-nums; letter-spacing:0.5px; }
+        #verify-countdown-text.verify-urgent { color:var(--danger); animation:verifyUrgentPulse 0.8s ease-in-out infinite; }
+        @keyframes verifyUrgentPulse { 0%,100% { opacity:1; } 50% { opacity:0.45; } }
+
+        .verify-progress-steps { display:flex; align-items:center; justify-content:center; gap:0; margin:18px 0 2px; }
+        .verify-step { display:flex; flex-direction:column; align-items:center; gap:5px; font-size:9px; color:var(--text-gray); font-weight:700; text-transform:uppercase; letter-spacing:0.3px; width:70px; }
+        .verify-step-dot { width:20px; height:20px; border-radius:50%; background:var(--bg-bottom); border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-size:9px; color:transparent; transition:all 0.3s ease; flex-shrink:0; }
+        .verify-step.active .verify-step-dot { border-color:var(--primary); box-shadow:0 0 0 4px var(--primary-light); }
+        .verify-step.done .verify-step-dot { background:var(--success); border-color:var(--success); color:#fff; }
+        .verify-step.active span, .verify-step.done span { color:var(--text-dark); }
+        .verify-step-line { width:26px; height:2px; background:var(--border-color); margin-bottom:15px; transition:background 0.3s ease; }
+        .verify-step-line.done { background:var(--success); }
+
+        .verify-cancel-btn, .verify-cancel-btn:hover, .verify-cancel-btn:disabled { width:100%; margin-top:18px; background:var(--bg-bottom) !important; color:var(--text-gray) !important; border:1px solid var(--border-color) !important; box-shadow:none !important; cursor:not-allowed !important; opacity:0.75; font-size:12px; font-weight:600; }
+
+        @media (max-width:420px) {
+            .verify-modal-box { padding:28px 18px; }
+            .verify-progress-ring { width:96px; height:96px; }
+            .verify-step { width:58px; font-size:8.5px; }
+            .verify-step-line { width:18px; }
+        }
+
+        /* ===== Premium currency dropdown: glassmorphism + neon accent, dark-themed
+           regardless of site light/dark mode (matches the "premium/neon" spec explicitly). ===== */
+        .ccy-dropdown { position:relative; font-family:inherit; }
+        .ccy-trigger { display:flex; align-items:center; gap:6px; background:rgba(20,22,34,0.55); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(168,85,247,0.35); border-radius:50px; padding:6px 12px; color:#e5e7eb; font-size:12px; font-weight:700; cursor:pointer; transition:border-color 0.25s ease, box-shadow 0.25s ease; }
+        .ccy-trigger:hover, .ccy-trigger:focus-visible { border-color:#a855f7; box-shadow:0 0 14px rgba(168,85,247,0.45); outline:none; }
+        .ccy-flag { font-size:14px; line-height:1; }
+        .ccy-chevron { font-size:9px; color:#9ca3af; transition:transform 0.25s ease; margin-left:2px; }
+        .ccy-dropdown.open .ccy-chevron { transform:rotate(180deg); color:#a855f7; }
+
+        .ccy-panel { position:absolute; top:calc(100% + 10px); right:0; width:230px; max-height:0; overflow:hidden; opacity:0; transform:translateY(-8px) scale(0.96); pointer-events:none; transition:max-height 0.3s ease, opacity 0.25s ease, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); background:rgba(15,17,26,0.78); backdrop-filter:blur(18px) saturate(140%); -webkit-backdrop-filter:blur(18px) saturate(140%); border:1px solid rgba(168,85,247,0.35); border-radius:16px; box-shadow:0 20px 45px rgba(0,0,0,0.45), 0 0 30px rgba(124,58,237,0.15); z-index:7000; }
+        .ccy-dropdown.open .ccy-panel { max-height:320px; opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+
+        .ccy-search-wrap { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.08); }
+        .ccy-search-wrap i { color:#9ca3af; font-size:12px; }
+        .ccy-search-wrap input { flex:1; background:transparent; border:none; outline:none; color:#f3f4f6; font-size:13px; min-width:0; }
+        .ccy-search-wrap input::placeholder { color:#6b7280; }
+
+        .ccy-options { max-height:250px; overflow-y:auto; padding:6px; }
+        .ccy-options::-webkit-scrollbar { width:5px; }
+        .ccy-options::-webkit-scrollbar-thumb { background:rgba(168,85,247,0.4); border-radius:10px; }
+
+        .ccy-option { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px; cursor:pointer; transition:background 0.18s ease, transform 0.18s ease; color:#e5e7eb; }
+        .ccy-option:hover, .ccy-option.focused { background:rgba(168,85,247,0.18); transform:translateX(2px); }
+        .ccy-option.selected { background:rgba(168,85,247,0.28); box-shadow:inset 0 0 0 1px rgba(168,85,247,0.5); }
+        .ccy-option .ccy-flag { font-size:16px; }
+        .ccy-option-code { font-weight:700; font-size:12.5px; min-width:36px; }
+        .ccy-option-name { font-size:11px; color:#9ca3af; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .ccy-option-symbol { font-size:12px; color:#c4b5fd; font-weight:700; }
+        .ccy-no-match { padding:16px; text-align:center; font-size:12px; color:#6b7280; }
+
+        @media (max-width:420px) {
+            .ccy-panel { position:fixed; top:auto; bottom:16px; left:16px; right:16px; width:auto; }
+        }
+
         .chat-app { background: #0f172a; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 500px; margin: 0 auto; border: 1px solid #1e293b;}
         .chat-header { padding: 15px 20px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; background: #111827; }
         .chat-history { height: 400px; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; background: #0f172a; }
@@ -486,12 +550,6 @@
     </style>
 </head>
 <body>
-
-    <div id="global-loader">
-        <div class="loader-brand"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
-        <div class="loader-spinner"></div>
-        <div class="loader-text">Loading your dashboard...</div>
-    </div>
 
     <div id="toast-container" class="toast-container"></div>
 
@@ -799,9 +857,26 @@
     <div id="verify-payment-modal" class="verify-modal-overlay">
         <div class="verify-modal-box">
             <div id="verify-state-loading" class="verify-state">
-                <div class="verify-spinner-ring"><i class="fa-solid fa-bolt"></i></div>
+                <div class="verify-progress-ring">
+                    <svg viewBox="0 0 96 96">
+                        <circle class="verify-ring-track" cx="48" cy="48" r="40"/>
+                        <circle class="verify-ring-bar" id="verify-ring-bar" cx="48" cy="48" r="40"/>
+                    </svg>
+                    <div class="verify-ring-center">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span id="verify-countdown-text">01:00</span>
+                    </div>
+                </div>
                 <h3>Confirming Payment...</h3>
                 <p class="verify-sub" id="verify-loading-sub">Please wait while we confirm your payment</p>
+                <div class="verify-progress-steps">
+                    <div class="verify-step" id="verify-step-1"><div class="verify-step-dot"><i class="fa-solid fa-check"></i></div><span>Sent</span></div>
+                    <div class="verify-step-line" id="verify-line-1"></div>
+                    <div class="verify-step" id="verify-step-2"><div class="verify-step-dot"><i class="fa-solid fa-check"></i></div><span>Bank Check</span></div>
+                    <div class="verify-step-line" id="verify-line-2"></div>
+                    <div class="verify-step" id="verify-step-3"><div class="verify-step-dot"><i class="fa-solid fa-check"></i></div><span>Confirmed</span></div>
+                </div>
+                <button class="btn verify-cancel-btn" id="verify-cancel-btn" disabled title="Verification is in progress and can't be interrupted"><i class="fa-solid fa-lock"></i>&nbsp; Please wait, verifying...</button>
             </div>
             <div id="verify-state-success" class="verify-state" style="display:none;">
                 <div class="verify-check-circle">
@@ -836,44 +911,19 @@
                     <i class="fa-solid fa-bell" style="font-size: 20px; color: var(--text-gray);"></i>
                     <span id="notif-badge-dot" style="position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: red; border-radius: 50%; display: none;"></span>
                 </div>
-                <style>
-                    .currency-dd { position: relative; }
-                    .currency-dd-trigger {
-                        display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
-                        color: var(--text-dark); background: var(--bg-bottom); border: 1px solid var(--border-color);
-                        border-radius: 50px; padding: 6px 12px; cursor: pointer; transition: all 0.2s ease;
-                    }
-                    .currency-dd-trigger:hover { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
-                    .currency-dd-trigger .chev { font-size: 9px; color: var(--text-gray); transition: transform 0.2s ease; }
-                    .currency-dd.open .currency-dd-trigger .chev { transform: rotate(180deg); }
-                    .currency-dd-panel {
-                        position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px; z-index: 500;
-                        background: var(--bg-top); border: 1px solid var(--border-color); border-radius: var(--radius);
-                        box-shadow: var(--elevation-2); padding: 6px; opacity: 0; visibility: hidden;
-                        transform: translateY(-6px) scale(0.98); transform-origin: top right;
-                        transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
-                        max-height: 320px; overflow-y: auto;
-                    }
-                    .currency-dd.open .currency-dd-panel { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
-                    .currency-dd-option {
-                        display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px;
-                        cursor: pointer; transition: background-color 0.15s ease; font-size: 13px; color: var(--text-dark);
-                    }
-                    .currency-dd-option:hover { background: var(--primary-light); }
-                    .currency-dd-option .flag { font-size: 17px; line-height: 1; }
-                    .currency-dd-option .code { font-weight: 700; min-width: 36px; }
-                    .currency-dd-option .name { color: var(--text-gray); font-size: 11.5px; flex: 1; }
-                    .currency-dd-option .check { color: var(--primary); font-size: 13px; opacity: 0; }
-                    .currency-dd-option.active { background: var(--primary-light); }
-                    .currency-dd-option.active .check { opacity: 1; }
-                </style>
-                <div class="currency-dd" id="currency-dd">
-                    <button type="button" class="currency-dd-trigger" onclick="window.toggleCurrencyDropdown()" title="Display Currency">
-                        <span id="currency-dd-flag">🇮🇳</span>
-                        <span id="currency-dd-code">INR</span>
-                        <i class="fa-solid fa-chevron-down chev"></i>
+                <div class="ccy-dropdown" id="ccy-dropdown">
+                    <button type="button" class="ccy-trigger" id="ccy-trigger" onclick="window.toggleCurrencyDropdown(event)" aria-haspopup="listbox" aria-expanded="false" title="Display Currency">
+                        <span class="ccy-flag" id="ccy-trigger-flag">🇮🇳</span>
+                        <span class="ccy-code" id="ccy-trigger-code">INR</span>
+                        <i class="fa-solid fa-chevron-down ccy-chevron"></i>
                     </button>
-                    <div class="currency-dd-panel" id="currency-dd-panel"></div>
+                    <div class="ccy-panel" id="ccy-panel" role="listbox" aria-label="Select display currency">
+                        <div class="ccy-search-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="ccy-search-input" placeholder="Search currency..." oninput="window.filterCurrencyOptions(this.value)" onkeydown="window.handleCurrencyKeydown(event)" autocomplete="off">
+                        </div>
+                        <div class="ccy-options" id="ccy-options"></div>
+                    </div>
                 </div>
                 <i class="fa-solid fa-moon" id="theme-toggle" onclick="window.toggleTheme()" style="font-size: 20px; color: var(--text-gray); cursor: pointer; transition: 0.3s;"></i>
                 <i class="fa-solid fa-bars menu-btn" onclick="window.toggleDrawer()"></i>
@@ -913,7 +963,6 @@
                     <div class="nav-item orders-history" onclick="window.switchView('orders-history')"><i class="fa-solid fa-clock-rotate-left"></i> Order History</div>
                     <div class="nav-item add-funds" onclick="window.switchView('add-funds')"><i class="fa-solid fa-money-bill-transfer"></i> Add Funds</div>
                     <div class="nav-item deposit-history" onclick="window.switchView('deposit-history')"><i class="fa-solid fa-file-invoice-dollar"></i> Deposit History</div>
-                    <div class="nav-item pending-payments" onclick="window.switchView('pending-payments')"><i class="fa-solid fa-hourglass-half"></i> Pending Payments <span id="badge-pending-payments" style="background:var(--warning); color:#000; font-size:10px; font-weight:800; padding:1px 7px; border-radius:50px; margin-left:auto; display:none;">0</span></div>
                     <div class="nav-item transactions" onclick="window.switchView('transactions')"><i class="fa-solid fa-money-bill-transfer"></i> Transactions</div>
                     <div class="nav-item support" onclick="window.switchView('support')"><i class="fa-solid fa-headset"></i> Support</div>
                     <div class="nav-item account-settings" onclick="window.switchView('account-settings')"><i class="fa-solid fa-user-gear"></i> Account</div>
@@ -1260,21 +1309,6 @@
                     </div>
                 </div>
 
-                <div id="pending-payments" class="view">
-                    <div class="page-content">
-                        <h1 class="page-title">⏳ Pending Payments</h1>
-                        <p style="color:var(--text-gray); margin-top:-10px; margin-bottom:16px; font-size:13.5px;">Payments here are waiting for admin manual review (auto-verification didn't find a match in time). Your wallet updates automatically the moment admin approves -- no refresh needed.</p>
-                        <div class="card" style="padding: 10px;">
-                            <div class="table-wrapper" style="border: none;">
-                                <table>
-                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>UTR</th><th>Status</th></tr></thead>
-                                    <tbody id="pending-payments-table"><tr><td colspan="4" align="center">No pending payments. 🎉</td></tr></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div id="transactions" class="view">
                     <div class="page-content">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -1425,18 +1459,6 @@
         // ==========================================
         const CURRENCY_SYMBOLS = { INR: '₹', USD: '$', EUR: '€', GBP: '£', PKR: '₨', BDT: '৳', NGN: '₦', AED: 'د.إ', CAD: 'CA$', AUD: 'A$' };
         const CURRENCY_RATES_FALLBACK = { INR: 1, USD: 0.012, EUR: 0.011, GBP: 0.0094, PKR: 3.35, BDT: 1.32, NGN: 19.5, AED: 0.044, CAD: 0.0165, AUD: 0.0183 };
-        const CURRENCY_META = [
-            { code: 'INR', flag: '🇮🇳', name: 'Indian Rupee' },
-            { code: 'USD', flag: '🇺🇸', name: 'US Dollar' },
-            { code: 'EUR', flag: '🇪🇺', name: 'Euro' },
-            { code: 'GBP', flag: '🇬🇧', name: 'British Pound' },
-            { code: 'PKR', flag: '🇵🇰', name: 'Pakistani Rupee' },
-            { code: 'BDT', flag: '🇧🇩', name: 'Bangladeshi Taka' },
-            { code: 'NGN', flag: '🇳🇬', name: 'Nigerian Naira' },
-            { code: 'AED', flag: '🇦🇪', name: 'UAE Dirham' },
-            { code: 'CAD', flag: '🇨🇦', name: 'Canadian Dollar' },
-            { code: 'AUD', flag: '🇦🇺', name: 'Australian Dollar' },
-        ];
         let currentCurrency = localStorage.getItem('displayCurrency') || 'INR';
         let currencyRates = { ...CURRENCY_RATES_FALLBACK };
 
@@ -1478,44 +1500,118 @@
         };
         window.currencySymbolNow = function() { return CURRENCY_SYMBOLS[currentCurrency] || currentCurrency; };
 
-        // Builds the dropdown panel's option list once. Called on load and re-run cheaply on
-        // every switch to move the checkmark -- ten rows, no measurable cost.
-        function renderCurrencyDropdownPanel() {
-            const panel = document.getElementById('currency-dd-panel');
-            if (!panel) return;
-            panel.innerHTML = CURRENCY_META.map(c => `
-                <div class="currency-dd-option ${c.code === currentCurrency ? 'active' : ''}" onclick="window.selectCurrencyOption('${c.code}')">
-                    <span class="flag">${c.flag}</span>
-                    <span class="code">${c.code}</span>
-                    <span class="name">${c.name}</span>
-                    <span class="check"><i class="fa-solid fa-check"></i></span>
-                </div>
-            `).join('');
-        }
-
-        window.toggleCurrencyDropdown = function() {
-            document.getElementById('currency-dd')?.classList.toggle('open');
-        };
-        window.selectCurrencyOption = function(code) {
-            window.setDisplayCurrency(code);
-            document.getElementById('currency-dd')?.classList.remove('open');
-        };
-        // Close the dropdown on any click outside of it, standard dropdown UX.
-        document.addEventListener('click', (e) => {
-            const dd = document.getElementById('currency-dd');
-            if (dd && dd.classList.contains('open') && !dd.contains(e.target)) dd.classList.remove('open');
-        });
-
         window.setDisplayCurrency = function(code) {
             currentCurrency = code;
             localStorage.setItem('displayCurrency', code);
-            const meta = CURRENCY_META.find(c => c.code === code);
-            const flagEl = document.getElementById('currency-dd-flag');
-            const codeEl = document.getElementById('currency-dd-code');
-            if (meta && flagEl) flagEl.textContent = meta.flag;
-            if (meta && codeEl) codeEl.textContent = meta.code;
-            renderCurrencyDropdownPanel();
+            window.updateCurrencyTrigger(code);
             window.refreshAllCurrencyDisplays();
+        };
+
+        // ===== Premium currency dropdown (flag + code trigger, searchable glass panel) =====
+        const CURRENCY_META = [
+            { code: 'INR', flag: '🇮🇳', name: 'Indian Rupee' },
+            { code: 'USD', flag: '🇺🇸', name: 'US Dollar' },
+            { code: 'EUR', flag: '🇪🇺', name: 'Euro' },
+            { code: 'GBP', flag: '🇬🇧', name: 'British Pound' },
+            { code: 'PKR', flag: '🇵🇰', name: 'Pakistani Rupee' },
+            { code: 'BDT', flag: '🇧🇩', name: 'Bangladeshi Taka' },
+            { code: 'NGN', flag: '🇳🇬', name: 'Nigerian Naira' },
+            { code: 'AED', flag: '🇦🇪', name: 'UAE Dirham' },
+            { code: 'CAD', flag: '🇨🇦', name: 'Canadian Dollar' },
+            { code: 'AUD', flag: '🇦🇺', name: 'Australian Dollar' },
+        ];
+
+        window.updateCurrencyTrigger = function(code) {
+            const meta = CURRENCY_META.find(c => c.code === code) || CURRENCY_META[0];
+            const flagEl = document.getElementById('ccy-trigger-flag');
+            const codeEl = document.getElementById('ccy-trigger-code');
+            if (flagEl) flagEl.textContent = meta.flag;
+            if (codeEl) codeEl.textContent = meta.code;
+        };
+
+        window.renderCurrencyOptions = function(filter) {
+            const q = (filter || '').trim().toLowerCase();
+            const list = q
+                ? CURRENCY_META.filter(c => c.code.toLowerCase().includes(q) || c.name.toLowerCase().includes(q))
+                : CURRENCY_META;
+            const optionsEl = document.getElementById('ccy-options');
+            if (!optionsEl) return;
+            if (!list.length) {
+                optionsEl.innerHTML = '<div class="ccy-no-match">No matching currency</div>';
+                return;
+            }
+            optionsEl.innerHTML = list.map((c, i) => `
+                <div class="ccy-option${c.code === currentCurrency ? ' selected' : ''}" role="option" aria-selected="${c.code === currentCurrency}" tabindex="-1" data-code="${c.code}" data-idx="${i}" onclick="window.selectCurrencyOption('${c.code}')">
+                    <span class="ccy-flag">${c.flag}</span>
+                    <span class="ccy-option-code">${c.code}</span>
+                    <span class="ccy-option-name">${c.name}</span>
+                    <span class="ccy-option-symbol">${CURRENCY_SYMBOLS[c.code] || ''}</span>
+                </div>
+            `).join('');
+        };
+
+        window.filterCurrencyOptions = function(value) { window.renderCurrencyOptions(value); };
+
+        window.selectCurrencyOption = function(code) {
+            window.setDisplayCurrency(code);
+            window.closeCurrencyDropdown();
+            const trigger = document.getElementById('ccy-trigger');
+            if (trigger) trigger.focus();
+        };
+
+        window.toggleCurrencyDropdown = function(e) {
+            if (e) e.stopPropagation();
+            const dropdown = document.getElementById('ccy-dropdown');
+            if (!dropdown) return;
+            if (dropdown.classList.contains('open')) { window.closeCurrencyDropdown(); return; }
+            window.renderCurrencyOptions('');
+            dropdown.classList.add('open');
+            document.getElementById('ccy-trigger')?.setAttribute('aria-expanded', 'true');
+            const searchInput = document.getElementById('ccy-search-input');
+            if (searchInput) { searchInput.value = ''; setTimeout(() => searchInput.focus(), 50); }
+        };
+
+        window.closeCurrencyDropdown = function() {
+            const dropdown = document.getElementById('ccy-dropdown');
+            if (!dropdown) return;
+            dropdown.classList.remove('open');
+            document.getElementById('ccy-trigger')?.setAttribute('aria-expanded', 'false');
+        };
+
+        // Click-outside-to-close, and Escape from anywhere while open.
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('ccy-dropdown');
+            if (dropdown && dropdown.classList.contains('open') && !dropdown.contains(e.target)) {
+                window.closeCurrencyDropdown();
+            }
+        });
+
+        // Full keyboard support: Arrow Up/Down moves the highlighted option, Enter selects it,
+        // Escape closes and returns focus to the trigger button.
+        window.handleCurrencyKeydown = function(e) {
+            const options = Array.from(document.querySelectorAll('#ccy-options .ccy-option'));
+            let idx = options.findIndex(o => o.classList.contains('focused'));
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                options[idx]?.classList.remove('focused');
+                idx = Math.min(options.length - 1, idx + 1);
+                options[idx]?.classList.add('focused');
+                options[idx]?.scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                options[idx]?.classList.remove('focused');
+                idx = Math.max(0, idx - 1);
+                options[idx]?.classList.add('focused');
+                options[idx]?.scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const target = options[idx] || options[0];
+                if (target) window.selectCurrencyOption(target.getAttribute('data-code'));
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                window.closeCurrencyDropdown();
+                document.getElementById('ccy-trigger')?.focus();
+            }
         };
 
         // Re-renders every part of the UI that shows money using data already cached
@@ -1530,12 +1626,8 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            const meta = CURRENCY_META.find(c => c.code === currentCurrency);
-            const flagEl = document.getElementById('currency-dd-flag');
-            const codeEl = document.getElementById('currency-dd-code');
-            if (meta && flagEl) flagEl.textContent = meta.flag;
-            if (meta && codeEl) codeEl.textContent = meta.code;
-            renderCurrencyDropdownPanel();
+            window.updateCurrencyTrigger(currentCurrency);
+            window.renderCurrencyOptions('');
             window.refreshAllCurrencyDisplays();
             fetchLiveCurrencyRates();
         });
@@ -1632,17 +1724,78 @@
             if(isOpened){ overlay.classList.add('show'); } else { overlay.classList.remove('show'); }
         };
 
-        // ===== Razorpay payment modal controllers (reuses the existing modal shell) =====
+        // ===== UPI payment verification modal controllers (reuses the existing modal shell) =====
+
+        // Drives the countdown ring + MM:SS text + step indicator during the up-to-60s
+        // auto-verify polling window. Kept as a single ticking clock (250ms resolution,
+        // computed from a fixed startedAt rather than decrementing a counter) so it can never
+        // drift out of sync with the actual AUTO_VERIFY_TIMEOUT_MS used by submitPaymentProof,
+        // and so calling start twice in a row (shouldn't happen, but just in case) can't stack
+        // two intervals -- stopVerifyCountdown() always runs first.
+        const VERIFY_RING_CIRCUMFERENCE = 251.2; // 2 * PI * r(40), matches the SVG circle radius
+        window._verifyCountdownTimer = null;
+        window.startVerifyCountdown = function(totalMs) {
+            window.stopVerifyCountdown();
+            const startedAt = Date.now();
+            const textEl = document.getElementById('verify-countdown-text');
+            const ringEl = document.getElementById('verify-ring-bar');
+            const tick = () => {
+                const elapsed = Date.now() - startedAt;
+                const remainingMs = Math.max(0, totalMs - elapsed);
+                const secs = Math.ceil(remainingMs / 1000);
+                if (textEl) {
+                    textEl.textContent = `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
+                    textEl.classList.toggle('verify-urgent', secs <= 10);
+                }
+                if (ringEl) {
+                    const progress = Math.min(1, elapsed / totalMs);
+                    ringEl.style.strokeDashoffset = (VERIFY_RING_CIRCUMFERENCE * progress).toFixed(2);
+                }
+                if (remainingMs <= 0) window.stopVerifyCountdown();
+            };
+            tick();
+            window._verifyCountdownTimer = setInterval(tick, 250);
+        };
+        window.stopVerifyCountdown = function() {
+            if (window._verifyCountdownTimer) {
+                clearInterval(window._verifyCountdownTimer);
+                window._verifyCountdownTimer = null;
+            }
+        };
+        // Advances the 3-dot step indicator. 1 = request sent (instant), 2 = actively polling
+        // the bank match (the long-running state), 3 = confirmed (only reached on success).
+        window.setVerifyStep = function(step) {
+            for (let i = 1; i <= 3; i++) {
+                const dot = document.getElementById(`verify-step-${i}`);
+                if (!dot) continue;
+                dot.classList.remove('active', 'done');
+                if (i < step) dot.classList.add('done');
+                else if (i === step) dot.classList.add('active');
+            }
+            const line1 = document.getElementById('verify-line-1');
+            const line2 = document.getElementById('verify-line-2');
+            if (line1) line1.classList.toggle('done', step > 1);
+            if (line2) line2.classList.toggle('done', step > 2);
+        };
+
         window.openVerifyModal = function() {
             document.getElementById('verify-state-loading').style.display = 'block';
             document.getElementById('verify-state-success').style.display = 'none';
             document.getElementById('verify-state-error').style.display = 'none';
+            const ringEl = document.getElementById('verify-ring-bar');
+            if (ringEl) ringEl.style.strokeDashoffset = '0';
+            document.getElementById('verify-countdown-text').textContent = '01:00';
+            document.getElementById('verify-countdown-text').classList.remove('verify-urgent');
+            window.setVerifyStep(2); // "request sent" happens the instant the popup opens
             document.getElementById('verify-payment-modal').classList.add('show');
         };
         window.closeVerifyModal = function() {
+            window.stopVerifyCountdown();
             document.getElementById('verify-payment-modal').classList.remove('show');
         };
         window.showVerifySuccess = function(details) {
+            window.stopVerifyCountdown();
+            window.setVerifyStep(4); // marks step 3 ("Confirmed") as done too
             document.getElementById('verify-state-loading').style.display = 'none';
             document.getElementById('verify-state-error').style.display = 'none';
             const title = details.pending ? 'Payment Request Submitted' : 'Payment Verified Successfully';
@@ -1664,6 +1817,7 @@
             if (receiptBtn) receiptBtn.style.display = 'none';
         };
         window.showVerifyError = function(message) {
+            window.stopVerifyCountdown();
             document.getElementById('verify-state-loading').style.display = 'none';
             document.getElementById('verify-state-success').style.display = 'none';
             document.getElementById('verify-error-msg').innerText = message || 'Payment verification failed. If money was deducted, contact support.';
@@ -1695,7 +1849,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
     <div class="row"><span>Transaction ID</span><span>${window.safeHTML(p.id)}</span></div>
     <div class="row"><span>Payment ID</span><span>${window.safeHTML(p.txid)}</span></div>
     <div class="row"><span>Amount</span><span>₹${parseFloat(p.amount).toFixed(2)}</span></div>
-    <div class="row"><span>Payment Method</span><span>${window.safeHTML(p.method || 'Razorpay')}</span></div>
+    <div class="row"><span>Payment Method</span><span>${window.safeHTML(p.method || 'UPI')}</span></div>
     <div class="row"><span>Status</span><span class="status">${window.safeHTML(statusText)}</span></div>
     <div class="row" style="border-bottom:none;"><span>Date &amp; Time</span><span>${new Date(p.timestamp).toLocaleString()}</span></div>
   </div>
@@ -1777,14 +1931,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         // Every authenticated backend call should go through this so we never forget the token.
         async function apiFetch(path, options = {}) {
             if (!currentUser) throw new Error("AUTH_REQUIRED");
-            // 🐛 BUG FIX: this used to call getIdToken(true), forcing a network round-trip to
-            // Google to refresh the token on EVERY single call. Firebase already refreshes the
-            // token proactively in the background before it actually expires (tokens are valid
-            // 1 hour) -- forcing it every time is pure waste, and during rapid repeated calls
-            // (like the UTR auto-verify poll below, which can call this up to ~15x in 60 seconds)
-            // it risks tripping Google's token-refresh rate limit, which throws and can silently
-            // kill an in-flight flow. Plain getIdToken() uses the cached token when still valid.
-            const idToken = await currentUser.getIdToken();
+            const idToken = await currentUser.getIdToken(true);
             console.log("[DEBUG] apiFetch ->", API_BASE_URL + path, options.body ? JSON.parse(options.body) : null);
             let res;
             try {
@@ -2479,7 +2626,17 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     if (userSnap.exists() && userSnap.val().suspended) {
                         window.showToast("Account Suspended. Contact Support.", "error");
                         await signOut(auth);
-                        document.getElementById('global-loader').style.display = 'none';
+                        // 🐛 CRITICAL BUG FIX: '#global-loader' doesn't exist in this build's
+                        // DOM, so this line used to throw (Cannot read properties of null).
+                        // That throw was silently caught by the catch() below the try block --
+                        // which does NOT `return` -- so execution fell through into the normal
+                        // logged-in app path (loadUserData/loadAppData/switchView) using the
+                        // stale `user` reference from this callback, even though the account was
+                        // suspended and just signed out. The `return` right after this line
+                        // (meant to stop exactly that) was never reached. Guarding the element
+                        // access lets the throw-free path reach `return` and actually stop here.
+                        const loaderEl = document.getElementById('global-loader');
+                        if (loaderEl) loaderEl.style.display = 'none';
                         return;
                     }
 
@@ -2617,8 +2774,10 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             document.querySelectorAll('.custom-select-options').forEach(el => el.classList.remove('show'));
             
             let icon = catId === 'all' ? '<i class="fa-solid fa-filter"></i>' : window.getCatIcon(catName);
-            document.getElementById('landing-service-cat-filter').value = window.safeHTML(catId);
-            document.getElementById('landing-filter-cat-trigger').innerHTML = `${icon} ${window.safeHTML(catName)}`;
+            const filterInput = document.getElementById('landing-service-cat-filter');
+            const filterTrigger = document.getElementById('landing-filter-cat-trigger');
+            if (filterInput) filterInput.value = window.safeHTML(catId);
+            if (filterTrigger) filterTrigger.innerHTML = `${icon} ${window.safeHTML(catName)}`;
             
             window.filterLandingServicesTable();
         };
@@ -2651,12 +2810,23 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         };
 
         window.filterLandingServicesTable = function() {
-            const searchEl = document.getElementById('landing-service-search');
+            // 🐛 BUG FIX: this used to read `.value` off #landing-service-search and
+            // #landing-services-table unconditionally -- but the landing (logged-out marketing)
+            // page never actually got a services showcase section built, so those elements don't
+            // exist in the DOM. Since this function is called unconditionally from the tail of
+            // renderServices() (see below), and renderServices() itself is called from
+            // refreshAllCurrencyDisplays() with no try/catch around it, the resulting
+            // "Cannot read properties of null" was a LIVE uncaught exception on every page load
+            // and every currency switch -- silently aborting whatever ran after it in the same
+            // call chain (renderUserOrders/renderDeposits never got called after a currency
+            // switch). Checking for the table body FIRST and returning early, before touching
+            // anything else, closes this off at the root rather than patching each access site.
             const tableBody = document.getElementById('landing-services-table');
-            if (!tableBody || !searchEl) return; // optional UI not present on this page -- safe no-op
+            if (!tableBody) return;
             const catFilterEl = document.getElementById('landing-service-cat-filter');
+            const searchEl = document.getElementById('landing-service-search');
             const catId = catFilterEl ? catFilterEl.value : 'all';
-            const searchInput = searchEl.value.toLowerCase();
+            const searchInput = searchEl ? searchEl.value.toLowerCase() : '';
             const rows = tableBody.getElementsByTagName('tr');
             
             for (let i = 0; i < rows.length; i++) {
@@ -3040,24 +3210,9 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 userDepositsList.forEach(p => {
                     let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
                     if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
-                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">${window.fmtMoney(p.amount)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'Razorpay')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
+                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">${window.fmtMoney(p.amount)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'UPI')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
                 });
                 document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="6" align="center">No deposit history found.</td></tr>';
-
-                // Dedicated Pending Payments page -- same underlying data, filtered to items still
-                // waiting on admin review. Amount shown in real ₹ here deliberately (matches what
-                // the user actually paid via UPI), not the display-currency conversion used
-                // elsewhere, to avoid any confusion about what was really submitted.
-                const pendingOnly = userDepositsList.filter(p => (p.status || 'Pending') === 'Pending');
-                let pendingHtml = '';
-                pendingOnly.forEach(p => {
-                    const statusLabel = '<span class="badge bg-pending">Waiting for Admin</span>';
-                    pendingHtml += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td>${statusLabel}</td></tr>`;
-                });
-                const pendingTableEl = document.getElementById('pending-payments-table');
-                if (pendingTableEl) pendingTableEl.innerHTML = pendingHtml || '<tr><td colspan="4" align="center">No pending payments. 🎉</td></tr>';
-                const pendingBadgeEl = document.getElementById('badge-pending-payments');
-                if (pendingBadgeEl) { pendingBadgeEl.style.display = pendingOnly.length ? 'inline-block' : 'none'; pendingBadgeEl.innerText = pendingOnly.length; }
 
                 const transElement = document.getElementById('stat-total-transactions');
                 if (transElement) transElement.innerText = userDepositsList.length;
@@ -3434,10 +3589,35 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             const originalText = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+            const restoreButton = () => { btn.disabled = false; btn.innerHTML = originalText; };
+
+            // ⚡ INSTANT AUTO-VERIFY: claim this UTR RIGHT NOW, before opening the popup or
+            // polling anything. This is what lets the SMS webhook credit the wallet the instant
+            // the bank SMS arrives (see retroactivelyMatchPendingProof in the backend) instead of
+            // waiting for this browser to poll and happen to catch it -- previously this claim
+            // only happened after the full 60s window elapsed, so the webhook had nothing to
+            // match against until a minute in. Claiming first also fails fast: if this exact UTR
+            // was already submitted by someone, they find out immediately instead of waiting
+            // through a pointless 60-second poll first.
+            const utrClaimRef = ref(db, `payment_utr_index/${utr}`);
+            let claimResult;
+            try {
+                claimResult = await runTransaction(utrClaimRef, (current) => {
+                    if (current !== null) return; // abort -- already claimed by someone
+                    return { userId: currentUser.uid, amount, claimedAt: Date.now() };
+                });
+            } catch (claimErr) {
+                console.error('[DEBUG] UTR claim failed:', claimErr);
+                restoreButton();
+                return window.showToast("Could not submit your payment request. Please check your connection and try again.", "error");
+            }
+            if (!claimResult.committed) {
+                restoreButton();
+                return window.showToast("This UTR has already been submitted for verification. Each transaction ID can only be used once. If this is a mistake, contact support.", "error");
+            }
 
             window.openVerifyModal();
             const loadingSub = document.getElementById('verify-loading-sub');
-            const restoreButton = () => { btn.disabled = false; btn.innerHTML = originalText; };
 
             // Auto-verify works by matching this UTR against bank SMS forwarded to
             // /api/upi-webhook -- but that SMS can take anywhere from a few seconds up to
@@ -3445,35 +3625,30 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             // up before the SMS had a real chance to show up, so almost every payment fell
             // through to "Pending admin review" even when it would have auto-matched moments
             // later. This now keeps checking every few seconds for a full 1 minute, with a
-            // live countdown, before giving up and filing it as Pending.
+            // live countdown, before giving up and filing it as Pending. In practice this loop
+            // is now mostly a safety net / UI-update mechanism -- the actual credit usually
+            // already happens server-side the instant the SMS webhook fires (see upi.ts), and
+            // the very next poll here just discovers that and shows success.
             const AUTO_VERIFY_TIMEOUT_MS = 60000;
             const POLL_INTERVAL_MS = 4000;
             const startedAt = Date.now();
+            // Popup's ring/MM:SS/urgency-pulse is driven off this same 60s window, so what the
+            // user sees always matches exactly how long the polling loop below will actually run.
+            window.startVerifyCountdown(AUTO_VERIFY_TIMEOUT_MS);
 
             try {
                 let autoResult = null;
                 while (Date.now() - startedAt < AUTO_VERIFY_TIMEOUT_MS) {
-                    const secsLeft = Math.max(1, Math.ceil((AUTO_VERIFY_TIMEOUT_MS - (Date.now() - startedAt)) / 1000));
-                    if (loadingSub) loadingSub.innerText = `Checking with your bank for a match... ${secsLeft}s`;
+                    if (loadingSub) loadingSub.innerText = 'Checking with your bank for a match...';
 
-                    // 🐛 BUG FIX: a single failed poll (transient network blip, brief 500 from a
-                    // cold-starting serverless function, etc.) used to throw out of this whole
-                    // while-loop into the OUTER catch below, which abandoned auto-verify entirely
-                    // and showed a generic error -- even though the SMS-forwarder side was working
-                    // fine and the very next poll would likely have succeeded. Now a failed
-                    // individual poll is just logged and the loop keeps going until the full
-                    // timeout is actually used up.
-                    try {
-                        const { ok, data } = await apiFetch('/api/verify-upi', {
-                            method: 'POST',
-                            body: JSON.stringify({ utr, amount })
-                        });
-                        if (ok && data.success && data.autoVerified) {
-                            autoResult = data;
-                            break;
-                        }
-                    } catch (pollErr) {
-                        console.warn('[UTR poll] one attempt failed, will retry:', pollErr);
+                    const { ok, data } = await apiFetch('/api/verify-upi', {
+                        method: 'POST',
+                        body: JSON.stringify({ utr, amount })
+                    });
+
+                    if (ok && data.success && data.autoVerified) {
+                        autoResult = data;
+                        break;
                     }
 
                     const elapsed = Date.now() - startedAt;
@@ -3489,23 +3664,31 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     return;
                 }
 
-                // 1 minute passed with no automatic bank match -- file as Pending for manual
-                // admin review instead of leaving the user stuck waiting indefinitely.
-                if (loadingSub) loadingSub.innerText = 'No instant match yet -- filing for admin review...';
-
-                // Same duplicate-UTR protection as before: atomically claim the UTR so it can
-                // never be used by more than one request.
-                const utrClaimRef = ref(db, `payment_utr_index/${utr}`);
-                const claimResult = await runTransaction(utrClaimRef, (current) => {
-                    if (current !== null) return;
-                    return { userId: currentUser.uid, claimedAt: Date.now() };
-                });
-
-                if (!claimResult.committed) {
-                    restoreButton();
-                    return window.showVerifyError("This UTR has already been submitted for verification. Each transaction ID can only be used once. If this is a mistake, contact support.");
+                // 1 minute passed with no automatic bank match via polling -- before filing as
+                // Pending, do one last direct check: the instant webhook-triggered credit (see
+                // upi.ts) could have landed in the tiny gap between the loop's last poll and this
+                // line running. Cheap enough to always check rather than risk ever creating a
+                // second, duplicate proof for a payment that already succeeded.
+                const freshClaimSnap = await get(ref(db, `payment_utr_index/${utr}`));
+                const freshClaim = freshClaimSnap.exists() ? freshClaimSnap.val() : null;
+                if (freshClaim && freshClaim.proofId) {
+                    const freshProofSnap = await get(ref(db, `payment_proofs/${freshClaim.proofId}`));
+                    if (freshProofSnap.exists() && freshProofSnap.val().status === 'Approved') {
+                        restoreButton();
+                        window.showVerifySuccess({ amount: freshProofSnap.val().amount, utr, method: 'UPI (Auto-Verified)' });
+                        e.target.reset();
+                        window.switchView('deposit-history');
+                        return;
+                    }
                 }
 
+                if (loadingSub) loadingSub.innerText = 'No instant match yet -- filing for admin review...';
+
+                // The UTR claim already exists (made immediately at submit time, above) --
+                // attach a Pending proof to it with update() so the claim's existing amount/
+                // claimedAt/userId fields are preserved, not overwritten. The webhook-triggered
+                // instant-match path (see retroactivelyMatchPendingProof in upi.ts) will pick
+                // this proof up and auto-approve it the moment the SMS does arrive, however late.
                 const proofRef = push(ref(db, 'payment_proofs'));
                 const proofData = {
                     userId: currentUser.uid,
@@ -3517,7 +3700,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     timestamp: Date.now()
                 };
                 await set(proofRef, proofData);
-                await set(utrClaimRef, { userId: currentUser.uid, proofId: proofRef.key, claimedAt: Date.now() });
+                await update(utrClaimRef, { proofId: proofRef.key });
                 depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
 
                 restoreButton();
