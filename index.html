@@ -795,7 +795,7 @@
             <div id="verify-state-loading" class="verify-state">
                 <div class="verify-spinner-ring"><i class="fa-solid fa-bolt"></i></div>
                 <h3>Confirming Payment...</h3>
-                <p class="verify-sub">Please wait while we confirm your payment with Razorpay</p>
+                <p class="verify-sub" id="verify-loading-sub">Please wait while we confirm your payment</p>
             </div>
             <div id="verify-state-success" class="verify-state" style="display:none;">
                 <div class="verify-check-circle">
@@ -826,27 +826,24 @@
         <header style="position: relative;">
             <div class="header-logo brand-glow"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
             <div style="display:flex; align-items:center; gap: 20px;">
-                <div style="position: relative; cursor: pointer;" onclick="window.toggleCurrencyDropdown(event)" title="Switch display currency">
-                    <span id="currency-toggle-btn" style="font-size: 15px; font-weight:700; color: var(--text-gray); border:1.5px solid var(--border-color); border-radius:6px; padding:2px 6px; display:inline-block; min-width:22px; text-align:center;">₹</span>
-                </div>
                 <div style="position: relative; cursor: pointer;" onclick="window.toggleNotificationDropdown(event)">
                     <i class="fa-solid fa-bell" style="font-size: 20px; color: var(--text-gray);"></i>
                     <span id="notif-badge-dot" style="position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: red; border-radius: 50%; display: none;"></span>
                 </div>
+                <select class="currency-select-control" onchange="window.setDisplayCurrency(this.value)" title="Display Currency" style="font-size:12px; font-weight:700; color:var(--text-gray); background:var(--bg-bottom); border:1px solid var(--border-color); border-radius:50px; padding:4px 8px; cursor:pointer; outline:none;">
+                    <option value="INR">₹ INR</option>
+                    <option value="USD">$ USD</option>
+                    <option value="EUR">€ EUR</option>
+                    <option value="GBP">£ GBP</option>
+                    <option value="PKR">₨ PKR</option>
+                    <option value="BDT">৳ BDT</option>
+                    <option value="NGN">₦ NGN</option>
+                    <option value="AED">د.إ AED</option>
+                    <option value="CAD">CA$ CAD</option>
+                    <option value="AUD">A$ AUD</option>
+                </select>
                 <i class="fa-solid fa-moon" id="theme-toggle" onclick="window.toggleTheme()" style="font-size: 20px; color: var(--text-gray); cursor: pointer; transition: 0.3s;"></i>
                 <i class="fa-solid fa-bars menu-btn" onclick="window.toggleDrawer()"></i>
-            </div>
-
-            <div id="currency-dropdown" class="notif-dropdown" style="right: 90px; min-width: 190px;">
-                <div style="font-weight: 700; font-size: 13px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; color: var(--primary); margin-bottom: 4px;">
-                    <i class="fa-solid fa-money-bill-transfer"></i> Display Currency
-                </div>
-                <div class="currency-option-row" data-code="INR" onclick="window.setCurrency('INR')" style="padding:8px 6px; cursor:pointer; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">🇮🇳 INR <b>₹</b></div>
-                <div class="currency-option-row" data-code="USD" onclick="window.setCurrency('USD')" style="padding:8px 6px; cursor:pointer; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">🇺🇸 USD <b>$</b></div>
-                <div class="currency-option-row" data-code="EUR" onclick="window.setCurrency('EUR')" style="padding:8px 6px; cursor:pointer; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">🇪🇺 EUR <b>€</b></div>
-                <div class="currency-option-row" data-code="GBP" onclick="window.setCurrency('GBP')" style="padding:8px 6px; cursor:pointer; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">🇬🇧 GBP <b>£</b></div>
-                <div class="currency-option-row" data-code="PKR" onclick="window.setCurrency('PKR')" style="padding:8px 6px; cursor:pointer; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">🇵🇰 PKR <b>₨</b></div>
-                <small style="display:block; margin-top:6px; color:var(--text-gray); font-size:10px; line-height:1.4;">Display only. Deposits/payments are always processed in INR (₹).</small>
             </div>
 
             <div id="user-notif-dropdown" class="notif-dropdown">
@@ -924,14 +921,14 @@
                             <div class="stat-value" id="stat-total-orders">0</div>
                             <div class="stat-desc">Boosts delivered.</div>
                         </div>
-                        <div class="stat-card colorful-2" style="position:relative;">
+                        <div class="stat-card colorful-2">
                             <i class="fa-solid fa-wallet stat-icon"></i>
                             <div class="stat-title">Available Funds</div>
-                            <div class="stat-value" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                                <span id="stat-balance">₹0.00</span>
-                                <button type="button" class="btn" onclick="window.switchView('add-funds')" title="Add Funds" style="width:auto; padding:4px 10px; font-size:11px; border-radius:20px; margin:0; box-shadow:none;"><i class="fa-solid fa-plus"></i> Add Funds</button>
+                            <div class="stat-value"><span class="cur-sym">₹</span><span id="stat-balance">0.00</span></div>
+                            <div class="stat-desc" style="display:flex; align-items:center; gap:8px;">
+                                <span>Add more in Wallet.</span>
+                                <button type="button" onclick="window.switchView('add-funds')" title="Add Funds" style="background:rgba(255,255,255,0.25); border:1px solid rgba(255,255,255,0.4); color:inherit; font-size:11px; font-weight:700; padding:3px 9px; border-radius:50px; cursor:pointer; white-space:nowrap;"><i class="fa-solid fa-plus"></i> Add Funds</button>
                             </div>
-                            <div class="stat-desc">Top up anytime, instantly.</div>
                         </div>
                     </div>
                 </div>
@@ -1021,7 +1018,7 @@
                                         <small id="qty-limits" style="display:block; color:rgba(255,255,255,0.7); font-size: 11px; margin-top:4px;">Min: 0 - Max: 0</small>
                                     </div>
                                     <div class="input-group">
-                                        <label>Estimated Charge (<span class="cur-sym">₹</span>)</label>
+                                        <label>Estimated Charge (₹)</label>
                                         <input type="text" id="order-charge" value="0.00" readonly>
                                     </div>
                                 </div>
@@ -1191,7 +1188,7 @@
 
                             <div class="glowing-warning">
                                 <h4><i class="fa-solid fa-triangle-exclamation"></i> Important</h4>
-                                <p style="font-size: 13.5px; color: #ffffff; font-weight: 600;">Minimum ₹10. Pay the exact amount you plan to submit below, then enter your 12-digit UTR/Reference number from the payment confirmation.</p>
+                                <p style="font-size: 13.5px; color: #ffffff; font-weight: 600;">Minimum ₹10 (Indian Rupees only -- this is a real UPI bank transfer, regardless of your display currency above). Pay the exact amount you plan to submit below, then enter your 12-digit UTR/Reference number from the payment confirmation.</p>
                             </div>
 
                             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 25px 0;">
@@ -1221,7 +1218,7 @@
                         <div class="card" style="padding: 10px;">
                             <div class="table-wrapper" style="border: none;">
                                 <table>
-                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>Payment ID</th><th>Method</th><th>Status</th><th>Receipt</th></tr></thead>
+                                    <thead><tr><th>Date & Time</th><th>Amount (<span class="cur-sym">₹</span>)</th><th>Payment ID</th><th>Method</th><th>Status</th><th>Receipt</th></tr></thead>
                                     <tbody id="deposit-history-table"></tbody>
                                 </table>
                             </div>
@@ -1240,7 +1237,7 @@
                         <div class="card" style="padding: 10px;">
                             <div class="table-wrapper" style="border: none;">
                                 <table>
-                                    <thead><tr><th>Date & Time</th><th>Sender / Receiver</th><th>Amount (₹)</th><th>Status</th></tr></thead>
+                                    <thead><tr><th>Date & Time</th><th>Sender / Receiver</th><th>Amount (<span class="cur-sym">₹</span>)</th><th>Status</th></tr></thead>
                                     <tbody id="transactions-table"></tbody>
                                 </table>
                             </div>
@@ -1367,61 +1364,82 @@
         };
 
         // ==========================================
-        // 💲 DISPLAY CURRENCY SWITCHER
+        // 💱 MULTI-CURRENCY DISPLAY ENGINE
+        // Every amount is stored and charged in INR (₹) on the backend -- wallet balance,
+        // service prices, order charges never change. This ONLY converts what's shown on
+        // screen, client-side, based on whatever currency the user picks. Live conversion
+        // rates are fetched once per session (cached 6h in localStorage) with a static
+        // fallback table so the UI keeps working even if the rate API is unreachable.
+        // The actual render functions (renderServices, renderUserOrders, deposits/transactions)
+        // live in the module script below and register themselves on `window` once defined --
+        // refreshAllCurrencyDisplays() just calls whichever of those are available.
         // ==========================================
-        // All amounts are stored and charged in INR in the database (Razorpay/UPI only
-        // support INR). This only converts what the user SEES using fixed approximate
-        // rates -- it never changes what gets deposited, charged, or stored. Every money
-        // render in the app should call window.fmtMoney(amountInINR) instead of hardcoding
-        // '₹' + amount.toFixed(2), so a currency switch is reflected everywhere at once.
-        window.CURRENCY_RATES = {
-            INR: { symbol: '₹', rate: 1 },
-            USD: { symbol: '$', rate: 0.0114 },
-            EUR: { symbol: '€', rate: 0.0104 },
-            GBP: { symbol: '£', rate: 0.0090 },
-            PKR: { symbol: '₨', rate: 3.19 }
+        const CURRENCY_SYMBOLS = { INR: '₹', USD: '$', EUR: '€', GBP: '£', PKR: '₨', BDT: '৳', NGN: '₦', AED: 'د.إ', CAD: 'CA$', AUD: 'A$' };
+        const CURRENCY_RATES_FALLBACK = { INR: 1, USD: 0.012, EUR: 0.011, GBP: 0.0094, PKR: 3.35, BDT: 1.32, NGN: 19.5, AED: 0.044, CAD: 0.0165, AUD: 0.0183 };
+        let currentCurrency = localStorage.getItem('displayCurrency') || 'INR';
+        let currencyRates = { ...CURRENCY_RATES_FALLBACK };
+
+        (function loadCachedCurrencyRates() {
+            try {
+                const cached = JSON.parse(localStorage.getItem('fxRatesCache') || 'null');
+                if (cached && cached.rates && (Date.now() - cached.at) < 6 * 60 * 60000) {
+                    currencyRates = cached.rates;
+                }
+            } catch (e) { /* corrupted cache -- fallback table already active, ignore */ }
+        })();
+
+        function fetchLiveCurrencyRates() {
+            fetch('https://api.exchangerate-api.com/v4/latest/INR')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.rates) {
+                        currencyRates = { INR: 1, ...data.rates };
+                        localStorage.setItem('fxRatesCache', JSON.stringify({ rates: currencyRates, at: Date.now() }));
+                        window.refreshAllCurrencyDisplays();
+                    }
+                })
+                .catch(() => { /* offline / blocked -- fallback table (or last cached rates) stays active */ });
+        }
+
+        // The ONLY function that should ever be used to render a money value anywhere in the app.
+        window.fmtMoney = function(amountInInr) {
+            const amt = parseFloat(amountInInr) || 0;
+            const rate = currencyRates[currentCurrency] ?? CURRENCY_RATES_FALLBACK[currentCurrency] ?? 1;
+            const converted = amt * rate;
+            const symbol = CURRENCY_SYMBOLS[currentCurrency] || currentCurrency;
+            return `${symbol}${converted.toFixed(2)}`;
         };
-        window.getCurrencyCode = function() {
-            const code = localStorage.getItem('smmrulz_currency');
-            return (code && window.CURRENCY_RATES[code]) ? code : 'INR';
+        // Same conversion, no symbol -- for slotting a bare number into existing sentences.
+        window.fmtMoneyRaw = function(amountInInr) {
+            const amt = parseFloat(amountInInr) || 0;
+            const rate = currencyRates[currentCurrency] ?? CURRENCY_RATES_FALLBACK[currentCurrency] ?? 1;
+            return (amt * rate).toFixed(2);
         };
-        window.getCurrencySymbol = function() {
-            return window.CURRENCY_RATES[window.getCurrencyCode()].symbol;
+        window.currencySymbolNow = function() { return CURRENCY_SYMBOLS[currentCurrency] || currentCurrency; };
+
+        window.setDisplayCurrency = function(code) {
+            currentCurrency = code;
+            localStorage.setItem('displayCurrency', code);
+            document.querySelectorAll('.currency-select-control').forEach(s => { s.value = code; });
+            window.refreshAllCurrencyDisplays();
         };
-        // amountInINR is always the raw stored value (e.g. order.charge, user balance).
-        window.fmtMoney = function(amountInINR, decimals) {
-            if (decimals === undefined) decimals = 2;
-            const code = window.getCurrencyCode();
-            const c = window.CURRENCY_RATES[code];
-            const val = (parseFloat(amountInINR) || 0) * c.rate;
-            return c.symbol + val.toFixed(decimals);
+
+        // Re-renders every part of the UI that shows money using data already cached
+        // client-side -- called on load, once live rates arrive, and on every currency switch,
+        // so switching takes effect instantly everywhere with no page reload.
+        window.refreshAllCurrencyDisplays = function() {
+            document.querySelectorAll('.cur-sym').forEach(el => { el.textContent = window.currencySymbolNow(); });
+            if (typeof window.renderBalance === 'function') window.renderBalance();
+            if (typeof window.renderServices === 'function') window.renderServices();
+            if (typeof window.renderUserOrders === 'function') window.renderUserOrders();
+            if (typeof window.renderDeposits === 'function') window.renderDeposits();
         };
-        window.toggleCurrencyDropdown = function(event) {
-            if (event) event.stopPropagation();
-            const dd = document.getElementById('currency-dropdown');
-            const notifDd = document.getElementById('user-notif-dropdown');
-            if (notifDd) notifDd.classList.remove('active');
-            dd.classList.toggle('active');
-        };
-        window.setCurrency = function(code) {
-            if (!window.CURRENCY_RATES[code]) code = 'INR';
-            localStorage.setItem('smmrulz_currency', code);
-            // A full reload is the simplest way to guarantee every rendered table, card,
-            // and label (all populated from live Firebase listeners) re-renders using the
-            // new currency consistently, instead of tracking down every DOM node by hand.
-            location.reload();
-        };
-        window.syncCurrencyLabels = function() {
-            const sym = window.getCurrencySymbol();
-            const btn = document.getElementById('currency-toggle-btn');
-            if (btn) btn.innerText = sym;
-            document.querySelectorAll('.cur-sym').forEach(el => el.innerText = sym);
-            document.querySelectorAll('.currency-option-row').forEach(el => {
-                el.style.background = (el.getAttribute('data-code') === window.getCurrencyCode()) ? 'var(--primary-light)' : '';
-            });
-        };
-        document.addEventListener('DOMContentLoaded', window.syncCurrencyLabels);
-        window.syncCurrencyLabels();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.currency-select-control').forEach(s => { s.value = currentCurrency; });
+            window.refreshAllCurrencyDisplays();
+            fetchLiveCurrencyRates();
+        });
 
         window.showToast = function(msg, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -1533,12 +1551,12 @@
             if (heading) { heading.innerText = title; heading.style.color = details.pending ? 'var(--warning)' : 'var(--success)'; }
             document.getElementById('verify-success-details').innerHTML = details.pending
                 ? `
-                    <div>Amount Claimed: <b>₹${details.amount.toFixed(2)}</b></div>
+                    <div>Amount Claimed: <b>${window.fmtMoney(details.amount)}</b></div>
                     <div>UTR: <b>${window.safeHTML(details.utr)}</b></div>
                     <div style="margin-top:8px; color:var(--text-gray);">Not instantly matched -- your request is now <b>pending admin review</b>. You'll be notified once it's verified.</div>
                   `
                 : `
-                    <div>Amount Credited: <b>₹${details.amount.toFixed(2)}</b></div>
+                    <div>Amount Credited: <b>${window.fmtMoney(details.amount)}</b></div>
                     <div>UTR: <b>${window.safeHTML(details.utr)}</b></div>
                     <div>Method: <b>${window.safeHTML(details.method || 'UPI')}</b></div>
                   `;
@@ -1603,8 +1621,6 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         document.addEventListener('click', function() {
             const dropdown = document.getElementById('user-notif-dropdown');
             if(dropdown) dropdown.classList.remove('active');
-            const curDropdown = document.getElementById('currency-dropdown');
-            if(curDropdown) curDropdown.classList.remove('active');
         });
 
         window.toggleDropdown = function(id, event) {
@@ -2395,7 +2411,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                         if (passwordForm) passwordForm.outerHTML = note;
                     }
 
-                    document.getElementById('stat-balance').innerText = window.fmtMoney(rawBalance);
+                    document.getElementById('stat-balance').innerText = window.fmtMoneyRaw(rawBalance);
                     update(userRef, { lastActive: Date.now() }).catch(()=>{});
 
                 } catch(e) {
@@ -2705,10 +2721,14 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             if (!currentUser) return;
             const uid = currentUser.uid;
 
+            window.renderBalance = function() {
+                const el = document.getElementById('stat-balance');
+                if (el) el.innerText = window.fmtMoneyRaw(rawBalance);
+            };
             onValue(ref(db, `users/${uid}/balance`), (snap) => { 
                 if(snap.exists()) {
                     rawBalance = parseFloat(snap.val()) || 0; 
-                    document.getElementById('stat-balance').innerText = window.fmtMoney(rawBalance);
+                    window.renderBalance();
                 }
             });
             
@@ -2751,6 +2771,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 });
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
             }
+            window.renderUserOrders = renderUserOrders;
 
             onValue(ref(db, `user_orders/${uid}`), (indexSnap) => {
                 const orderIds = indexSnap.exists() ? Object.keys(indexSnap.val()) : [];
@@ -2905,24 +2926,13 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 subsRoot.innerHTML = html;
             });
             
-            const proofsQ = query(ref(db, 'payment_proofs'), orderByChild('userId'), equalTo(uid));
-            onValue(proofsQ, (snap) => {
-                const userDepositsList = [];
-                if (snap.exists()) {
-                    snap.forEach((childSnap) => {
-                        userDepositsList.push({ id: childSnap.key, ...childSnap.val() });
-                    });
-                }
-                userDepositsList.sort((a, b) => b.timestamp - a.timestamp);
-
-                depositsCache = {};
-                userDepositsList.forEach(p => { depositsCache[p.id] = p; });
-                
+            let lastDepositsList = [];
+            function renderDepositsAndTransactions(userDepositsList) {
                 let html = '';
                 userDepositsList.forEach(p => {
                     let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
                     if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
-                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'Razorpay')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
+                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">${window.fmtMoney(p.amount)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'Razorpay')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
                 });
                 document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="6" align="center">No deposit history found.</td></tr>';
 
@@ -2941,12 +2951,30 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     transHtml += `<tr>
                         <td><small>${new Date(p.timestamp).toLocaleString()}</small></td>
                         <td>${senderReceiverInfo}</td>
-                        <td style="color:var(--success); font-weight:700;">+₹${parseFloat(p.amount).toFixed(2)}</td>
+                        <td style="color:var(--success); font-weight:700;">+${window.fmtMoney(p.amount)}</td>
                         <td>${badge}</td>
                     </tr>`;
                 });
                 const transTable = document.getElementById('transactions-table');
                 if(transTable) transTable.innerHTML = transHtml || '<tr><td colspan="4" align="center">No transactions found.</td></tr>';
+            }
+            window.renderDeposits = function() { renderDepositsAndTransactions(lastDepositsList); };
+
+            const proofsQ = query(ref(db, 'payment_proofs'), orderByChild('userId'), equalTo(uid));
+            onValue(proofsQ, (snap) => {
+                const userDepositsList = [];
+                if (snap.exists()) {
+                    snap.forEach((childSnap) => {
+                        userDepositsList.push({ id: childSnap.key, ...childSnap.val() });
+                    });
+                }
+                userDepositsList.sort((a, b) => b.timestamp - a.timestamp);
+
+                depositsCache = {};
+                userDepositsList.forEach(p => { depositsCache[p.id] = p; });
+                lastDepositsList = userDepositsList;
+
+                renderDepositsAndTransactions(userDepositsList);
             }, (error) => { console.error("Firebase Read Error (Deposits):", error); });
             
             const ticketsQ = query(ref(db, 'tickets'), orderByChild('userId'), equalTo(uid));
@@ -3027,6 +3055,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             if (typeof window.filterServicesTable === 'function') { window.filterServicesTable(); }
             if (typeof window.filterLandingServicesTable === 'function') { window.filterLandingServicesTable(); }
         }
+        window.renderServices = renderServices;
 
         window.filterServices = function() {
             const catId = document.getElementById('order-cat').value; 
@@ -3094,7 +3123,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
 
         window.calculateCharge = function() {
             const srvId = document.getElementById('order-srv').value; const qty = parseInt(document.getElementById('order-qty').value);
-            if(srvId && globalServices[srvId] && qty && !isNaN(qty) && qty > 0) { const baseCharge = (globalServices[srvId].price / 1000) * qty; document.getElementById('order-charge').value = (baseCharge * window.CURRENCY_RATES[window.getCurrencyCode()].rate).toFixed(2); } else { document.getElementById('order-charge').value = '0.00'; }
+            if(srvId && globalServices[srvId] && qty && !isNaN(qty) && qty > 0) { const baseCharge = (globalServices[srvId].price / 1000) * qty; document.getElementById('order-charge').value = baseCharge.toFixed(2); } else { document.getElementById('order-charge').value = '0.00'; }
         };
 
         let isOrderProcessing = false;
@@ -3284,30 +3313,53 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
 
             window.openVerifyModal();
+            const loadingSub = document.getElementById('verify-loading-sub');
+            const restoreButton = () => { btn.disabled = false; btn.innerHTML = originalText; };
+
+            // Auto-verify works by matching this UTR against bank SMS forwarded to
+            // /api/upi-webhook -- but that SMS can take anywhere from a few seconds up to
+            // about a minute to arrive and get parsed. Calling /api/verify-upi only ONCE gave
+            // up before the SMS had a real chance to show up, so almost every payment fell
+            // through to "Pending admin review" even when it would have auto-matched moments
+            // later. This now keeps checking every few seconds for a full 1 minute, with a
+            // live countdown, before giving up and filing it as Pending.
+            const AUTO_VERIFY_TIMEOUT_MS = 60000;
+            const POLL_INTERVAL_MS = 4000;
             const startedAt = Date.now();
-            const MIN_LOADING_MS = 900;
-            const finish = (fn) => {
-                const remaining = Math.max(0, MIN_LOADING_MS - (Date.now() - startedAt));
-                setTimeout(() => { fn(); btn.disabled = false; btn.innerHTML = originalText; }, remaining);
-            };
 
             try {
-                // Step 1: try instant auto-verify against SMS-forwarded transactions.
-                const { ok, data } = await apiFetch('/api/verify-upi', {
-                    method: 'POST',
-                    body: JSON.stringify({ utr, amount })
-                });
+                let autoResult = null;
+                while (Date.now() - startedAt < AUTO_VERIFY_TIMEOUT_MS) {
+                    const secsLeft = Math.max(1, Math.ceil((AUTO_VERIFY_TIMEOUT_MS - (Date.now() - startedAt)) / 1000));
+                    if (loadingSub) loadingSub.innerText = `Checking with your bank for a match... ${secsLeft}s`;
 
-                if (ok && data.success && data.autoVerified) {
-                    return finish(() => {
-                        window.showVerifySuccess({ amount: data.amount, utr, method: 'UPI (Auto-Verified)' });
-                        e.target.reset();
-                        window.switchView('deposit-history');
+                    const { ok, data } = await apiFetch('/api/verify-upi', {
+                        method: 'POST',
+                        body: JSON.stringify({ utr, amount })
                     });
+
+                    if (ok && data.success && data.autoVerified) {
+                        autoResult = data;
+                        break;
+                    }
+
+                    const elapsed = Date.now() - startedAt;
+                    if (elapsed >= AUTO_VERIFY_TIMEOUT_MS - POLL_INTERVAL_MS) break;
+                    await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
                 }
 
-                // Step 2: not auto-matched (SMS hasn't arrived, or auto-verify isn't configured
-                // at all) -- fall back to filing a Pending request for manual admin review.
+                if (autoResult) {
+                    restoreButton();
+                    window.showVerifySuccess({ amount: autoResult.amount, utr, method: 'UPI (Auto-Verified)' });
+                    e.target.reset();
+                    window.switchView('deposit-history');
+                    return;
+                }
+
+                // 1 minute passed with no automatic bank match -- file as Pending for manual
+                // admin review instead of leaving the user stuck waiting indefinitely.
+                if (loadingSub) loadingSub.innerText = 'No instant match yet -- filing for admin review...';
+
                 // Same duplicate-UTR protection as before: atomically claim the UTR so it can
                 // never be used by more than one request.
                 const utrClaimRef = ref(db, `payment_utr_index/${utr}`);
@@ -3317,7 +3369,8 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 });
 
                 if (!claimResult.committed) {
-                    return finish(() => window.showVerifyError("This UTR has already been submitted for verification. Each transaction ID can only be used once. If this is a mistake, contact support."));
+                    restoreButton();
+                    return window.showVerifyError("This UTR has already been submitted for verification. Each transaction ID can only be used once. If this is a mistake, contact support.");
                 }
 
                 const proofRef = push(ref(db, 'payment_proofs'));
@@ -3334,21 +3387,19 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 await set(utrClaimRef, { userId: currentUser.uid, proofId: proofRef.key, claimedAt: Date.now() });
                 depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
 
-                finish(() => {
-                    window.showVerifySuccess({ amount: amount, utr: utr, method: 'UPI (Pending Review)', pending: true });
-                    e.target.reset();
-                    window.hidePaymentDetails();
-                    window.switchView('deposit-history');
-                });
+                restoreButton();
+                window.showVerifySuccess({ amount: amount, utr: utr, method: 'UPI (Pending Review)', pending: true });
+                e.target.reset();
+                window.hidePaymentDetails();
+                window.switchView('deposit-history');
             } catch (error) {
                 console.error("[DEBUG] Payment proof submission failed:", error);
-                finish(() => {
-                    if (error.message === "AUTH_REQUIRED") {
-                        window.showVerifyError("Your session expired. Please log in again.");
-                    } else {
-                        window.showVerifyError("Could not submit your payment request. Please check your connection and try again.");
-                    }
-                });
+                restoreButton();
+                if (error.message === "AUTH_REQUIRED") {
+                    window.showVerifyError("Your session expired. Please log in again.");
+                } else {
+                    window.showVerifyError("Could not submit your payment request. Please check your connection and try again.");
+                }
             }
         };
 
