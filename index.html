@@ -1742,7 +1742,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence, EmailAuthProvider, reauthenticateWithCredential, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getDatabase, ref, get, set, update, onValue, push, query, orderByChild, equalTo, onChildChanged, runTransaction } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+        import { getDatabase, ref, get, set, update, onValue, off, push, query, orderByChild, equalTo, onChildChanged, runTransaction } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
@@ -3454,73 +3454,23 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             const loadingSub = document.getElementById('verify-loading-sub');
             const restoreButton = () => { btn.disabled = false; btn.innerHTML = originalText; };
 
-            // Auto-verify works by matching this UTR against bank SMS forwarded to
-            // /api/upi-webhook -- but that SMS can take anywhere from a few seconds up to
-            // about a minute to arrive and get parsed. Calling /api/verify-upi only ONCE gave
-            // up before the SMS had a real chance to show up, so almost every payment fell
-            // through to "Pending admin review" even when it would have auto-matched moments
-            // later. This now keeps checking every few seconds for a full 1 minute, with a
-            // live countdown, before giving up and filing it as Pending.
-            const AUTO_VERIFY_TIMEOUT_MS = 60000;
-            const POLL_INTERVAL_MS = 4000;
-            const startedAt = Date.now();
-
+            // 🐛 ROOT-CAUSE FIX for auto-verify silently missing real payments: this used to only
+            // claim the UTR and create the Pending payment_proofs record AFTER a 60-second
+            // timeout. That meant if the bank SMS arrived DURING the normal wait (the most common
+            // timing -- SMS usually lands within seconds to ~1 minute of paying) while the tab was
+            // backgrounded (user checking their UPI app, phone locked, totally normal), there was
+            // NO record yet for the SMS webhook's retroactive-match step to find -- the webhook ran
+            // once, found nothing to match against, and never got another chance. The payment then
+            // sat "stuck" needing manual admin review even though auto-verify had everything it
+            // needed, just in the wrong order. Fix: claim the UTR and create the Pending proof
+            // IMMEDIATELY, before any waiting starts, so the webhook can always find it whenever
+            // the SMS actually arrives -- regardless of what the browser tab is doing.
+            let proofId = null;
             try {
-                let autoResult = null;
-                while (Date.now() - startedAt < AUTO_VERIFY_TIMEOUT_MS) {
-                    const secsLeft = Math.max(1, Math.ceil((AUTO_VERIFY_TIMEOUT_MS - (Date.now() - startedAt)) / 1000));
-                    if (loadingSub) loadingSub.innerText = `Checking with your bank for a match... ${secsLeft}s`;
-
-                    // 🐛 BUG FIX: a single failed poll (transient network blip, brief 500 from a
-                    // cold-starting serverless function, etc.) used to throw out of this whole
-                    // while-loop into the OUTER catch below, which abandoned auto-verify entirely
-                    // and showed a generic error -- even though the SMS-forwarder side was working
-                    // fine and the very next poll would likely have succeeded. Now a failed
-                    // individual poll is just logged and the loop keeps going until the full
-                    // timeout is actually used up.
-                    try {
-                        const { ok, data } = await apiFetch('/api/verify-upi', {
-                            method: 'POST',
-                            body: JSON.stringify({ utr, amount })
-                        });
-                        if (ok && data.success && data.autoVerified) {
-                            autoResult = data;
-                            break;
-                        }
-                    } catch (pollErr) {
-                        console.warn('[UTR poll] one attempt failed, will retry:', pollErr);
-                    }
-
-                    const elapsed = Date.now() - startedAt;
-                    if (elapsed >= AUTO_VERIFY_TIMEOUT_MS - POLL_INTERVAL_MS) break;
-                    await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
-                }
-
-                if (autoResult) {
-                    restoreButton();
-                    window.showVerifySuccess({ amount: autoResult.amount, utr, method: 'UPI (Auto-Verified)' });
-                    e.target.reset();
-                    window.switchView('deposit-history');
-                    return;
-                }
-
-                // 1 minute passed with no automatic bank match -- file as Pending for manual
-                // admin review instead of leaving the user stuck waiting indefinitely.
-                if (loadingSub) loadingSub.innerText = 'No instant match yet -- filing for admin review...';
-
-                // 🐛 ROOT-CAUSE FIX: this whole block (claim UTR -> write payment_proofs record)
-                // used to have no timeout at all. If the Firebase connection was suspended right
-                // at this moment (e.g. the user's phone locked/backgrounded during the 60s wait --
-                // very normal behavior), any of these awaits could hang forever with no error,
-                // freezing the modal permanently on "No instant match yet..." exactly as reported.
-                // Now the whole sequence is bounded -- if it can't complete within 12s, the user
-                // gets a clear, actionable error instead of an eternal spinner.
                 const claimResult = await withTimeout((async () => {
-                    // Same duplicate-UTR protection as before: atomically claim the UTR so it can
-                    // never be used by more than one request.
                     const utrClaimRef = ref(db, `payment_utr_index/${utr}`);
                     const claim = await runTransaction(utrClaimRef, (current) => {
-                        if (current !== null) return;
+                        if (current !== null) return; // already claimed by someone -- abort
                         return { userId: currentUser.uid, claimedAt: Date.now() };
                     });
                     if (!claim.committed) return { committed: false };
@@ -3538,33 +3488,105 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     await set(proofRef, proofData);
                     await set(utrClaimRef, { userId: currentUser.uid, proofId: proofRef.key, claimedAt: Date.now() });
                     depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
-                    return { committed: true };
-                })(), 12000, 'PENDING_FILE_TIMEOUT');
+                    return { committed: true, proofId: proofRef.key };
+                })(), 12000, 'CLAIM_TIMEOUT');
 
                 if (!claimResult.committed) {
                     restoreButton();
                     return window.showVerifyError("This UTR has already been submitted for verification. Each transaction ID can only be used once. If this is a mistake, contact support.");
                 }
+                proofId = claimResult.proofId;
+            } catch (claimErr) {
+                console.error("[DEBUG] Failed to file payment request:", claimErr);
+                restoreButton();
+                return window.showVerifyError(
+                    claimErr.message === 'CLAIM_TIMEOUT'
+                        ? "Your connection dropped while filing this request. Please check your internet and tap Verify Payment again."
+                        : "Could not submit your payment request. Please check your connection and try again."
+                );
+            }
 
+            // The Pending record now exists and is safe -- even if the user closes the tab this
+            // instant, admin will see it and the webhook can still auto-match it later. Everything
+            // from here on is just trying to get them an INSTANT answer instead of making them wait
+            // for manual review.
+            const AUTO_VERIFY_TIMEOUT_MS = 60000;
+            const POLL_INTERVAL_MS = 4000;
+            const startedAt = Date.now();
+            let settled = false; // guards against both the listener and the poll loop firing at once
+
+            // Live listener on the exact proof we just created -- this is what makes auto-verify
+            // resilient to the tab being backgrounded. If the SMS webhook's retroactive match
+            // fires while this tab is backgrounded/throttled, Firebase delivers the resulting
+            // status change the moment the connection resumes, however long that takes -- no
+            // active polling required for this path at all.
+            const proofRef = ref(db, `payment_proofs/${proofId}`);
+            const onProofChange = (snap) => {
+                if (settled) return;
+                const val = snap.val();
+                if (val && val.status === 'Approved' && val.autoVerified) {
+                    settled = true;
+                    off(proofRef, 'value', onProofChange);
+                    restoreButton();
+                    window.showVerifySuccess({ amount: val.amount, utr, method: 'UPI (Auto-Verified)' });
+                    e.target.reset();
+                    window.switchView('deposit-history');
+                }
+            };
+            onValue(proofRef, onProofChange);
+
+            try {
+                // Best-effort active checking in parallel with the listener above -- catches the
+                // case where the SMS already arrived (or arrives while this tab IS in the
+                // foreground) without waiting for the listener's next event.
+                while (!settled && Date.now() - startedAt < AUTO_VERIFY_TIMEOUT_MS) {
+                    const secsLeft = Math.max(1, Math.ceil((AUTO_VERIFY_TIMEOUT_MS - (Date.now() - startedAt)) / 1000));
+                    if (loadingSub) loadingSub.innerText = `Checking with your bank for a match... ${secsLeft}s`;
+
+                    try {
+                        const { ok, data } = await apiFetch('/api/verify-upi', {
+                            method: 'POST',
+                            body: JSON.stringify({ utr, amount })
+                        });
+                        if (settled) break; // the listener already won while this call was in flight
+                        if (ok && data.success && data.autoVerified) {
+                            settled = true;
+                            off(proofRef, 'value', onProofChange);
+                            restoreButton();
+                            window.showVerifySuccess({ amount: data.amount, utr, method: 'UPI (Auto-Verified)' });
+                            e.target.reset();
+                            window.switchView('deposit-history');
+                            return;
+                        }
+                    } catch (pollErr) {
+                        // A single failed poll (transient network blip, cold-starting serverless
+                        // function) shouldn't abandon the whole attempt -- log it and keep going;
+                        // the listener above is still live and can still catch a match too.
+                        console.warn('[UTR poll] one attempt failed, will retry:', pollErr);
+                    }
+
+                    const elapsed = Date.now() - startedAt;
+                    if (elapsed >= AUTO_VERIFY_TIMEOUT_MS - POLL_INTERVAL_MS) break;
+                    await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+                }
+
+                if (settled) return; // listener won during the final wait tick
+
+                // 1 minute of visible waiting is up with no instant match -- but unlike before,
+                // the Pending record already exists and the listener above (plus the webhook's
+                // retroactive match, plus the app-wide deposit-history listener) will still pick
+                // up an auto-match whenever it actually happens, even after this modal is closed.
+                off(proofRef, 'value', onProofChange);
                 restoreButton();
                 window.showVerifySuccess({ amount: amount, utr: utr, method: 'UPI (Pending Review)', pending: true });
                 e.target.reset();
                 window.hidePaymentDetails();
-                window.switchView('deposit-history');
+                window.switchView('pending-payments');
             } catch (error) {
-                console.error("[DEBUG] Payment proof submission failed:", error);
+                console.error("[DEBUG] Payment verification wait failed:", error);
+                off(proofRef, 'value', onProofChange);
                 restoreButton();
-                if (error.message === "AUTH_REQUIRED") {
-                    window.showVerifyError("Your session expired. Please log in again.");
-                } else if (error.message === "PENDING_FILE_TIMEOUT" || error.message === "AUTH_TOKEN_TIMEOUT") {
-                    // Connection was likely suspended (tab backgrounded / phone locked). The UTR
-                    // claim step is atomic and safe to retry -- if it was actually written despite
-                    // the timeout, resubmitting the same UTR will correctly bounce as "already
-                    // submitted" rather than double-filing it.
-                    window.showVerifyError("Your connection dropped while filing this request (common if your phone locked or the app was backgrounded). Please check Pending Payments below -- if it's not there, tap Verify Payment again with the same UTR.");
-                } else {
-                    window.showVerifyError("Could not submit your payment request. Please check your connection and try again.");
-                }
+                window.showVerifyError("Something went wrong while checking your payment. Your request is safely filed under Pending Payments and will still be reviewed.");
             }
         };
 
