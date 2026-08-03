@@ -3458,6 +3458,8 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             // claim the UTR and create the Pending payment_proofs record AFTER a 60-second
             // timeout. That meant if the bank SMS arrived DURING the normal wait (the most common
             let proofId = null;
+            const submissionStartedAt = Date.now();
+            if (loadingSub) loadingSub.innerText = 'Filing your payment request...';
             try {
                 const attemptClaim = () => (async () => {
                     const utrClaimRef = ref(db, `payment_utr_index/${utr}`);
@@ -3483,54 +3485,82 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     return { committed: true, proofId: proofRef.key };
                 })();
 
-                // 🐛 FIX: a single 12s timeout on the very first attempt was too trigger-happy --
-                // a merely-slow-but-working mobile connection (not actually dead) would get flagged
-                // as "connection dropped" and force the user to manually retry every time. Now
-                // retries automatically up to 3 times with a short backoff before ever bothering
-                // the user, since most of these are transient blips that resolve within a couple
-                // seconds on their own.
+                // Retries automatically up to 3 times with a short backoff before ever bothering
+                // the user, since most timeouts are transient blips that resolve on their own.
                 let claimResult = null;
                 let lastClaimErr = null;
                 for (let attempt = 1; attempt <= 3; attempt++) {
                     try {
-                        claimResult = await withTimeout(attemptClaim(), 10000, 'CLAIM_TIMEOUT');
+                        claimResult = await withTimeout(attemptClaim(), 15000, 'CLAIM_TIMEOUT');
                         lastClaimErr = null;
                         break;
                     } catch (err) {
                         lastClaimErr = err;
                         console.warn(`[Claim] attempt ${attempt}/3 failed:`, err.message);
-                        if (attempt < 3) await new Promise(r => setTimeout(r, 1500 * attempt));
+                        if (attempt < 3) {
+                            if (loadingSub) loadingSub.innerText = `Still filing your request, retrying (${attempt}/3)...`;
+                            await new Promise(r => setTimeout(r, 1500 * attempt));
+                        }
                     }
                 }
                 if (lastClaimErr) throw lastClaimErr; // all 3 attempts failed -- genuinely down
 
                 if (!claimResult.committed) {
-                    restoreButton();
-                    // 🐛 FIX: this used to always say "contact support", which reads as a flat
-                    // rejection -- confusing and alarming when the ORIGINAL submission of this UTR
-                    // actually went through fine (very likely, since a duplicate almost always
-                    // means "I already did this" not "something is broken"). Look up what actually
-                    // happened and tell the user the truth instead of guessing.
+                    // 🐛 ROOT-CAUSE FIX: a real self-collision race. If attempt 1 times out on the
+                    // client (withTimeout gives up at 10s) but the underlying Firebase write was
+                    // still in flight and actually completes moments later, attempt 2's retry sees
+                    // the UTR as "already claimed" -- by its OWN attempt 1, not by any separate or
+                    // earlier submission. That was being reported as "This UTR has already been
+                    // submitted", wrongly rejecting a completely fresh, never-used UTR on the
+                    // user's very first (and only) real attempt. Fix: check WHEN the existing claim
+                    // was made. If it happened during THIS SAME submission (a few seconds ago, not
+                    // some earlier session), it's this submission's own successful write racing
+                    // ahead of its own timeout -- adopt it and continue normally as a success,
+                    // instead of showing an error for something that actually worked.
+                    let selfCollision = false;
                     try {
                         const existingClaimSnap = await get(ref(db, `payment_utr_index/${utr}`));
-                        const existingProofId = existingClaimSnap.exists() ? existingClaimSnap.val().proofId : null;
-                        const existingProofSnap = existingProofId ? await get(ref(db, `payment_proofs/${existingProofId}`)) : null;
-                        const existingStatus = existingProofSnap && existingProofSnap.exists() ? existingProofSnap.val().status : null;
-
-                        if (existingStatus === 'Approved') {
-                            return window.showVerifyError("This payment was already verified and credited to your wallet -- no need to resubmit. Check your Deposit History.");
-                        } else if (existingStatus === 'Pending') {
-                            return window.showVerifyError("This payment is already on file and waiting for admin review -- no need to resubmit. Check your Pending Payments page.");
-                        } else if (existingStatus === 'Rejected') {
-                            const reason = existingProofSnap.val().rejectionReason;
-                            return window.showVerifyError(`This UTR was already reviewed and rejected${reason ? ': ' + reason : '.'} If you believe this is a mistake, contact support -- don't resubmit the same UTR.`);
+                        if (existingClaimSnap.exists()) {
+                            const existingClaim = existingClaimSnap.val();
+                            const isOwnAttempt = existingClaim.userId === currentUser.uid && existingClaim.claimedAt >= submissionStartedAt - 3000;
+                            if (isOwnAttempt && existingClaim.proofId) {
+                                proofId = existingClaim.proofId;
+                                selfCollision = true;
+                                console.log('[Claim] Recovered from a self-collision -- attempt 1 actually succeeded after its own timeout fired. Continuing normally.');
+                            }
                         }
-                    } catch (lookupErr) {
-                        console.warn('[Claim] could not look up existing claim status:', lookupErr);
+                    } catch (recoverErr) {
+                        console.warn('[Claim] Could not check for self-collision:', recoverErr);
                     }
-                    return window.showVerifyError("This UTR has already been submitted for verification. Each transaction ID can only be used once. If you're making a NEW payment, double-check you copied the correct UTR from your latest bank SMS.");
+
+                    if (!selfCollision) {
+                        restoreButton();
+                        // Genuinely a duplicate from a separate/earlier submission -- this used to
+                        // always say "contact support", which reads as a flat rejection even when
+                        // the ORIGINAL submission actually went through fine. Look up what really
+                        // happened and tell the user the truth instead of guessing.
+                        try {
+                            const existingClaimSnap = await get(ref(db, `payment_utr_index/${utr}`));
+                            const existingProofId = existingClaimSnap.exists() ? existingClaimSnap.val().proofId : null;
+                            const existingProofSnap = existingProofId ? await get(ref(db, `payment_proofs/${existingProofId}`)) : null;
+                            const existingStatus = existingProofSnap && existingProofSnap.exists() ? existingProofSnap.val().status : null;
+
+                            if (existingStatus === 'Approved') {
+                                return window.showVerifyError("This payment was already verified and credited to your wallet -- no need to resubmit. Check your Deposit History.");
+                            } else if (existingStatus === 'Pending') {
+                                return window.showVerifyError("This payment is already on file and waiting for admin review -- no need to resubmit. Check your Pending Payments page.");
+                            } else if (existingStatus === 'Rejected') {
+                                const reason = existingProofSnap.val().rejectionReason;
+                                return window.showVerifyError(`This UTR was already reviewed and rejected${reason ? ': ' + reason : '.'} If you believe this is a mistake, contact support -- don't resubmit the same UTR.`);
+                            }
+                        } catch (lookupErr) {
+                            console.warn('[Claim] could not look up existing claim status:', lookupErr);
+                        }
+                        return window.showVerifyError("This UTR has already been submitted for verification. Each transaction ID can only be used once. If you're making a NEW payment, double-check you copied the correct UTR from your latest bank SMS.");
+                    }
+                } else {
+                    proofId = claimResult.proofId;
                 }
-                proofId = claimResult.proofId;
             } catch (claimErr) {
                 console.error("[DEBUG] Failed to file payment request:", claimErr);
                 restoreButton();
