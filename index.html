@@ -3457,17 +3457,9 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             // 🐛 ROOT-CAUSE FIX for auto-verify silently missing real payments: this used to only
             // claim the UTR and create the Pending payment_proofs record AFTER a 60-second
             // timeout. That meant if the bank SMS arrived DURING the normal wait (the most common
-            // timing -- SMS usually lands within seconds to ~1 minute of paying) while the tab was
-            // backgrounded (user checking their UPI app, phone locked, totally normal), there was
-            // NO record yet for the SMS webhook's retroactive-match step to find -- the webhook ran
-            // once, found nothing to match against, and never got another chance. The payment then
-            // sat "stuck" needing manual admin review even though auto-verify had everything it
-            // needed, just in the wrong order. Fix: claim the UTR and create the Pending proof
-            // IMMEDIATELY, before any waiting starts, so the webhook can always find it whenever
-            // the SMS actually arrives -- regardless of what the browser tab is doing.
             let proofId = null;
             try {
-                const claimResult = await withTimeout((async () => {
+                const attemptClaim = () => (async () => {
                     const utrClaimRef = ref(db, `payment_utr_index/${utr}`);
                     const claim = await runTransaction(utrClaimRef, (current) => {
                         if (current !== null) return; // already claimed by someone -- abort
@@ -3489,11 +3481,54 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     await set(utrClaimRef, { userId: currentUser.uid, proofId: proofRef.key, claimedAt: Date.now() });
                     depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
                     return { committed: true, proofId: proofRef.key };
-                })(), 12000, 'CLAIM_TIMEOUT');
+                })();
+
+                // 🐛 FIX: a single 12s timeout on the very first attempt was too trigger-happy --
+                // a merely-slow-but-working mobile connection (not actually dead) would get flagged
+                // as "connection dropped" and force the user to manually retry every time. Now
+                // retries automatically up to 3 times with a short backoff before ever bothering
+                // the user, since most of these are transient blips that resolve within a couple
+                // seconds on their own.
+                let claimResult = null;
+                let lastClaimErr = null;
+                for (let attempt = 1; attempt <= 3; attempt++) {
+                    try {
+                        claimResult = await withTimeout(attemptClaim(), 10000, 'CLAIM_TIMEOUT');
+                        lastClaimErr = null;
+                        break;
+                    } catch (err) {
+                        lastClaimErr = err;
+                        console.warn(`[Claim] attempt ${attempt}/3 failed:`, err.message);
+                        if (attempt < 3) await new Promise(r => setTimeout(r, 1500 * attempt));
+                    }
+                }
+                if (lastClaimErr) throw lastClaimErr; // all 3 attempts failed -- genuinely down
 
                 if (!claimResult.committed) {
                     restoreButton();
-                    return window.showVerifyError("This UTR has already been submitted for verification. Each transaction ID can only be used once. If this is a mistake, contact support.");
+                    // 🐛 FIX: this used to always say "contact support", which reads as a flat
+                    // rejection -- confusing and alarming when the ORIGINAL submission of this UTR
+                    // actually went through fine (very likely, since a duplicate almost always
+                    // means "I already did this" not "something is broken"). Look up what actually
+                    // happened and tell the user the truth instead of guessing.
+                    try {
+                        const existingClaimSnap = await get(ref(db, `payment_utr_index/${utr}`));
+                        const existingProofId = existingClaimSnap.exists() ? existingClaimSnap.val().proofId : null;
+                        const existingProofSnap = existingProofId ? await get(ref(db, `payment_proofs/${existingProofId}`)) : null;
+                        const existingStatus = existingProofSnap && existingProofSnap.exists() ? existingProofSnap.val().status : null;
+
+                        if (existingStatus === 'Approved') {
+                            return window.showVerifyError("This payment was already verified and credited to your wallet -- no need to resubmit. Check your Deposit History.");
+                        } else if (existingStatus === 'Pending') {
+                            return window.showVerifyError("This payment is already on file and waiting for admin review -- no need to resubmit. Check your Pending Payments page.");
+                        } else if (existingStatus === 'Rejected') {
+                            const reason = existingProofSnap.val().rejectionReason;
+                            return window.showVerifyError(`This UTR was already reviewed and rejected${reason ? ': ' + reason : '.'} If you believe this is a mistake, contact support -- don't resubmit the same UTR.`);
+                        }
+                    } catch (lookupErr) {
+                        console.warn('[Claim] could not look up existing claim status:', lookupErr);
+                    }
+                    return window.showVerifyError("This UTR has already been submitted for verification. Each transaction ID can only be used once. If you're making a NEW payment, double-check you copied the correct UTR from your latest bank SMS.");
                 }
                 proofId = claimResult.proofId;
             } catch (claimErr) {
@@ -3501,7 +3536,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 restoreButton();
                 return window.showVerifyError(
                     claimErr.message === 'CLAIM_TIMEOUT'
-                        ? "Your connection dropped while filing this request. Please check your internet and tap Verify Payment again."
+                        ? "Your connection is having trouble reaching our servers after several attempts. Please check your internet and try again in a moment."
                         : "Could not submit your payment request. Please check your connection and try again."
                 );
             }
