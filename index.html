@@ -1742,7 +1742,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence, EmailAuthProvider, reauthenticateWithCredential, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getDatabase, ref, get, set, update, onValue, off, push, query, orderByChild, equalTo, onChildChanged, runTransaction } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+        import { getDatabase, ref, get, set, update, onValue, off, push, query, orderByChild, equalTo, onChildChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
@@ -3461,22 +3461,35 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             const submissionStartedAt = Date.now();
             if (loadingSub) loadingSub.innerText = 'Filing your payment request...';
             try {
+                // 🐛 ARCHITECTURE FIX: this used to use runTransaction() to atomically claim the
+                // UTR. After several rounds of chasing transaction-callback edge cases (the
+                // undefined-vs-null quirk, ambiguous "committed:false" outcomes, SDK-internal
+                // retry invocations with surprising intermediate values), the transaction
+                // mechanism itself was the recurring source of bugs -- not any one specific check
+                // inside it. Replaced with a much simpler, more predictable pattern: check if the
+                // UTR exists, and if not, write it. The database security rule's
+                // "!data.exists()" condition is the REAL enforcement -- if two submissions ever
+                // race in the tiny window between the check and the write, the loser's write is
+                // cleanly REJECTED by the rule (a clear, unambiguous permission-denied error, not
+                // a transaction callback that can be invoked multiple times with different
+                // guessed values). Simpler code, fewer ways to fail, easier to reason about.
                 const attemptClaim = () => (async () => {
                     const utrClaimRef = ref(db, `payment_utr_index/${utr}`);
-                    const claim = await runTransaction(utrClaimRef, (current) => {
-                        // 🐛 THE ACTUAL BUG: Firebase can invoke this with `undefined` (not `null`)
-                        // for a path that's never been locally synced before -- true for EVERY
-                        // brand-new UTR, since these are random 12-digit numbers nobody has ever
-                        // fetched. `undefined !== null` is `true` in JS, so the old strict check
-                        // below was treating a genuinely EMPTY, never-used UTR as "already claimed"
-                        // and aborting -- consistently, on every fresh submission, which is exactly
-                        // what was being reported. A truthy check correctly treats null, undefined,
-                        // or any other empty value as "no existing claim" -- only an actual claim
-                        // object (always truthy) blocks it.
-                        if (current) return; // already claimed by someone -- abort
-                        return { userId: currentUser.uid, claimedAt: Date.now() };
-                    });
-                    if (!claim.committed) return { committed: false };
+                    const existingSnap = await get(utrClaimRef);
+                    if (existingSnap.exists()) return { committed: false };
+
+                    try {
+                        await set(utrClaimRef, { userId: currentUser.uid, claimedAt: Date.now() });
+                    } catch (writeErr) {
+                        // Lost a genuine race (extremely rare -- two submissions of the exact same
+                        // UTR within milliseconds of each other) -- the security rule rejected this
+                        // write because the other one landed first. Treat exactly like "already
+                        // claimed" rather than a hard failure.
+                        if (writeErr && (writeErr.code === 'PERMISSION_DENIED' || /permission_denied/i.test(writeErr.message || ''))) {
+                            return { committed: false };
+                        }
+                        throw writeErr;
+                    }
 
                     const proofRef = push(ref(db, 'payment_proofs'));
                     const proofData = {
