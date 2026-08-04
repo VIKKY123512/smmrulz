@@ -3464,7 +3464,16 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 const attemptClaim = () => (async () => {
                     const utrClaimRef = ref(db, `payment_utr_index/${utr}`);
                     const claim = await runTransaction(utrClaimRef, (current) => {
-                        if (current !== null) return; // already claimed by someone -- abort
+                        // 🐛 THE ACTUAL BUG: Firebase can invoke this with `undefined` (not `null`)
+                        // for a path that's never been locally synced before -- true for EVERY
+                        // brand-new UTR, since these are random 12-digit numbers nobody has ever
+                        // fetched. `undefined !== null` is `true` in JS, so the old strict check
+                        // below was treating a genuinely EMPTY, never-used UTR as "already claimed"
+                        // and aborting -- consistently, on every fresh submission, which is exactly
+                        // what was being reported. A truthy check correctly treats null, undefined,
+                        // or any other empty value as "no existing claim" -- only an actual claim
+                        // object (always truthy) blocks it.
+                        if (current) return; // already claimed by someone -- abort
                         return { userId: currentUser.uid, claimedAt: Date.now() };
                     });
                     if (!claim.committed) return { committed: false };
