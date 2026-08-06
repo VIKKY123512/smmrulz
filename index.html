@@ -795,39 +795,11 @@
         </div>
     </div>
 
-    <!-- TASK 5/7: Premium Auto-Verify Payment modal -->
-    <div id="verify-payment-modal" class="verify-modal-overlay">
-        <div class="verify-modal-box">
-            <div id="verify-state-loading" class="verify-state">
-                <div class="verify-spinner-ring"><i class="fa-solid fa-bolt"></i></div>
-                <h3>Confirming Payment...</h3>
-                <p class="verify-sub" id="verify-loading-sub">Please wait while we confirm your payment</p>
-            </div>
-            <div id="verify-state-success" class="verify-state" style="display:none;">
-                <div class="verify-check-circle">
-                    <svg viewBox="0 0 52 52"><circle class="verify-check-circle-bg" cx="26" cy="26" r="23"/><path class="verify-check-mark" d="M14 27l7 7 16-16"/></svg>
-                </div>
-                <h3 style="color:var(--success);">Payment Verified Successfully</h3>
-                <div id="verify-success-details" class="verify-details-box"></div>
-                <div style="display:flex; gap:10px; margin-top:20px;">
-                    <button class="btn" onclick="window.closeVerifyModal()" style="flex:1;">Done</button>
-                    <button class="btn" id="verify-receipt-btn" style="flex:1; background:var(--bg-bottom); color:var(--text-dark); border:1px solid var(--border-color); box-shadow:none;"><i class="fa-solid fa-download"></i> Receipt</button>
-                </div>
-            </div>
-            <div id="verify-state-error" class="verify-state" style="display:none;">
-                <div class="verify-error-circle"><i class="fa-solid fa-xmark"></i></div>
-                <h3 style="color:var(--danger);">Verification Failed</h3>
-                <p class="verify-sub" id="verify-error-msg">Payment not found. If you just paid, please wait a minute and try again.</p>
-                <button class="btn" onclick="window.closeVerifyModal()" style="width:100%; margin-top:15px;">Close</button>
-            </div>
-        </div>
-    </div>
-
     <!-- BUILD VERSION MARKER: bump this string every time this file is delivered. If what you
          see live on smmrulz.xyz doesn't show this exact version in the footer, the site is
          running stale/cached code, not what's actually in the zip you deployed. This ends the
          "is this even live" guessing game -- one glance at any page footer answers it. -->
-    <div id="build-version-tag" style="position:fixed; bottom:2px; right:6px; font-size:9px; color:#9CA3AF; z-index:9999; font-family:monospace; opacity:0.6; pointer-events:none;">v2026.07.26-13:40-orders-index-fix</div>
+    <div id="build-version-tag" style="position:fixed; bottom:2px; right:6px; font-size:9px; color:#9CA3AF; z-index:9999; font-family:monospace; opacity:0.6; pointer-events:none;">v2026.08.04-vyapargateway</div>
     <div id="app-layout">
         <header style="position: relative;">
             <div class="header-logo brand-glow"><span>S</span><span>M</span><span>M</span><span>R</span><span>u</span><span>l</span><span>z</span></div>
@@ -913,7 +885,6 @@
                     <div class="nav-item orders-history" onclick="window.switchView('orders-history')"><i class="fa-solid fa-clock-rotate-left"></i> Order History</div>
                     <div class="nav-item add-funds" onclick="window.switchView('add-funds')"><i class="fa-solid fa-money-bill-transfer"></i> Add Funds</div>
                     <div class="nav-item deposit-history" onclick="window.switchView('deposit-history')"><i class="fa-solid fa-file-invoice-dollar"></i> Deposit History</div>
-                    <div class="nav-item pending-payments" onclick="window.switchView('pending-payments')"><i class="fa-solid fa-hourglass-half"></i> Pending Payments <span id="badge-pending-payments" style="background:var(--warning); color:#000; font-size:10px; font-weight:800; padding:1px 7px; border-radius:50px; margin-left:auto; display:none;">0</span></div>
                     <div class="nav-item transactions" onclick="window.switchView('transactions')"><i class="fa-solid fa-money-bill-transfer"></i> Transactions</div>
                     <div class="nav-item support" onclick="window.switchView('support')"><i class="fa-solid fa-headset"></i> Support</div>
                     <div class="nav-item account-settings" onclick="window.switchView('account-settings')"><i class="fa-solid fa-user-gear"></i> Account</div>
@@ -1210,38 +1181,33 @@
                         <div id="add-funds-intro" class="card" style="text-align: center; padding: 40px 20px;">
                             <i class="fa-solid fa-wallet" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
                             <h3 style="margin-bottom: 20px; color: var(--text-dark);">Ready to top up your wallet?</h3>
-                            <button class="btn" onclick="window.showPaymentDetails()" style="max-width: 250px; margin: 0 auto; padding: 14px;"><i class="fa-solid fa-plus-circle"></i> Click here to Add Funds</button>
+                            <div class="input-group" style="max-width: 280px; margin: 0 auto 18px auto; text-align: left;">
+                                <label>Amount (₹, Indian Rupees)</label>
+                                <input type="number" id="vyapar-amount-input" placeholder="Minimum ₹10" min="10" max="100000" step="1">
+                            </div>
+                            <button class="btn" id="vyapar-generate-btn" onclick="window.generateVyaparQr()" style="max-width: 280px; margin: 0 auto; padding: 14px;"><i class="fa-solid fa-qrcode"></i> Generate QR & Pay</button>
+                            <p style="font-size: 11px; color: var(--text-gray); margin-top: 14px;">Secure UPI payments powered by VyaparGateway. Your wallet is credited automatically the instant payment completes -- no manual steps.</p>
                         </div>
 
-                        <div class="card" id="payment-details-section" style="display: none;">
-                            <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--primary); text-align: center;">Scan QR Code to Pay</h3>
-                            <div style="text-align: center; margin-bottom: 20px;">
-                                <img id="payment-qr-img" src="" alt="Payment QR Code" style="max-width: 250px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: 0 auto 15px auto;">
-                                <p id="payment-upi-id" style="font-weight: 700; font-size: 15px; color: var(--text-dark);"></p>
-                            </div>
+                        <div class="card" id="payment-details-section" style="display: none; text-align: center;">
+                            <h3 style="font-size: 16px; margin-bottom: 6px; color: var(--primary);">Scan QR Code to Pay</h3>
+                            <p style="font-size: 22px; font-weight: 800; color: var(--text-dark); margin-bottom: 15px;" id="vyapar-qr-amount">₹0.00</p>
 
-                            <div class="glowing-warning">
-                                <h4><i class="fa-solid fa-triangle-exclamation"></i> Important</h4>
-                                <p style="font-size: 13.5px; color: #ffffff; font-weight: 600;">Minimum ₹10 (Indian Rupees only -- this is a real UPI bank transfer, regardless of your display currency above). Pay the exact amount you plan to submit below, then enter your 12-digit UTR/Reference number from the payment confirmation.</p>
-                            </div>
+                            <img id="vyapar-qr-img" src="" alt="Payment QR Code" style="max-width: 240px; width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: 0 auto 12px auto; display:block;">
 
-                            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 25px 0;">
-                            <h3 style="font-size: 15px; margin-bottom: 15px; color: var(--primary);">Submit Payment Details</h3>
-                            <form id="proof-form" onsubmit="window.submitPaymentProof(event)">
-                                <div class="flex-row">
-                                    <div class="input-group">
-                                        <label>Transaction ID / UTR (12 Digits)</label>
-                                        <input type="text" id="proof-txid" placeholder="Paste 12-digit UTR here" inputmode="numeric" minlength="12" maxlength="12" pattern="\d{12}" required>
-                                    </div>
-                                    <div class="input-group">
-                                        <label>Amount Paid (₹)</label>
-                                        <input type="number" id="proof-amount" placeholder="Minimum ₹10" min="10" step="0.01" required>
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn" id="proof-submit-btn" style="width: 100%; padding: 14px;"><i class="fa-solid fa-bolt"></i> Verify Payment</button>
-                                <p style="font-size: 11px; color: var(--text-gray); margin-top: 10px; text-align: center;">We'll try to verify this instantly. If it's not matched right away, it goes to admin review — you'll be notified either way.</p>
-                            </form>
-                            <button class="btn" onclick="window.hidePaymentDetails()" style="background: var(--bg-bottom); color: var(--text-dark); margin-top: 15px; box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Go Back</button>
+                            <p id="vyapar-countdown" style="font-weight: 700; color: var(--danger); font-size: 14px; margin-bottom: 4px;"><i class="fa-solid fa-clock"></i> Complete payment in 2:00</p>
+                            <p id="vyapar-status-text" style="font-size: 12.5px; color: var(--text-gray); margin-bottom: 18px;">Waiting for payment...</p>
+
+                            <div id="vyapar-intent-buttons" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom: 18px;"></div>
+
+                            <button class="btn" onclick="window.cancelVyaparQr()" style="background: var(--bg-bottom); color: var(--text-dark); box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Cancel & Go Back</button>
+                        </div>
+
+                        <div class="card" id="vyapar-success-section" style="display:none; text-align:center; padding: 40px 20px;">
+                            <i class="fa-solid fa-circle-check" style="font-size: 56px; color: var(--success); margin-bottom: 16px;"></i>
+                            <h3 style="color: var(--text-dark); margin-bottom: 8px;">Payment Successful!</h3>
+                            <p id="vyapar-success-detail" style="color: var(--text-gray); font-size: 14px; margin-bottom: 20px;"></p>
+                            <button class="btn" onclick="window.switchView('deposit-history')" style="max-width: 220px; margin: 0 auto;">View Deposit History</button>
                         </div>
                     </div>
                 </div>
@@ -1254,21 +1220,6 @@
                                 <table>
                                     <thead><tr><th>Date & Time</th><th>Amount (<span class="cur-sym">₹</span>)</th><th>Payment ID</th><th>Method</th><th>Status</th><th>Receipt</th></tr></thead>
                                     <tbody id="deposit-history-table"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="pending-payments" class="view">
-                    <div class="page-content">
-                        <h1 class="page-title">⏳ Pending Payments</h1>
-                        <p style="color:var(--text-gray); margin-top:-10px; margin-bottom:16px; font-size:13.5px;">Payments here are waiting for admin manual review (auto-verification didn't find a match in time). Your wallet updates automatically the moment admin approves -- no refresh needed.</p>
-                        <div class="card" style="padding: 10px;">
-                            <div class="table-wrapper" style="border: none;">
-                                <table>
-                                    <thead><tr><th>Date & Time</th><th>Amount (₹)</th><th>UTR</th><th>Status</th></tr></thead>
-                                    <tbody id="pending-payments-table"><tr><td colspan="4" align="center">No pending payments. 🎉</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -1632,44 +1583,6 @@
             if(isOpened){ overlay.classList.add('show'); } else { overlay.classList.remove('show'); }
         };
 
-        // ===== Razorpay payment modal controllers (reuses the existing modal shell) =====
-        window.openVerifyModal = function() {
-            document.getElementById('verify-state-loading').style.display = 'block';
-            document.getElementById('verify-state-success').style.display = 'none';
-            document.getElementById('verify-state-error').style.display = 'none';
-            document.getElementById('verify-payment-modal').classList.add('show');
-        };
-        window.closeVerifyModal = function() {
-            document.getElementById('verify-payment-modal').classList.remove('show');
-        };
-        window.showVerifySuccess = function(details) {
-            document.getElementById('verify-state-loading').style.display = 'none';
-            document.getElementById('verify-state-error').style.display = 'none';
-            const title = details.pending ? 'Payment Request Submitted' : 'Payment Verified Successfully';
-            const heading = document.querySelector('#verify-state-success h3');
-            if (heading) { heading.innerText = title; heading.style.color = details.pending ? 'var(--warning)' : 'var(--success)'; }
-            document.getElementById('verify-success-details').innerHTML = details.pending
-                ? `
-                    <div>Amount Claimed: <b>${window.fmtMoney(details.amount)}</b></div>
-                    <div>UTR: <b>${window.safeHTML(details.utr)}</b></div>
-                    <div style="margin-top:8px; color:var(--text-gray);">Not instantly matched -- your request is now <b>pending admin review</b>. You'll be notified once it's verified.</div>
-                  `
-                : `
-                    <div>Amount Credited: <b>${window.fmtMoney(details.amount)}</b></div>
-                    <div>UTR: <b>${window.safeHTML(details.utr)}</b></div>
-                    <div>Method: <b>${window.safeHTML(details.method || 'UPI')}</b></div>
-                  `;
-            document.getElementById('verify-state-success').style.display = 'block';
-            const receiptBtn = document.getElementById('verify-receipt-btn');
-            if (receiptBtn) receiptBtn.style.display = 'none';
-        };
-        window.showVerifyError = function(message) {
-            document.getElementById('verify-state-loading').style.display = 'none';
-            document.getElementById('verify-state-success').style.display = 'none';
-            document.getElementById('verify-error-msg').innerText = message || 'Payment verification failed. If money was deducted, contact support.';
-            document.getElementById('verify-state-error').style.display = 'block';
-        };
-
         // ===== TASK 7: Receipt download (HTML file) =====
         window.downloadReceipt = function(depositId) {
             const p = depositsCache[depositId];
@@ -1695,7 +1608,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
     <div class="row"><span>Transaction ID</span><span>${window.safeHTML(p.id)}</span></div>
     <div class="row"><span>Payment ID</span><span>${window.safeHTML(p.txid)}</span></div>
     <div class="row"><span>Amount</span><span>₹${parseFloat(p.amount).toFixed(2)}</span></div>
-    <div class="row"><span>Payment Method</span><span>${window.safeHTML(p.method || 'Razorpay')}</span></div>
+    <div class="row"><span>Payment Method</span><span>${window.safeHTML(p.method || 'UPI')}</span></div>
     <div class="row"><span>Status</span><span class="status">${window.safeHTML(statusText)}</span></div>
     <div class="row" style="border-bottom:none;"><span>Date &amp; Time</span><span>${new Date(p.timestamp).toLocaleString()}</span></div>
   </div>
@@ -2156,13 +2069,6 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             onValue(ref(db, 'services'), (snap) => {
                 globalServices = snap.val() || {};
                 renderServices();
-            });
-            onValue(ref(db, 'settings/upiConfig'), (snap) => {
-                const u = snap.val() || {};
-                const qrImg = document.getElementById('payment-qr-img');
-                const upiIdText = document.getElementById('payment-upi-id');
-                if (qrImg) qrImg.src = u.qrUrl || '';
-                if (upiIdText) upiIdText.innerText = u.upiId ? `UPI ID: ${u.upiId}` : '';
             });
             onValue(ref(db, 'settings/socials'), (snap) => {
                 const s = snap.val() || {};
@@ -3055,24 +2961,9 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 userDepositsList.forEach(p => {
                     let badge = '<span class="badge bg-pending">Pending</span>'; let statusText = p.status || 'Pending';
                     if(statusText.toLowerCase() === 'successful' || statusText.toLowerCase() === 'approved') badge = '<span class="badge bg-completed">Approved</span>'; if(statusText.toLowerCase() === 'failed' || statusText.toLowerCase() === 'rejected') badge = '<span class="badge bg-canceled">Rejected</span>';
-                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">${window.fmtMoney(p.amount)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'Razorpay')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
+                    html += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">${window.fmtMoney(p.amount)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td><small>${window.safeHTML(p.method || 'UPI')}</small></td><td>${badge}</td><td><button class="btn" onclick="window.downloadReceipt('${p.id}')" style="width:auto; padding:6px 10px; font-size:12px;"><i class="fa-solid fa-download"></i></button></td></tr>`;
                 });
                 document.getElementById('deposit-history-table').innerHTML = html || '<tr><td colspan="6" align="center">No deposit history found.</td></tr>';
-
-                // Dedicated Pending Payments page -- same underlying data, filtered to items still
-                // waiting on admin review. Amount shown in real ₹ here deliberately (matches what
-                // the user actually paid via UPI), not the display-currency conversion used
-                // elsewhere, to avoid any confusion about what was really submitted.
-                const pendingOnly = userDepositsList.filter(p => (p.status || 'Pending') === 'Pending');
-                let pendingHtml = '';
-                pendingOnly.forEach(p => {
-                    const statusLabel = '<span class="badge bg-pending">Waiting for Admin</span>';
-                    pendingHtml += `<tr><td><small>${new Date(p.timestamp).toLocaleString()}</small></td><td style="color:var(--success); font-weight:700;">₹${parseFloat(p.amount).toFixed(2)}</td><td><small>${window.safeHTML(p.txid)}</small></td><td>${statusLabel}</td></tr>`;
-                });
-                const pendingTableEl = document.getElementById('pending-payments-table');
-                if (pendingTableEl) pendingTableEl.innerHTML = pendingHtml || '<tr><td colspan="4" align="center">No pending payments. 🎉</td></tr>';
-                const pendingBadgeEl = document.getElementById('badge-pending-payments');
-                if (pendingBadgeEl) { pendingBadgeEl.style.display = pendingOnly.length ? 'inline-block' : 'none'; pendingBadgeEl.innerText = pendingOnly.length; }
 
                 const transElement = document.getElementById('stat-total-transactions');
                 if (transElement) transElement.innerText = userDepositsList.length;
@@ -3403,278 +3294,150 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
         };
 
-        // ===== MANUAL UPI PAYMENT FLOW (Razorpay removed) =====
-        // Razorpay rejected this business under its Standard Web Checkout onboarding because
-        // "Social Media Boosting" falls outside categories it currently supports -- this isn't
-        // fixable by changing website copy, it's a category-level policy decision on their end.
-        // Reverted to manual UPI with an optional instant auto-verify path: if you've set up
-        // SMS-forwarding (see the admin panel's UPI Settings for setup instructions), a payment
-        // can be credited within seconds of the bank SMS arriving. If not, or if the SMS hasn't
-        // landed yet, it falls back to a Pending request for manual admin review -- exactly the
-        // system built earlier this conversation, restored here.
-        const MAX_PENDING_REQUESTS = 3;
 
-        window.showPaymentDetails = function() {
-            document.getElementById('add-funds-intro').style.display = 'none';
-            document.getElementById('payment-details-section').style.display = 'block';
-        };
-        window.hidePaymentDetails = function() {
-            document.getElementById('payment-details-section').style.display = 'none';
-            document.getElementById('add-funds-intro').style.display = 'block';
-        };
+        // ===== VYAPARGATEWAY UPI QR PAYMENT FLOW =====
+        // Real payment gateway integration -- replaces the old Razorpay integration and the
+        // SMS-forwarder/UTR manual-entry system entirely. Flow: user enters an amount -> backend
+        // creates a dynamic QR order via VyaparGateway -> user scans and pays -> VyaparGateway's
+        // webhook credits the wallet server-side the instant payment completes. This page ALSO
+        // actively polls /api/vyapar/check-status as a second, redundant path to the same result
+        // (whichever arrives first wins, both funnel through the same idempotent backend credit
+        // function) -- so a user watching the screen sees success immediately even if the webhook
+        // is a few seconds behind, without depending on it alone.
+        let vyaparPoll = null;
+        let vyaparCountdownTimer = null;
+        let vyaparCurrentOrderId = null;
 
-        window.submitPaymentProof = async function(e) {
-            e.preventDefault();
-
-            const utr = document.getElementById('proof-txid').value.trim();
-            const amountInput = document.getElementById('proof-amount').value;
+        window.generateVyaparQr = async function() {
+            const amountInput = document.getElementById('vyapar-amount-input').value;
             const amount = parseFloat(amountInput);
-
-            if (!/^\d{12}$/.test(utr)) {
-                return window.showToast("Invalid Transaction ID! UTR must be exactly 12 digits.", "error");
-            }
             if (!amountInput || isNaN(amount) || amount < 10) {
                 return window.showToast("Minimum amount is ₹10.", "error");
             }
-            if (!currentUser) {
-                return window.showToast("Please sign in again before submitting.", "error");
+            if (amount > 100000) {
+                return window.showToast("Maximum amount is ₹1,00,000 per transaction.", "error");
             }
 
-            const pendingCount = Object.values(depositsCache || {}).filter(p => (p.status || 'Pending') === 'Pending').length;
-            if (pendingCount >= MAX_PENDING_REQUESTS) {
-                return window.showToast(`You already have ${pendingCount} payment requests awaiting review. Please wait for those to be verified before submitting more.`, "error");
-            }
-
-            const btn = document.getElementById('proof-submit-btn');
+            const btn = document.getElementById('vyapar-generate-btn');
             const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating QR...';
 
-            window.openVerifyModal();
-            const loadingSub = document.getElementById('verify-loading-sub');
-            const restoreButton = () => { btn.disabled = false; btn.innerHTML = originalText; };
-
-            // 🐛 ROOT-CAUSE FIX for auto-verify silently missing real payments: this used to only
-            // claim the UTR and create the Pending payment_proofs record AFTER a 60-second
-            // timeout. That meant if the bank SMS arrived DURING the normal wait (the most common
-            let proofId = null;
-            const submissionStartedAt = Date.now();
-            if (loadingSub) loadingSub.innerText = 'Filing your payment request...';
             try {
-                // 🐛 ARCHITECTURE FIX: this used to use runTransaction() to atomically claim the
-                // UTR. After several rounds of chasing transaction-callback edge cases (the
-                // undefined-vs-null quirk, ambiguous "committed:false" outcomes, SDK-internal
-                // retry invocations with surprising intermediate values), the transaction
-                // mechanism itself was the recurring source of bugs -- not any one specific check
-                // inside it. Replaced with a much simpler, more predictable pattern: check if the
-                // UTR exists, and if not, write it. The database security rule's
-                // "!data.exists()" condition is the REAL enforcement -- if two submissions ever
-                // race in the tiny window between the check and the write, the loser's write is
-                // cleanly REJECTED by the rule (a clear, unambiguous permission-denied error, not
-                // a transaction callback that can be invoked multiple times with different
-                // guessed values). Simpler code, fewer ways to fail, easier to reason about.
-                const attemptClaim = () => (async () => {
-                    const utrClaimRef = ref(db, `payment_utr_index/${utr}`);
-                    const existingSnap = await get(utrClaimRef);
-                    if (existingSnap.exists()) return { committed: false };
+                const { ok, data } = await apiFetch('/api/vyapar/create-order', {
+                    method: 'POST',
+                    body: JSON.stringify({ amount })
+                });
 
-                    try {
-                        await set(utrClaimRef, { userId: currentUser.uid, claimedAt: Date.now() });
-                    } catch (writeErr) {
-                        // Lost a genuine race (extremely rare -- two submissions of the exact same
-                        // UTR within milliseconds of each other) -- the security rule rejected this
-                        // write because the other one landed first. Treat exactly like "already
-                        // claimed" rather than a hard failure.
-                        if (writeErr && (writeErr.code === 'PERMISSION_DENIED' || /permission_denied/i.test(writeErr.message || ''))) {
-                            return { committed: false };
-                        }
-                        throw writeErr;
-                    }
-
-                    const proofRef = push(ref(db, 'payment_proofs'));
-                    const proofData = {
-                        userId: currentUser.uid,
-                        email: currentUser.email,
-                        amount: amount,
-                        txid: utr,
-                        method: 'UPI',
-                        status: 'Pending',
-                        timestamp: Date.now()
-                    };
-                    await set(proofRef, proofData);
-                    await set(utrClaimRef, { userId: currentUser.uid, proofId: proofRef.key, claimedAt: Date.now() });
-                    depositsCache[proofRef.key] = { id: proofRef.key, ...proofData };
-                    return { committed: true, proofId: proofRef.key };
-                })();
-
-                // Retries automatically up to 3 times with a short backoff before ever bothering
-                // the user, since most timeouts are transient blips that resolve on their own.
-                let claimResult = null;
-                let lastClaimErr = null;
-                for (let attempt = 1; attempt <= 3; attempt++) {
-                    try {
-                        claimResult = await withTimeout(attemptClaim(), 15000, 'CLAIM_TIMEOUT');
-                        lastClaimErr = null;
-                        break;
-                    } catch (err) {
-                        lastClaimErr = err;
-                        console.warn(`[Claim] attempt ${attempt}/3 failed:`, err.message);
-                        if (attempt < 3) {
-                            if (loadingSub) loadingSub.innerText = `Still filing your request, retrying (${attempt}/3)...`;
-                            await new Promise(r => setTimeout(r, 1500 * attempt));
-                        }
-                    }
+                if (!ok || !data.success) {
+                    window.showToast(data.error || "Could not generate QR code. Please try again.", "error");
+                    btn.disabled = false; btn.innerHTML = originalText;
+                    return;
                 }
-                if (lastClaimErr) throw lastClaimErr; // all 3 attempts failed -- genuinely down
 
-                if (!claimResult.committed) {
-                    // 🐛 ROOT-CAUSE FIX: a real self-collision race. If attempt 1 times out on the
-                    // client (withTimeout gives up at 10s) but the underlying Firebase write was
-                    // still in flight and actually completes moments later, attempt 2's retry sees
-                    // the UTR as "already claimed" -- by its OWN attempt 1, not by any separate or
-                    // earlier submission. That was being reported as "This UTR has already been
-                    // submitted", wrongly rejecting a completely fresh, never-used UTR on the
-                    // user's very first (and only) real attempt. Fix: check WHEN the existing claim
-                    // was made. If it happened during THIS SAME submission (a few seconds ago, not
-                    // some earlier session), it's this submission's own successful write racing
-                    // ahead of its own timeout -- adopt it and continue normally as a success,
-                    // instead of showing an error for something that actually worked.
-                    let selfCollision = false;
-                    try {
-                        const existingClaimSnap = await get(ref(db, `payment_utr_index/${utr}`));
-                        if (existingClaimSnap.exists()) {
-                            const existingClaim = existingClaimSnap.val();
-                            const isOwnAttempt = existingClaim.userId === currentUser.uid && existingClaim.claimedAt >= submissionStartedAt - 3000;
-                            if (isOwnAttempt && existingClaim.proofId) {
-                                proofId = existingClaim.proofId;
-                                selfCollision = true;
-                                console.log('[Claim] Recovered from a self-collision -- attempt 1 actually succeeded after its own timeout fired. Continuing normally.');
-                            }
-                        }
-                    } catch (recoverErr) {
-                        console.warn('[Claim] Could not check for self-collision:', recoverErr);
-                    }
+                vyaparCurrentOrderId = data.orderId;
+                document.getElementById('vyapar-qr-img').src = data.qrCode;
+                document.getElementById('vyapar-qr-amount').innerText = window.fmtMoney(amount);
+                document.getElementById('add-funds-intro').style.display = 'none';
+                document.getElementById('vyapar-success-section').style.display = 'none';
+                document.getElementById('payment-details-section').style.display = 'block';
+                document.getElementById('vyapar-status-text').innerText = 'Waiting for payment...';
 
-                    if (!selfCollision) {
-                        restoreButton();
-                        // Genuinely a duplicate from a separate/earlier submission -- this used to
-                        // always say "contact support", which reads as a flat rejection even when
-                        // the ORIGINAL submission actually went through fine. Look up what really
-                        // happened and tell the user the truth instead of guessing.
-                        try {
-                            const existingClaimSnap = await get(ref(db, `payment_utr_index/${utr}`));
-                            const existingProofId = existingClaimSnap.exists() ? existingClaimSnap.val().proofId : null;
-                            const existingProofSnap = existingProofId ? await get(ref(db, `payment_proofs/${existingProofId}`)) : null;
-                            const existingStatus = existingProofSnap && existingProofSnap.exists() ? existingProofSnap.val().status : null;
-
-                            if (existingStatus === 'Approved') {
-                                return window.showVerifyError("This payment was already verified and credited to your wallet -- no need to resubmit. Check your Deposit History.");
-                            } else if (existingStatus === 'Pending') {
-                                return window.showVerifyError("This payment is already on file and waiting for admin review -- no need to resubmit. Check your Pending Payments page.");
-                            } else if (existingStatus === 'Rejected') {
-                                const reason = existingProofSnap.val().rejectionReason;
-                                return window.showVerifyError(`This UTR was already reviewed and rejected${reason ? ': ' + reason : '.'} If you believe this is a mistake, contact support -- don't resubmit the same UTR.`);
-                            }
-                        } catch (lookupErr) {
-                            console.warn('[Claim] could not look up existing claim status:', lookupErr);
-                        }
-                        return window.showVerifyError("This UTR has already been submitted for verification. Each transaction ID can only be used once. If you're making a NEW payment, double-check you copied the correct UTR from your latest bank SMS.");
-                    }
-                } else {
-                    proofId = claimResult.proofId;
+                // Quick-launch buttons for common UPI apps, straight from the gateway's response.
+                const intentBtns = document.getElementById('vyapar-intent-buttons');
+                const intent = data.upiIntent || {};
+                const appLabels = { gpay_link: 'Google Pay', phonepe_link: 'PhonePe', paytm_link: 'Paytm', bhim_link: 'BHIM / Other' };
+                if (intentBtns) {
+                    intentBtns.innerHTML = Object.keys(appLabels)
+                        .filter(k => intent[k])
+                        .map(k => `<a href="${intent[k]}" class="btn" style="width:auto; padding:9px 16px; font-size:12.5px; text-decoration:none;">${appLabels[k]}</a>`)
+                        .join('');
                 }
-            } catch (claimErr) {
-                console.error("[DEBUG] Failed to file payment request:", claimErr);
-                restoreButton();
-                return window.showVerifyError(
-                    claimErr.message === 'CLAIM_TIMEOUT'
-                        ? "Your connection is having trouble reaching our servers after several attempts. Please check your internet and try again in a moment."
-                        : "Could not submit your payment request. Please check your connection and try again."
-                );
+
+                window.startVyaparCountdown(120); // VyaparGateway's own documented 2-minute window
+                window.startVyaparPolling(data.orderId);
+
+                btn.disabled = false; btn.innerHTML = originalText;
+            } catch (err) {
+                console.error('[Vyapar] create-order failed:', err);
+                window.showToast("Could not reach the payment server. Please check your connection.", "error");
+                btn.disabled = false; btn.innerHTML = originalText;
             }
+        };
 
-            // The Pending record now exists and is safe -- even if the user closes the tab this
-            // instant, admin will see it and the webhook can still auto-match it later. Everything
-            // from here on is just trying to get them an INSTANT answer instead of making them wait
-            // for manual review.
-            const AUTO_VERIFY_TIMEOUT_MS = 60000;
-            const POLL_INTERVAL_MS = 4000;
-            const startedAt = Date.now();
-            let settled = false; // guards against both the listener and the poll loop firing at once
-
-            // Live listener on the exact proof we just created -- this is what makes auto-verify
-            // resilient to the tab being backgrounded. If the SMS webhook's retroactive match
-            // fires while this tab is backgrounded/throttled, Firebase delivers the resulting
-            // status change the moment the connection resumes, however long that takes -- no
-            // active polling required for this path at all.
-            const proofRef = ref(db, `payment_proofs/${proofId}`);
-            const onProofChange = (snap) => {
-                if (settled) return;
-                const val = snap.val();
-                if (val && val.status === 'Approved' && val.autoVerified) {
-                    settled = true;
-                    off(proofRef, 'value', onProofChange);
-                    restoreButton();
-                    window.showVerifySuccess({ amount: val.amount, utr, method: 'UPI (Auto-Verified)' });
-                    e.target.reset();
-                    window.switchView('deposit-history');
-                }
+        window.startVyaparCountdown = function(totalSeconds) {
+            if (vyaparCountdownTimer) clearInterval(vyaparCountdownTimer);
+            let remaining = totalSeconds;
+            const el = document.getElementById('vyapar-countdown');
+            const render = () => {
+                const m = Math.floor(remaining / 60);
+                const s = remaining % 60;
+                if (el) el.innerHTML = `<i class="fa-solid fa-clock"></i> Complete payment in ${m}:${s.toString().padStart(2, '0')}`;
             };
-            onValue(proofRef, onProofChange);
+            render();
+            vyaparCountdownTimer = setInterval(() => {
+                remaining--;
+                if (remaining <= 0) { clearInterval(vyaparCountdownTimer); window.handleVyaparExpired(); return; }
+                render();
+            }, 1000);
+        };
 
-            try {
-                // Best-effort active checking in parallel with the listener above -- catches the
-                // case where the SMS already arrived (or arrives while this tab IS in the
-                // foreground) without waiting for the listener's next event.
-                while (!settled && Date.now() - startedAt < AUTO_VERIFY_TIMEOUT_MS) {
-                    const secsLeft = Math.max(1, Math.ceil((AUTO_VERIFY_TIMEOUT_MS - (Date.now() - startedAt)) / 1000));
-                    if (loadingSub) loadingSub.innerText = `Checking with your bank for a match... ${secsLeft}s`;
-
-                    try {
-                        const { ok, data } = await apiFetch('/api/verify-upi', {
-                            method: 'POST',
-                            body: JSON.stringify({ utr, amount })
-                        });
-                        if (settled) break; // the listener already won while this call was in flight
-                        if (ok && data.success && data.autoVerified) {
-                            settled = true;
-                            off(proofRef, 'value', onProofChange);
-                            restoreButton();
-                            window.showVerifySuccess({ amount: data.amount, utr, method: 'UPI (Auto-Verified)' });
-                            e.target.reset();
-                            window.switchView('deposit-history');
-                            return;
-                        }
-                    } catch (pollErr) {
-                        // A single failed poll (transient network blip, cold-starting serverless
-                        // function) shouldn't abandon the whole attempt -- log it and keep going;
-                        // the listener above is still live and can still catch a match too.
-                        console.warn('[UTR poll] one attempt failed, will retry:', pollErr);
-                    }
-
-                    const elapsed = Date.now() - startedAt;
-                    if (elapsed >= AUTO_VERIFY_TIMEOUT_MS - POLL_INTERVAL_MS) break;
-                    await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+        window.startVyaparPolling = function(orderId) {
+            if (vyaparPoll) clearInterval(vyaparPoll);
+            vyaparPoll = setInterval(async () => {
+                if (!vyaparCurrentOrderId || vyaparCurrentOrderId !== orderId) return;
+                try {
+                    const { ok, data } = await apiFetch('/api/vyapar/check-status', {
+                        method: 'POST',
+                        body: JSON.stringify({ orderId })
+                    });
+                    if (!ok) return; // transient error -- try again on the next tick
+                    if (data.status === 'success') window.handleVyaparSuccess(data.amount);
+                    else if (data.status === 'failed') window.handleVyaparFailed();
+                    else if (data.status === 'expired') window.handleVyaparExpired();
+                } catch (err) {
+                    console.warn('[Vyapar] status poll failed, will retry:', err);
                 }
+            }, 3000);
+        };
 
-                if (settled) return; // listener won during the final wait tick
+        window.stopVyaparTimers = function() {
+            if (vyaparPoll) { clearInterval(vyaparPoll); vyaparPoll = null; }
+            if (vyaparCountdownTimer) { clearInterval(vyaparCountdownTimer); vyaparCountdownTimer = null; }
+        };
 
-                // 1 minute of visible waiting is up with no instant match -- but unlike before,
-                // the Pending record already exists and the listener above (plus the webhook's
-                // retroactive match, plus the app-wide deposit-history listener) will still pick
-                // up an auto-match whenever it actually happens, even after this modal is closed.
-                off(proofRef, 'value', onProofChange);
-                restoreButton();
-                window.showVerifySuccess({ amount: amount, utr: utr, method: 'UPI (Pending Review)', pending: true });
-                e.target.reset();
-                window.hidePaymentDetails();
-                window.switchView('pending-payments');
-            } catch (error) {
-                console.error("[DEBUG] Payment verification wait failed:", error);
-                off(proofRef, 'value', onProofChange);
-                restoreButton();
-                window.showVerifyError("Something went wrong while checking your payment. Your request is safely filed under Pending Payments and will still be reviewed.");
-            }
+        window.handleVyaparSuccess = function(amount) {
+            window.stopVyaparTimers();
+            document.getElementById('payment-details-section').style.display = 'none';
+            document.getElementById('vyapar-success-section').style.display = 'block';
+            document.getElementById('vyapar-success-detail').innerText = amount
+                ? `${window.fmtMoney(amount)} has been added to your wallet.`
+                : 'Your wallet has been credited.';
+            window.showToast("Payment successful! Wallet credited.", "success");
+            vyaparCurrentOrderId = null;
+            document.getElementById('vyapar-amount-input').value = '';
+        };
+
+        window.handleVyaparFailed = function() {
+            window.stopVyaparTimers();
+            window.showToast("Payment failed. Please try again.", "error");
+            window.cancelVyaparQr();
+        };
+
+        window.handleVyaparExpired = function() {
+            window.stopVyaparTimers();
+            const statusEl = document.getElementById('vyapar-status-text');
+            if (statusEl) statusEl.innerText = 'This QR code has expired.';
+            window.showToast("Payment window expired. Please generate a new QR code.", "error");
+            setTimeout(() => window.cancelVyaparQr(), 1500);
+        };
+
+        window.cancelVyaparQr = function() {
+            window.stopVyaparTimers();
+            vyaparCurrentOrderId = null;
+            document.getElementById('payment-details-section').style.display = 'none';
+            document.getElementById('vyapar-success-section').style.display = 'none';
+            document.getElementById('add-funds-intro').style.display = 'block';
         };
 
         window.requestRefill = async function(orderId) {
