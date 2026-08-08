@@ -1189,71 +1189,91 @@
                     <div class="page-content">
                         <h1 class="page-title">Add Funds</h1>
 
-                        <div id="add-funds-intro" class="card" style="text-align: center; padding: 36px 24px;">
-                            <i class="fa-solid fa-wallet" style="font-size: 46px; color: var(--primary); margin-bottom: 16px;"></i>
-                            <h3 style="margin-bottom: 22px; color: var(--text-dark);">Ready to top up your wallet?</h3>
+                        <div id="add-funds-intro" class="card" style="text-align: center; padding: 0; overflow: hidden;">
+                            <div style="background: linear-gradient(135deg, var(--primary), #7C3AED); padding: 26px 24px 22px 24px; color: #fff;">
+                                <div style="font-size:13px; font-weight:800; letter-spacing:0.5px; opacity:0.9; margin-bottom:6px;"><i class="fa-solid fa-circle-check"></i> SMMRULZ OFFICIAL</div>
+                                <i class="fa-solid fa-wallet" style="font-size: 38px; margin-bottom: 10px; display:block;"></i>
+                                <h3 style="margin: 0; color: #fff; font-size: 18px;">Ready to top up your wallet?</h3>
+                                <p style="font-size:12px; opacity:0.85; margin-top:4px;">Instant, secure UPI payments -- credited automatically</p>
+                            </div>
 
-                            <div style="max-width: 320px; margin: 0 auto;">
-                                <label style="display:block; text-align:left; font-size:12.5px; font-weight:700; color:var(--text-gray); margin-bottom:8px;">Quick Amount</label>
-                                <div id="vyapar-quick-amounts" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:18px;">
-                                    <button type="button" class="quick-amount-chip" onclick="window.selectQuickAmount(10)">₹10</button>
-                                    <button type="button" class="quick-amount-chip" onclick="window.selectQuickAmount(20)">₹20</button>
-                                    <button type="button" class="quick-amount-chip" onclick="window.selectQuickAmount(50)">₹50</button>
-                                    <button type="button" class="quick-amount-chip" onclick="window.selectQuickAmount(80)">₹80</button>
-                                    <button type="button" class="quick-amount-chip" onclick="window.selectQuickAmount(100)">₹100</button>
+                            <div style="padding: 28px 24px;">
+                                <div style="max-width: 320px; margin: 0 auto;">
+                                    <label style="display:block; text-align:left; font-size:12.5px; font-weight:700; color:var(--text-gray); margin-bottom:8px;">Quick Amount</label>
+                                    <div id="vyapar-quick-amounts" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:18px;">
+                                        <button type="button" class="quick-amount-chip" onclick="window.selectQuickAmount(10)">₹10</button>
+                                        <button type="button" class="quick-amount-chip" onclick="window.selectQuickAmount(20)">₹20</button>
+                                        <button type="button" class="quick-amount-chip" onclick="window.selectQuickAmount(50)">₹50</button>
+                                        <button type="button" class="quick-amount-chip" onclick="window.selectQuickAmount(80)">₹80</button>
+                                        <button type="button" class="quick-amount-chip" onclick="window.selectQuickAmount(100)">₹100</button>
+                                    </div>
+
+                                    <div class="input-group" style="text-align: left;">
+                                        <label>Or enter a custom amount (₹)</label>
+                                        <input type="number" id="vyapar-amount-input" placeholder="Minimum ₹10" min="10" max="100000" step="1" oninput="window.clearQuickAmountSelection()">
+                                    </div>
+                                    <button class="btn" id="vyapar-generate-btn" onclick="window.generateVyaparQr()" style="width:100%; margin-top: 8px; padding: 14px;"><i class="fa-solid fa-qrcode"></i> Generate QR & Pay</button>
                                 </div>
 
-                                <div class="input-group" style="text-align: left;">
-                                    <label>Or enter a custom amount (₹)</label>
-                                    <input type="number" id="vyapar-amount-input" placeholder="Minimum ₹10" min="10" max="100000" step="1" oninput="window.clearQuickAmountSelection()">
+                                <div style="display:flex; align-items:center; gap:8px; justify-content:center; margin-top:24px; margin-bottom:12px;">
+                                    <div style="height:1px; background:var(--border-color); flex:1; max-width:50px;"></div>
+                                    <span style="font-size:11px; color:var(--text-gray); font-weight:700; letter-spacing:0.3px;">PAY WITH ANY UPI APP</span>
+                                    <div style="height:1px; background:var(--border-color); flex:1; max-width:50px;"></div>
                                 </div>
-                                <button class="btn" id="vyapar-generate-btn" onclick="window.generateVyaparQr()" style="width:100%; margin-top: 8px; padding: 14px;"><i class="fa-solid fa-qrcode"></i> Generate QR & Pay</button>
+                                <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                                    <span class="upi-app-badge" style="background:#5F259F;"><i class="fa-solid fa-mobile-screen-button"></i> PhonePe</span>
+                                    <span class="upi-app-badge" style="background:#4285F4;"><i class="fa-brands fa-google-pay"></i> Google Pay</span>
+                                    <span class="upi-app-badge" style="background:#00BAF2;"><i class="fa-solid fa-mobile-screen-button"></i> Paytm</span>
+                                    <span class="upi-app-badge" style="background:#097939;"><i class="fa-solid fa-mobile-screen-button"></i> BHIM</span>
+                                    <span class="upi-app-badge" style="background:#01579B;"><i class="fa-solid fa-indian-rupee-sign"></i> Any UPI App</span>
+                                </div>
+                                <p style="font-size: 11px; color: var(--text-gray); margin-top: 18px; margin-bottom: 0;"><i class="fa-solid fa-shield-halved" style="color:var(--success);"></i> Secured by VyaparGateway &middot; 256-bit encrypted &middot; PCI-DSS compliant payment infrastructure</p>
                             </div>
-
-                            <div style="display:flex; align-items:center; gap:8px; justify-content:center; margin-top:22px; margin-bottom:10px;">
-                                <div style="height:1px; background:var(--border-color); flex:1; max-width:60px;"></div>
-                                <span style="font-size:11px; color:var(--text-gray); font-weight:600;">PAY WITH ANY UPI APP</span>
-                                <div style="height:1px; background:var(--border-color); flex:1; max-width:60px;"></div>
-                            </div>
-                            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-                                <span class="upi-app-badge" style="background:#01579B;"><i class="fa-solid fa-indian-rupee-sign"></i> UPI</span>
-                                <span class="upi-app-badge" style="background:#5F259F;">PhonePe</span>
-                                <span class="upi-app-badge" style="background:#4285F4;">Google Pay</span>
-                                <span class="upi-app-badge" style="background:#00BAF2;">Paytm</span>
-                                <span class="upi-app-badge" style="background:#00B9F1;">BHIM</span>
-                            </div>
-                            <p style="font-size: 11px; color: var(--text-gray); margin-top: 16px;"><i class="fa-solid fa-shield-halved"></i> Secure UPI payments powered by VyaparGateway. Your wallet is credited automatically the instant payment completes.</p>
                         </div>
 
-                        <div class="card" id="payment-details-section" style="display: none; text-align: center;">
-                            <h3 style="font-size: 16px; margin-bottom: 6px; color: var(--primary);">Scan QR Code to Pay</h3>
-                            <p style="font-size: 22px; font-weight: 800; color: var(--text-dark); margin-bottom: 15px;" id="vyapar-qr-amount">₹0.00</p>
+                        <div class="card" id="payment-details-section" style="display: none; text-align: center; padding: 0; overflow: hidden;">
+                            <div style="background: linear-gradient(135deg, var(--primary), #7C3AED); padding: 16px 24px; color: #fff;">
+                                <div style="font-size:12px; font-weight:800; letter-spacing:0.5px; opacity:0.9;"><i class="fa-solid fa-circle-check"></i> SMMRULZ OFFICIAL &middot; SECURE PAYMENT</div>
+                            </div>
+                            <div style="padding: 24px;">
+                                <h3 style="font-size: 16px; margin-bottom: 6px; color: var(--primary);">Scan QR Code to Pay</h3>
+                                <p style="font-size: 22px; font-weight: 800; color: var(--text-dark); margin-bottom: 15px;" id="vyapar-qr-amount">₹0.00</p>
 
-                            <img id="vyapar-qr-img" src="" alt="Payment QR Code" style="max-width: 240px; width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: 0 auto 12px auto; display:block;">
+                                <div style="background:#fff; padding:12px; border-radius:14px; display:inline-block; box-shadow: 0 4px 14px rgba(0,0,0,0.08); margin-bottom: 12px;">
+                                    <img id="vyapar-qr-img" src="" alt="Payment QR Code" style="max-width: 220px; width: 100%; display:block;">
+                                </div>
 
-                            <p id="vyapar-countdown" style="font-weight: 700; color: var(--danger); font-size: 14px; margin-bottom: 4px;"><i class="fa-solid fa-clock"></i> Complete payment in 2:00</p>
-                            <p id="vyapar-status-text" style="font-size: 12.5px; color: var(--text-gray); margin-bottom: 18px;">Waiting for payment...</p>
+                                <p id="vyapar-countdown" style="font-weight: 700; color: var(--danger); font-size: 14px; margin-bottom: 4px;"><i class="fa-solid fa-clock"></i> Complete payment in 2:00</p>
+                                <p id="vyapar-status-text" style="font-size: 12.5px; color: var(--text-gray); margin-bottom: 18px;">Waiting for payment...</p>
 
-                            <div id="vyapar-intent-buttons" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom: 18px;"></div>
+                                <div id="vyapar-intent-buttons" style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom: 18px;"></div>
 
-                            <button class="btn" onclick="window.cancelVyaparQr()" style="background: var(--bg-bottom); color: var(--text-dark); box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Cancel & Go Back</button>
+                                <button class="btn" onclick="window.cancelVyaparQr()" style="background: var(--bg-bottom); color: var(--text-dark); box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-arrow-left"></i> Cancel & Go Back</button>
+                                <p style="font-size: 10.5px; color: var(--text-gray); margin-top: 14px; margin-bottom: 0;"><i class="fa-solid fa-lock"></i> Secured by VyaparGateway &middot; Your payment details are never stored on our servers</p>
+                            </div>
                         </div>
 
-                        <div class="card" id="vyapar-success-section" style="display:none; text-align:center; padding: 36px 24px;">
-                            <i class="fa-solid fa-circle-check" style="font-size: 56px; color: var(--success); margin-bottom: 14px;"></i>
-                            <h3 style="color: var(--text-dark); margin-bottom: 4px;">Payment Successful!</h3>
-                            <p style="color: var(--text-gray); font-size: 13px; margin-bottom: 18px;">Your wallet has been credited instantly.</p>
-
+                        <div class="card" id="vyapar-success-section" style="display:none; text-align:center; padding: 0; overflow: hidden;">
+                            <div style="background: linear-gradient(135deg, var(--success), #16a34a); padding: 26px 24px 20px 24px; color: #fff;">
+                                <div style="font-size:12px; font-weight:800; letter-spacing:0.5px; opacity:0.9; margin-bottom:8px;"><i class="fa-solid fa-circle-check"></i> SMMRULZ OFFICIAL</div>
+                                <i class="fa-solid fa-circle-check" style="font-size: 46px; margin-bottom: 8px; display:block;"></i>
+                                <h3 style="color: #fff; margin-bottom: 2px;">Payment Successful!</h3>
+                                <p style="color: rgba(255,255,255,0.85); font-size: 13px; margin: 0;">Your wallet has been credited instantly.</p>
+                            </div>
+                            <div style="padding: 24px;">
                             <div style="background:var(--bg-bottom); border-radius:12px; padding:16px 20px; text-align:left; max-width:320px; margin:0 auto 20px auto; font-size:13px;">
-                                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-color);"><span style="color:var(--text-gray);">Amount Paid</span><span id="vyapar-success-amount" style="font-weight:700; color:var(--success);">₹0.00</span></div>
+                                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-color);"><span style="color:var(--text-gray);">Previous Balance</span><span id="vyapar-success-prevbalance" style="font-weight:600; color:var(--text-dark);">₹0.00</span></div>
+                                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-color);"><span style="color:var(--text-gray);">Amount Added</span><span id="vyapar-success-amount" style="font-weight:700; color:var(--success);">+₹0.00</span></div>
                                 <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-color);"><span style="color:var(--text-gray);">Order ID</span><span id="vyapar-success-orderid" style="font-weight:600; font-size:11px; font-family:monospace;">--</span></div>
                                 <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-color);"><span style="color:var(--text-gray);">Date & Time</span><span id="vyapar-success-time" style="font-weight:600; font-size:12px;">--</span></div>
-                                <div style="display:flex; justify-content:space-between; padding:6px 0;"><span style="color:var(--text-gray);">New Wallet Balance</span><span id="vyapar-success-balance" style="font-weight:700; color:var(--primary);">₹0.00</span></div>
+                                <div style="display:flex; justify-content:space-between; padding:6px 0;"><span style="color:var(--text-gray); font-weight:700;">New Total Balance</span><span id="vyapar-success-balance" style="font-weight:800; color:var(--primary); font-size:15px;">₹0.00</span></div>
                             </div>
 
                             <div style="display:flex; gap:10px; max-width:320px; margin:0 auto;">
                                 <button class="btn" onclick="window.switchView('deposit-history')" style="flex:1;">View History</button>
                                 <button class="btn" id="vyapar-success-receipt-btn" style="flex:1; background: var(--bg-bottom); color: var(--text-dark); box-shadow:none; border: 1px solid var(--border-color);"><i class="fa-solid fa-download"></i> Receipt</button>
+                            </div>
+                            <p style="font-size: 10.5px; color: var(--text-gray); margin-top: 16px; margin-bottom: 0;"><i class="fa-solid fa-shield-halved" style="color:var(--success);"></i> SMMRulz Official &middot; Secured by VyaparGateway</p>
                             </div>
                         </div>
                     </div>
@@ -2251,6 +2271,14 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             } catch (error) {
                 console.error("Google Auth Error:", error);
                 window.showToast("Authentication Failed.", "error");
+                const googleWrapper = document.getElementById('google-btn-wrapper');
+                if (googleWrapper) googleWrapper.innerHTML = '';
+                if (window.google && window.google.accounts) {
+                    window.google.accounts.id.renderButton(
+                        document.getElementById("google-btn-wrapper"),
+                        { theme: "outline", size: "large", shape: "rectangular", width: "350", text: "continue_with" }
+                    );
+                }
             } finally {
                 const loader = document.getElementById('global-loader');
                 if (loader) {
@@ -2283,7 +2311,20 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 window.showToast("Logged Out Successfully", "success");
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-layout').style.display = 'none';
-                window.location.hash = ''; 
+                window.location.hash = '';
+                // 🐛 BUG FIX: handleGoogleCredentialResponse() permanently overwrites this wrapper
+                // with an "Authenticating..." spinner the moment Google sign-in is clicked, and
+                // nothing ever put the real button back -- so returning to this screen after
+                // logging out showed that stuck spinner forever instead of a working Sign-In
+                // button. Re-render the real Google button fresh every time we return here.
+                const googleWrapper = document.getElementById('google-btn-wrapper');
+                if (googleWrapper) googleWrapper.innerHTML = '';
+                if (window.google && window.google.accounts) {
+                    window.google.accounts.id.renderButton(
+                        document.getElementById("google-btn-wrapper"),
+                        { theme: "outline", size: "large", shape: "rectangular", width: "350", text: "continue_with" }
+                    );
+                }
             } catch (error) {
                 window.showToast("Logout failed.", "error");
             }
@@ -3399,6 +3440,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         };
 
         let vyaparCurrentAmount = 0;
+        let vyaparStartingBalance = 0;
 
         window.generateVyaparQr = async function() {
             const amountInput = document.getElementById('vyapar-amount-input').value;
@@ -3411,6 +3453,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
             vyaparSettled = false;
             vyaparCurrentAmount = amount;
+            vyaparStartingBalance = rawBalance; // snapshot BEFORE payment, for the success breakdown
 
             const btn = document.getElementById('vyapar-generate-btn');
             const originalText = btn.innerHTML;
@@ -3511,7 +3554,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             if (vyaparCountdownTimer) { clearInterval(vyaparCountdownTimer); vyaparCountdownTimer = null; }
         };
 
-        window.handleVyaparSuccess = function(amount) {
+        window.handleVyaparSuccess = async function(amount) {
             if (vyaparSettled) return; // already handled -- this is what stops the duplicate toasts
             vyaparSettled = true;
             window.stopVyaparTimers();
@@ -3522,14 +3565,31 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
 
             document.getElementById('payment-details-section').style.display = 'none';
             document.getElementById('vyapar-success-section').style.display = 'block';
-            document.getElementById('vyapar-success-amount').innerText = window.fmtMoney(finalAmount);
+            document.getElementById('vyapar-success-prevbalance').innerText = window.fmtMoney(vyaparStartingBalance);
+            document.getElementById('vyapar-success-amount').innerText = `+${window.fmtMoney(finalAmount)}`;
             document.getElementById('vyapar-success-orderid').innerText = orderId || '--';
             document.getElementById('vyapar-success-time').innerText = new Date(now).toLocaleString();
-            document.getElementById('vyapar-success-balance').innerText = window.fmtMoneyRaw ? `₹${window.fmtMoneyRaw(rawBalance)}` : window.fmtMoney(rawBalance);
+
+            // 🐛 BUG FIX: this used to read the module-scope `rawBalance` variable directly, which
+            // is only ever updated by a SEPARATE, independent balance listener -- if that
+            // listener's update hadn't arrived yet at this exact instant (very possible on a
+            // first-ever deposit, where the "before" balance is 0 and there's nothing to make the
+            // race obvious until it shows the WRONG total), the success screen could show a stale
+            // or flatly wrong balance (reported: showing ₹0.00 right after a real ₹10 credit).
+            // Fetching it directly here guarantees the number shown is actually correct, not
+            // whatever happened to have arrived via the listener by coincidence.
+            let confirmedBalance = vyaparStartingBalance + finalAmount; // safe fallback estimate
+            try {
+                const freshSnap = await get(ref(db, `users/${currentUser.uid}/balance`));
+                if (freshSnap.exists()) confirmedBalance = parseFloat(freshSnap.val()) || confirmedBalance;
+            } catch (err) {
+                console.warn('[Vyapar] Could not fetch confirmed balance, showing estimate:', err);
+            }
+            document.getElementById('vyapar-success-balance').innerText = window.fmtMoney(confirmedBalance);
 
             const receiptBtn = document.getElementById('vyapar-success-receipt-btn');
             if (receiptBtn) {
-                receiptBtn.onclick = () => window.downloadVyaparReceipt({ amount: finalAmount, orderId, timestamp: now });
+                receiptBtn.onclick = () => window.downloadVyaparReceipt({ amount: finalAmount, orderId, timestamp: now, previousBalance: vyaparStartingBalance, newBalance: confirmedBalance });
             }
 
             // One toast, exactly once -- the detailed success card above is the primary
@@ -3569,25 +3629,42 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         };
 
         // Instant receipt right from the success screen, no need to go find it in history first.
-        window.downloadVyaparReceipt = function({ amount, orderId, timestamp }) {
-            const receiptHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Payment Receipt</title>
-                <style>body{font-family:Arial,sans-serif; max-width:420px; margin:40px auto; color:#1a1a2e;}
-                .box{border:1px solid #e0e0e0; border-radius:12px; padding:24px;}
-                h2{color:#4F46E5; margin-bottom:4px;} .row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; font-size:14px;}
-                .row span:first-child{color:#666;} .row span:last-child{font-weight:700;}
-                .brand{font-size:12px; color:#999; text-align:center; margin-top:20px;}</style></head>
-                <body><div class="box"><h2>✅ Payment Receipt</h2><p style="color:#666; font-size:13px; margin-bottom:16px;">SMMRulz Wallet Top-up</p>
-                <div class="row"><span>Amount</span><span>₹${parseFloat(amount).toFixed(2)}</span></div>
-                <div class="row"><span>Order ID</span><span>${orderId || '--'}</span></div>
-                <div class="row"><span>Date &amp; Time</span><span>${new Date(timestamp).toLocaleString()}</span></div>
-                <div class="row"><span>Method</span><span>UPI (VyaparGateway)</span></div>
-                <div class="row"><span>Status</span><span style="color:#22c55e;">Successful</span></div>
-                </div><p class="brand">Generated by SMMRulz on ${new Date().toLocaleString()}</p></body></html>`;
+        window.downloadVyaparReceipt = function({ amount, orderId, timestamp, previousBalance, newBalance }) {
+            const receiptHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>SMMRulz Official - Payment Receipt</title>
+                <style>
+                body{font-family:'Segoe UI',Arial,sans-serif; max-width:460px; margin:40px auto; color:#1a1a2e; background:#f8f9fc;}
+                .header{background:linear-gradient(135deg,#4F46E5,#7C3AED); border-radius:16px 16px 0 0; padding:28px 24px; text-align:center; color:#fff;}
+                .header h1{margin:0; font-size:22px; letter-spacing:0.5px;}
+                .header p{margin:4px 0 0 0; font-size:12px; opacity:0.85;}
+                .box{background:#fff; border:1px solid #e5e7eb; border-top:none; border-radius:0 0 16px 16px; padding:26px 24px;}
+                .check{text-align:center; font-size:40px; margin-bottom:6px;}
+                .status{text-align:center; font-weight:700; color:#16a34a; font-size:16px; margin-bottom:20px;}
+                .row{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f0f3; font-size:13.5px;}
+                .row.total{border-bottom:none; padding-top:14px; font-size:15px;}
+                .row span:first-child{color:#6b7280;}
+                .row span:last-child{font-weight:700; color:#1a1a2e;}
+                .row.total span:last-child{color:#4F46E5; font-size:17px;}
+                .footer{text-align:center; font-size:11px; color:#9ca3af; margin-top:18px; line-height:1.6;}
+                </style></head>
+                <body>
+                <div class="header"><h1>SMMRulz Official</h1><p>Secure, Automated SMM Panel</p></div>
+                <div class="box">
+                <div class="check">✅</div>
+                <div class="status">Payment Successful</div>
+                <div class="row"><span>Amount Added</span><span>+${'₹' + parseFloat(amount).toFixed(2)}</span></div>
+                ${previousBalance !== undefined ? `<div class="row"><span>Previous Balance</span><span>₹${parseFloat(previousBalance).toFixed(2)}</span></div>` : ''}
+                <div class="row"><span>Order ID</span><span style="font-size:11px;">${orderId || '--'}</span></div>
+                <div class="row"><span>Date &amp; Time</span><span style="font-weight:600;">${new Date(timestamp).toLocaleString()}</span></div>
+                <div class="row"><span>Payment Method</span><span>UPI via VyaparGateway</span></div>
+                ${newBalance !== undefined ? `<div class="row total"><span>New Total Balance</span><span>₹${parseFloat(newBalance).toFixed(2)}</span></div>` : ''}
+                </div>
+                <div class="footer">This is a system-generated receipt from SMMRulz Official.<br>Generated on ${new Date().toLocaleString()} &middot; smmrulz.xyz</div>
+                </body></html>`;
             const blob = new Blob([receiptHtml], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `receipt_${orderId || Date.now()}.html`;
+            a.download = `SMMRulz_Receipt_${orderId || Date.now()}.html`;
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
             URL.revokeObjectURL(url);
         };
