@@ -1371,22 +1371,48 @@
 
                 <div id="support" class="view">
                     <div class="page-content">
-                        <div class="chat-app">
-                            <div class="chat-header">
-                                <h3 style="color: var(--success); margin: 0; font-size: 18px;">Support Chat</h3>
-                                <i class="fa-solid fa-headset" style="color: white; font-size: 18px;"></i>
-                            </div>
-                            <div class="chat-history" id="chat-history-container">
-                                <div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;"><i class="fa-regular fa-comments"></i> Send a message to start.</div>
-                            </div>
-                            <div class="chat-footer">
-                                <form id="ticket-form" onsubmit="window.createTicket(event)" style="display: flex; flex-direction: column;">
-                                    <input type="text" id="ticket-subject" class="chat-input" placeholder="Topic (e.g. Order #123 issue)" required>
-                                    <div class="chat-input-row">
-                                        <input type="text" id="ticket-message" class="chat-input" placeholder="Type your message here..." required style="flex: 1;">
-                                        <button type="submit" class="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
-                                    </div>
-                                </form>
+                        <h1 class="page-title">Support Ticket</h1>
+                        <div class="card" style="padding: 22px;">
+                            <form id="ticket-form" onsubmit="window.createTicket(event)">
+                                <div class="input-group">
+                                    <label>Category</label>
+                                    <select id="ticket-category" onchange="window.updateTicketSubcategories()" required>
+                                        <option value="">-- Select Category --</option>
+                                        <option value="Orders">Orders</option>
+                                        <option value="Payments">Payments</option>
+                                        <option value="Services">Services</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="input-group" id="ticket-subcategory-group" style="display:none;">
+                                    <label>Subcategory</label>
+                                    <select id="ticket-subcategory"></select>
+                                </div>
+                                <div class="input-group" id="ticket-orderids-group" style="display:none;">
+                                    <label>Order IDs (using comma)</label>
+                                    <input type="text" id="ticket-orderids" placeholder="e.g. ORD_A1B2C3, ORD_D4E5F6">
+                                </div>
+                                <div class="input-group">
+                                    <label>Message</label>
+                                    <textarea id="ticket-message" rows="5" placeholder="Describe your issue in detail..." required style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border-color); background:var(--bg-bottom); color:var(--text-dark); font-family:inherit; font-size:14px; resize:vertical;"></textarea>
+                                </div>
+                                <div class="input-group">
+                                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; width:fit-content;" onclick="document.getElementById('ticket-attachment').click()">
+                                        <i class="fa-solid fa-paperclip"></i> <span id="ticket-attachment-label">Attach a screenshot (optional, max 500KB)</span>
+                                    </label>
+                                    <input type="file" id="ticket-attachment" accept="image/*" style="display:none;" onchange="window.handleTicketAttachment(event)">
+                                </div>
+                                <button type="submit" class="btn" id="ticket-submit-btn" style="width:100%; padding: 13px; margin-top: 6px;"><i class="fa-solid fa-paper-plane"></i> Submit Ticket</button>
+                            </form>
+                        </div>
+
+                        <h3 style="margin: 26px 0 14px 0; font-size: 16px; color: var(--text-dark);">Your Tickets</h3>
+                        <div class="card" style="padding: 10px;">
+                            <div class="table-wrapper" style="border: none;">
+                                <table>
+                                    <thead><tr><th>Date</th><th>Category</th><th>Message</th><th>Status</th></tr></thead>
+                                    <tbody id="my-tickets-table"><tr><td colspan="4" align="center">No tickets yet.</td></tr></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -2139,8 +2165,14 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             });
             onValue(ref(db, 'settings/socials'), (snap) => {
                 const s = snap.val() || {};
-                const waNum = s.whatsapp ? s.whatsapp.replace(/[^0-9]/g, '') : '';
-                const waLink = waNum ? `https://wa.me/${waNum}` : '';
+                // 🐛 BUG FIX: every public-facing WhatsApp icon (floating bubble, footer, mobile
+                // menu, auth-page promo) used to link to a personal 1-on-1 chat (wa.me/{number})
+                // built from the admin's own phone number -- exactly the "bottom WhatsApp icon is
+                // my personal profile link" bug reported. Now prefers a real WhatsApp Channel URL
+                // (whatsapp.com/channel/...), configured separately from any personal number.
+                const waLink = s.whatsappChannel && s.whatsappChannel.trim()
+                    ? s.whatsappChannel.trim()
+                    : (s.whatsapp ? `https://wa.me/${s.whatsapp.replace(/[^0-9]/g, '')}` : '');
                 const tgLink = s.telegram && s.telegram.startsWith('http') ? s.telegram : (s.telegram ? `https://t.me/${s.telegram.replace('@','')}` : '');
                 const igLink = s.instagram && s.instagram.startsWith('http') ? s.instagram : (s.instagram ? `https://instagram.com/${s.instagram.replace('@','')}` : '');
                 
@@ -2492,6 +2524,34 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                         return;
                     }
 
+                    // 🔒 Full-site maintenance lockdown -- the owner account always gets through
+                    // (to actually test the site during maintenance); every other user sees a
+                    // full-screen maintenance notice and is signed out.
+                    const OWNER_UID = 'N7Utu3RcQeOkybmJWZ0VPyHJIuA3';
+                    const OWNER_EMAIL = 'vikkyvikky2177@gmail.com';
+                    if (user.uid !== OWNER_UID && user.email !== OWNER_EMAIL) {
+                        try {
+                            const maintSnap = await get(ref(db, 'settings/maintenanceFullSite'));
+                            const maint = maintSnap.val() || {};
+                            if (maint.enabled === true) {
+                                document.getElementById('app-layout').style.display = 'none';
+                                document.getElementById('global-loader').style.display = 'none';
+                                document.body.insertAdjacentHTML('beforeend', `
+                                    <div id="maintenance-overlay" style="position:fixed; inset:0; background:var(--bg-bottom); z-index:99999; display:flex; align-items:center; justify-content:center; padding:24px; text-align:center;">
+                                        <div style="max-width:380px;">
+                                            <i class="fa-solid fa-screwdriver-wrench" style="font-size:52px; color:var(--primary); margin-bottom:18px;"></i>
+                                            <h2 style="color:var(--text-dark); margin-bottom:10px;">We'll be right back</h2>
+                                            <p style="color:var(--text-gray); font-size:14px; line-height:1.6;">${window.safeHTML(maint.message) || "SMMRulz is currently undergoing scheduled maintenance. Please check back shortly -- your account and wallet are safe."}</p>
+                                        </div>
+                                    </div>`);
+                                await signOut(auth);
+                                return;
+                            }
+                        } catch (maintErr) {
+                            console.error("Maintenance-mode check failed:", maintErr);
+                        }
+                    }
+
                     if (!userSnap.exists()) {
                         const safeEmail = user.email || 'user@smmrulz.com';
                         const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
@@ -2738,8 +2798,9 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             onValue(ref(db, 'settings/socials'), (snap) => {
                 const s = snap.val() || {};
                 
-                const waNum = window.safeHTML(s.whatsapp ? s.whatsapp.replace(/[^0-9]/g, '') : '');
-                const waLink = waNum ? `https://wa.me/${waNum}` : '';
+                const waLink = s.whatsappChannel && s.whatsappChannel.trim()
+                    ? window.safeHTML(s.whatsappChannel.trim())
+                    : (s.whatsapp ? `https://wa.me/${window.safeHTML(s.whatsapp.replace(/[^0-9]/g, ''))}` : '');
                 if(waLink) {
                     document.getElementById('floating-wa').href = waLink;
                     document.getElementById('floating-wa').style.display = 'flex';
@@ -3127,19 +3188,54 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                         myTickets.push({ id: childSnap.key, ...childSnap.val() });
                     });
                 }
+                myTickets.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                window.myTicketsCache = {};
+                myTickets.forEach(t => { window.myTicketsCache[t.id] = t; });
 
-                let html = '';
-                if(myTickets.length === 0){ html = '<div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;">Send a message to start a conversation.</div>'; } 
-                else {
-                    myTickets.forEach(t => {
-                        html += `<div class="chat-bubble chat-user"><span class="chat-topic">${window.safeHTML(t.subject)}</span>${window.safeHTML(t.message)}</div>`;
-                        if(t.reply) { html += `<div class="chat-bubble chat-admin"><span class="chat-topic" style="color: var(--primary);">Support Agent <img src="bluetick.jpg" style="width: 14px; height: 14px; vertical-align: middle; border-radius: 50%;"></span>${window.safeHTML(t.reply)}</div>`; }
-                    });
+                const tbody = document.getElementById('my-tickets-table');
+                if (!tbody) return;
+                if (!myTickets.length) {
+                    tbody.innerHTML = '<tr><td colspan="4" align="center">No tickets yet.</td></tr>';
+                    return;
                 }
-                const container = document.getElementById('chat-history-container');
-                container.innerHTML = html; container.scrollTop = container.scrollHeight;
+                let html = '';
+                myTickets.forEach(t => {
+                    const badge = t.status === 'Answered'
+                        ? '<span class="badge bg-completed">Answered</span>'
+                        : '<span class="badge bg-pending">Open</span>';
+                    const catLabel = t.category ? `${window.safeHTML(t.category)}${t.subcategory ? ' / ' + window.safeHTML(t.subcategory) : ''}` : window.safeHTML(t.subject || 'General');
+                    html += `<tr style="cursor:pointer;" onclick="window.viewMyTicket('${t.id}')">
+                        <td><small>${new Date(t.timestamp).toLocaleDateString()}</small></td>
+                        <td style="font-size:12.5px;">${catLabel}</td>
+                        <td style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:12.5px;">${window.safeHTML((t.message || '').slice(0, 60))}</td>
+                        <td>${badge}</td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
             }, (error) => { console.error("Firebase Read Error (Tickets):", error); });
         }
+
+        window.viewMyTicket = function(ticketId) {
+            const t = window.myTicketsCache && window.myTicketsCache[ticketId];
+            if (!t) return;
+            const catLine = t.category ? `${window.safeHTML(t.category)}${t.subcategory ? ' / ' + window.safeHTML(t.subcategory) : ''}` : 'General';
+            const orderIdsLine = t.orderIds ? `<br><b>Order IDs:</b> ${window.safeHTML(t.orderIds)}` : '';
+            const attachmentLine = t.attachmentBase64 ? `<br><br><img src="${t.attachmentBase64}" style="max-width:100%; border-radius:8px; margin-top:6px;">` : '';
+            const replyLine = t.reply
+                ? `<hr style="margin:14px 0; border:0; border-top:1px solid var(--border-color);"><b style="color:var(--primary);"><i class="fa-solid fa-headset"></i> Support Team replied:</b><br>${window.safeHTML(t.reply)}`
+                : `<hr style="margin:14px 0; border:0; border-top:1px solid var(--border-color);"><span style="color:var(--text-gray); font-size:12.5px;"><i class="fa-solid fa-clock"></i> Waiting for a reply from our support team.</span>`;
+            const modalHtml = `
+                <div id="my-ticket-modal-overlay" onclick="if(event.target===this) this.remove()" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;">
+                    <div style="background:var(--bg-top); border-radius:16px; max-width:420px; width:100%; max-height:80vh; overflow-y:auto; padding:22px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <b style="color:var(--primary); font-size:14px;">${catLine}</b>
+                            <i class="fa-solid fa-xmark" style="cursor:pointer; font-size:18px;" onclick="document.getElementById('my-ticket-modal-overlay').remove()"></i>
+                        </div>
+                        <div style="font-size:13.5px; color:var(--text-dark); line-height:1.6;">${window.safeHTML(t.message)}${orderIdsLine}${attachmentLine}${replyLine}</div>
+                    </div>
+                </div>`;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        };
 
         function renderServices() {
             let html = '';
@@ -3684,17 +3780,93 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
         };
 
+        const TICKET_SUBCATEGORIES = {
+            Orders: ['Speedup', 'Refill', 'Cancel / Partial', 'Mark completed without delivery', 'Other'],
+            Payments: ['Payment not credited', 'Wrong amount charged', 'Refund request', 'Other'],
+            Services: ['Question about a service', 'Pricing issue', 'Service not working as described', 'Other'],
+            Other: ['General inquiry', 'Account issue', 'Other'],
+        };
+        window.updateTicketSubcategories = function() {
+            const category = document.getElementById('ticket-category').value;
+            const subGroup = document.getElementById('ticket-subcategory-group');
+            const subSelect = document.getElementById('ticket-subcategory');
+            const orderIdsGroup = document.getElementById('ticket-orderids-group');
+
+            if (!category) { subGroup.style.display = 'none'; orderIdsGroup.style.display = 'none'; return; }
+
+            const options = TICKET_SUBCATEGORIES[category] || [];
+            subSelect.innerHTML = options.map(o => `<option value="${o}">${o}</option>`).join('');
+            subGroup.style.display = 'block';
+            // Order IDs only make sense in context of an actual order.
+            orderIdsGroup.style.display = (category === 'Orders') ? 'block' : 'none';
+        };
+
+        let ticketAttachmentData = null;
+        window.handleTicketAttachment = function(event) {
+            const file = event.target.files[0];
+            const label = document.getElementById('ticket-attachment-label');
+            if (!file) { ticketAttachmentData = null; if (label) label.innerText = 'Attach a screenshot (optional, max 500KB)'; return; }
+            if (!file.type.startsWith('image/')) {
+                window.showToast('Only image files can be attached.', 'error');
+                event.target.value = ''; ticketAttachmentData = null;
+                if (label) label.innerText = 'Attach a screenshot (optional, max 500KB)';
+                return;
+            }
+            if (file.size > 500 * 1024) {
+                window.showToast('Image is too large. Max 500KB.', 'error');
+                event.target.value = ''; ticketAttachmentData = null;
+                if (label) label.innerText = 'Attach a screenshot (optional, max 500KB)';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => { ticketAttachmentData = reader.result; if (label) label.innerText = `✓ ${file.name}`; };
+            reader.onerror = () => { window.showToast('Could not read that file.', 'error'); ticketAttachmentData = null; };
+            reader.readAsDataURL(file);
+        };
+
         window.createTicket = async function(e) {
             e.preventDefault();
-            const subject = window.safeHTML(document.getElementById('ticket-subject').value.trim());
+            const category = document.getElementById('ticket-category').value;
+            const subcategory = document.getElementById('ticket-subcategory').value;
+            const orderIds = window.safeHTML(document.getElementById('ticket-orderids').value.trim());
             const message = window.safeHTML(document.getElementById('ticket-message').value.trim());
-            
-            if(!subject || !message) return window.showToast("Don't leave fields blank", "error");
+
+            if (!category) return window.showToast("Please select a category.", "error");
+            if (!message) return window.showToast("Please describe your issue.", "error");
+
+            const btn = document.getElementById('ticket-submit-btn');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
 
             try {
-                await push(ref(db, 'tickets'), { userId: currentUser.uid, subject: subject, message: message, status: 'Open', timestamp: Date.now() });
-                window.showToast("Message Sent!"); e.target.reset();
-            } catch (error) { window.showToast("Error", "error"); }
+                const ticketData = {
+                    userId: currentUser.uid,
+                    email: currentUser.email || '',
+                    category,
+                    subcategory: subcategory || '',
+                    subject: `${category}${subcategory ? ' - ' + subcategory : ''}`, // keeps the admin table's existing subject column meaningful
+                    orderIds: orderIds || '',
+                    message,
+                    status: 'Open',
+                    timestamp: Date.now()
+                };
+                if (ticketAttachmentData) ticketData.attachmentBase64 = ticketAttachmentData;
+
+                await push(ref(db, 'tickets'), ticketData);
+                window.showToast("Ticket submitted! We'll get back to you soon.", "success");
+                e.target.reset();
+                ticketAttachmentData = null;
+                document.getElementById('ticket-subcategory-group').style.display = 'none';
+                document.getElementById('ticket-orderids-group').style.display = 'none';
+                document.getElementById('ticket-attachment-label').innerText = 'Attach a screenshot (optional, max 500KB)';
+            } catch (error) {
+                console.error(error);
+                window.showToast("Could not submit ticket. Please try again.", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
         };
     </script>
     
