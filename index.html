@@ -1978,6 +1978,12 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         window.executeFreeFireOrder = async function(e) {
             e.preventDefault();
             if (!currentUser) return window.showToast('Please sign in first.', 'error');
+            // 🐛 REAL BUG FIX: this check never existed here. Toggling "FFMax Maintenance Mode"
+            // in the admin panel disabled the button, but if that state was ever stale (e.g. a
+            // listener hadn't fired yet, or someone called this function directly) nothing here
+            // stopped the purchase. Server-side enforcement in /api/order is the real backstop;
+            // this is the fast client-side rejection.
+            if (window.isFFMaxMaintenanceMode) return window.showToast('FFMax ordering is currently disabled for maintenance.', 'error');
             
             const uidString = document.getElementById('ff-uid').value.trim();
             const regionNode = document.getElementById('ff-region').value;
@@ -2881,7 +2887,24 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     tickerEl.innerHTML = s.announcement ? window.safeHTML(s.announcement) : '🔥 Welcome to Perfect SMM! The fastest, most secure SMM Panel. Keep adding funds to enjoy uninterrupted service. 🚀';
                 }
 
-                window.isMaintenanceMode = s.maintenance === true;
+            });
+
+            // ==========================================
+            // 🐛 REAL BUG FIX: maintenance mode used to be one single flag (settings/socials
+            // .maintenance) that ONLY the SMM order button ever checked -- the FFMax purchase
+            // function (executeFreeFireOrder) never checked ANY maintenance flag at all, so
+            // toggling "Pause New Orders" in the admin panel never actually stopped FFMax
+            // purchases. That's the root cause of the reported "maintenance lock not working."
+            // Now split into two independent flags at settings/orderMaintenance/{smm,ffmax} so
+            // each product line can be paused separately, listened to here, and enforced BOTH
+            // client-side (fast UI feedback) AND server-side in /api/order (see order/route.ts,
+            // which is the real backstop -- this client check alone was always bypassable).
+            // ==========================================
+            onValue(ref(db, 'settings/orderMaintenance'), (snap) => {
+                const m = snap.val() || {};
+                window.isMaintenanceMode = m.smm === true;
+                window.isFFMaxMaintenanceMode = m.ffmax === true;
+
                 const orderBtn = document.getElementById('order-btn');
                 if (window.isMaintenanceMode) {
                     orderBtn.disabled = true;
@@ -2891,6 +2914,19 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     orderBtn.disabled = false;
                     orderBtn.style.background = '';
                     orderBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Launch Boost';
+                }
+
+                const ffSubmitBtn = document.getElementById('ff-submit-btn');
+                if (ffSubmitBtn) {
+                    if (window.isFFMaxMaintenanceMode) {
+                        ffSubmitBtn.disabled = true;
+                        ffSubmitBtn.dataset.maintDisabled = 'true';
+                        ffSubmitBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> FFMax Under Maintenance';
+                    } else if (ffSubmitBtn.dataset.maintDisabled === 'true') {
+                        ffSubmitBtn.disabled = false;
+                        ffSubmitBtn.dataset.maintDisabled = 'false';
+                        ffSubmitBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> GET LIKES NOW';
+                    }
                 }
             });
         }
@@ -2944,20 +2980,33 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     let badge = '<span class="badge bg-pending">Pending</span>'; 
                     let actionBtn = `<a href="${window.safeHTML(o.link)}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-link"></i> View</a>`;
 
+                    const isDispatched = o.providerOrderId && o.providerOrderId !== 'Manual' && o.providerOrderId !== 'Unknown' && o.providerUsed;
+                    const isFFMax = (o.serviceId || '').startsWith('FF_MAX_');
+
                     if(o.status === 'Processing') badge = '<span class="badge bg-processing">Processing</span>'; 
                     else if(o.status === 'In progress') badge = '<span class="badge bg-processing">In progress</span>';
                     else if(o.status === 'Partial') badge = '<span class="badge bg-warning">Partial</span>';
                     else if(o.status === 'Completed') {
                         badge = '<span class="badge bg-completed">Completed</span>'; 
-                        actionBtn += `<br><button onclick="window.requestRefill('${o.id}')" style="background:var(--primary-light); color:var(--primary); border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer; margin-top:5px; transition:0.2s;"><i class="fa-solid fa-rotate"></i> Request Refill</button>`;
+                        if (isDispatched && !isFFMax) {
+                            actionBtn += `<br><button onclick="window.requestRefill('${o.id}')" id="refill-btn-${o.id}" style="background:var(--primary-light); color:var(--primary); border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer; margin-top:5px; transition:0.2s;"><i class="fa-solid fa-rotate"></i> Refill</button>`;
+                        }
                     } 
                     else if(o.status === 'Canceled' || o.status === 'Refunded') badge = '<span class="badge bg-canceled">Refunded</span>';
 
-                    if ((o.serviceId || '').startsWith('FF_MAX_')) {
+                    // 🆕 Cancel button: only for orders still cancelable provider-side (not yet
+                    // Completed/Canceled), and only when actually dispatched to a real provider --
+                    // Manual orders have nothing to cancel automatically and go through support.
+                    if (isDispatched && !isFFMax && ['Pending', 'Processing', 'In progress'].includes(o.status)) {
+                        actionBtn += `<br><button onclick="window.cancelUserOrder('${o.id}')" id="cancel-btn-${o.id}" style="background:rgba(239,68,68,0.12); color:#ef4444; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer; margin-top:5px; transition:0.2s;"><i class="fa-solid fa-ban"></i> Cancel</button>`;
+                    }
+
+                    if (isFFMax) {
                         actionBtn = `<small style="color:var(--text-gray);">${window.safeHTML(o.link)}</small><br><a href="#" onclick="window.switchView('ff-my-subscriptions'); return false;" style="color:var(--primary); font-size:11px;"><i class="fa-solid fa-chart-line"></i> Track Progress</a>`;
                     }
                     
-                    html += `<tr><td><small><b>ORD_${o.id.slice(-6).toUpperCase()}</b></small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td>${actionBtn}</td><td style="font-weight:700;">${window.fmtMoney(o.charge || 0)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
+                    const displayId = o.providerOrderId && o.providerOrderId !== 'Manual' && o.providerOrderId !== 'Unknown' ? o.providerOrderId : `ORD_${o.id.slice(-6).toUpperCase()}`;
+                    html += `<tr><td><small><b title="Internal ref: ${o.id}">${window.safeHTML(String(displayId))}</b></small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td>${actionBtn}</td><td style="font-weight:700;">${window.fmtMoney(o.charge || 0)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
                 });
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
             }
@@ -3188,7 +3237,7 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                         myTickets.push({ id: childSnap.key, ...childSnap.val() });
                     });
                 }
-                myTickets.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                myTickets.sort((a, b) => (b.updatedAt || b.timestamp || 0) - (a.updatedAt || a.timestamp || 0));
                 window.myTicketsCache = {};
                 myTickets.forEach(t => { window.myTicketsCache[t.id] = t; });
 
@@ -3202,6 +3251,8 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 myTickets.forEach(t => {
                     const badge = t.status === 'Answered'
                         ? '<span class="badge bg-completed">Answered</span>'
+                        : t.status === 'Closed'
+                        ? '<span class="badge" style="background:var(--bg-secondary); color:var(--text-gray);">Closed</span>'
                         : '<span class="badge bg-pending">Open</span>';
                     const catLabel = t.category ? `${window.safeHTML(t.category)}${t.subcategory ? ' / ' + window.safeHTML(t.subcategory) : ''}` : window.safeHTML(t.subject || 'General');
                     html += `<tr style="cursor:pointer;" onclick="window.viewMyTicket('${t.id}')">
@@ -3215,26 +3266,70 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }, (error) => { console.error("Firebase Read Error (Tickets):", error); });
         }
 
+        // 🆕 Now a real thread instead of a static "message + one reply" view: renders every
+        // message in chronological order (legacy message/reply fields shown first for backward
+        // compatibility with tickets created before this upgrade), and lets the user send a
+        // follow-up instead of just waiting silently.
         window.viewMyTicket = function(ticketId) {
             const t = window.myTicketsCache && window.myTicketsCache[ticketId];
             if (!t) return;
             const catLine = t.category ? `${window.safeHTML(t.category)}${t.subcategory ? ' / ' + window.safeHTML(t.subcategory) : ''}` : 'General';
             const orderIdsLine = t.orderIds ? `<br><b>Order IDs:</b> ${window.safeHTML(t.orderIds)}` : '';
             const attachmentLine = t.attachmentBase64 ? `<br><br><img src="${t.attachmentBase64}" style="max-width:100%; border-radius:8px; margin-top:6px;">` : '';
-            const replyLine = t.reply
-                ? `<hr style="margin:14px 0; border:0; border-top:1px solid var(--border-color);"><b style="color:var(--primary);"><i class="fa-solid fa-headset"></i> Support Team replied:</b><br>${window.safeHTML(t.reply)}`
-                : `<hr style="margin:14px 0; border:0; border-top:1px solid var(--border-color);"><span style="color:var(--text-gray); font-size:12.5px;"><i class="fa-solid fa-clock"></i> Waiting for a reply from our support team.</span>`;
+
+            let bubbles = [];
+            if (t.message) bubbles.push({ sender: 'user', html: `${window.safeHTML(t.message)}${orderIdsLine}${attachmentLine}`, ts: t.timestamp || 0 });
+            if (t.reply) bubbles.push({ sender: 'admin', html: window.safeHTML(t.reply), ts: (t.timestamp || 0) + 1 });
+            const msgs = t.messages ? Object.values(t.messages).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0)) : [];
+            msgs.forEach(m => bubbles.push({ sender: m.sender, html: window.safeHTML(m.text || ''), ts: m.timestamp || 0 }));
+            bubbles.sort((a, b) => a.ts - b.ts);
+
+            const threadHtml = bubbles.map(b => b.sender === 'admin'
+                ? `<div style="background:var(--primary-light); border-radius:10px; padding:10px 12px; margin-bottom:8px; max-width:88%;"><div style="font-size:10px; font-weight:700; color:var(--primary); margin-bottom:3px;"><i class="fa-solid fa-headset"></i> SUPPORT</div>${b.html}</div>`
+                : `<div style="background:var(--bg-secondary); border-radius:10px; padding:10px 12px; margin-bottom:8px; max-width:88%; margin-left:auto;"><div style="font-size:10px; font-weight:700; color:var(--text-gray); margin-bottom:3px; text-align:right;">YOU</div>${b.html}</div>`
+            ).join('');
+
+            const closedNotice = t.status === 'Closed'
+                ? `<div style="text-align:center; font-size:12px; color:var(--text-gray); padding:8px;"><i class="fa-solid fa-lock"></i> This ticket is closed. Send a message to reopen it.</div>`
+                : '';
+
             const modalHtml = `
                 <div id="my-ticket-modal-overlay" onclick="if(event.target===this) this.remove()" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px;">
-                    <div style="background:var(--bg-top); border-radius:16px; max-width:420px; width:100%; max-height:80vh; overflow-y:auto; padding:22px;">
+                    <div style="background:var(--bg-top); border-radius:16px; max-width:440px; width:100%; max-height:85vh; display:flex; flex-direction:column; padding:22px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                             <b style="color:var(--primary); font-size:14px;">${catLine}</b>
                             <i class="fa-solid fa-xmark" style="cursor:pointer; font-size:18px;" onclick="document.getElementById('my-ticket-modal-overlay').remove()"></i>
                         </div>
-                        <div style="font-size:13.5px; color:var(--text-dark); line-height:1.6;">${window.safeHTML(t.message)}${orderIdsLine}${attachmentLine}${replyLine}</div>
+                        <div style="flex:1; overflow-y:auto; font-size:13.5px; color:var(--text-dark); line-height:1.5; margin-bottom:12px;">${threadHtml}${closedNotice}</div>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="my-ticket-reply-input" placeholder="Type a reply..." style="flex:1; margin:0; padding:10px 12px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-secondary); color:var(--text-dark);" onkeydown="if(event.key==='Enter'){window.sendMyTicketReply('${ticketId}');}">
+                            <button onclick="window.sendMyTicketReply('${ticketId}')" style="background:var(--primary); color:#fff; border:none; border-radius:8px; padding:0 16px; cursor:pointer;"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
                     </div>
                 </div>`;
             document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Mark read the moment the user opens it -- clears their own unread indicator.
+            if (t.unreadByUser) update(ref(db, `tickets/${ticketId}`), { unreadByUser: false });
+        };
+
+        window.sendMyTicketReply = async function(ticketId) {
+            const input = document.getElementById('my-ticket-reply-input');
+            const text = input ? input.value.trim() : '';
+            if (!text) return;
+            try {
+                await push(ref(db, `tickets/${ticketId}/messages`), { sender: 'user', text, timestamp: Date.now() });
+                const t = window.myTicketsCache && window.myTicketsCache[ticketId];
+                await update(ref(db, `tickets/${ticketId}`), {
+                    updatedAt: Date.now(),
+                    unreadByAdmin: true,
+                    status: (t && t.status === 'Closed') ? 'Open' : (t ? t.status : 'Open'), // sending a message reopens a closed ticket
+                });
+                document.getElementById('my-ticket-modal-overlay')?.remove();
+                window.viewMyTicket(ticketId); // re-render with the new message (cache updates via the live listener, but re-render immediately for snappy feel)
+            } catch (e) {
+                window.showToast('Could not send message.', 'error');
+            }
         };
 
         function renderServices() {
@@ -3765,18 +3860,64 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             URL.revokeObjectURL(url);
         };
 
+        // 🆕 Refill now goes straight to the provider via /api/order-action instead of just
+        // filing a support ticket and waiting -- server verifies you own the order, then calls
+        // the real provider refill API and records the result. Falls back to a support ticket
+        // only for orders that were never dispatched to a provider (nothing to call).
         window.requestRefill = async function(orderId) {
-            if(confirm("Send a refill request for this order? Support will check if it is eligible.")) {
-                try {
-                    await push(ref(db, 'tickets'), { 
-                        userId: currentUser.uid, 
-                        subject: `Refill Request: Order #${orderId.slice(-6)}`, 
-                        message: `Please check and refill my order ID: ${orderId}`, 
-                        status: 'Open', 
-                        timestamp: Date.now() 
-                    });
-                    window.showToast("Refill request sent to support!", "success");
-                } catch(e) { window.showToast("Error requesting refill", "error"); }
+            if (!confirm("Request a refill for this order? This sends the refill request directly to the provider.")) return;
+            const btn = document.getElementById(`refill-btn-${orderId}`);
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...'; }
+            try {
+                const { ok, data } = await apiFetch('/api/order-action', {
+                    method: 'POST',
+                    body: JSON.stringify({ orderId, action: 'refill' })
+                });
+                if (!ok) {
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Refill'; }
+                    // If it's an order that was never dispatched to a provider, offer the
+                    // support-ticket path instead of just failing silently.
+                    if ((data.error || '').includes('support ticket')) {
+                        if (confirm(`${data.error}\n\nOpen a support ticket now?`)) {
+                            await push(ref(db, 'tickets'), {
+                                userId: currentUser.uid,
+                                subject: `Refill Request: Order #${orderId.slice(-6)}`,
+                                message: `Please check and refill my order ID: ${orderId}`,
+                                status: 'Open',
+                                timestamp: Date.now()
+                            });
+                            window.showToast("Refill request sent to support!", "success");
+                        }
+                        return;
+                    }
+                    return window.showToast(data.error || "Could not request refill.", "error");
+                }
+                window.showToast("Refill request sent to the provider!", "success");
+            } catch (e) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Refill'; }
+                window.showToast("Error requesting refill: " + (e.message || ''), "error");
+            }
+        };
+
+        // 🆕 Cancel: calls the provider directly, and only refunds the wallet once the
+        // provider actually confirms the cancellation (see order-action/route.ts).
+        window.cancelUserOrder = async function(orderId) {
+            if (!confirm("Cancel this order? If the provider confirms cancellation, your balance will be refunded automatically.")) return;
+            const btn = document.getElementById(`cancel-btn-${orderId}`);
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Canceling...'; }
+            try {
+                const { ok, data } = await apiFetch('/api/order-action', {
+                    method: 'POST',
+                    body: JSON.stringify({ orderId, action: 'cancel' })
+                });
+                if (!ok) {
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-ban"></i> Cancel'; }
+                    return window.showToast(data.error || "Could not cancel this order.", "error");
+                }
+                window.showToast("Order canceled and refunded to your wallet!", "success");
+            } catch (e) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-ban"></i> Cancel'; }
+                window.showToast("Error canceling order: " + (e.message || ''), "error");
             }
         };
 
@@ -3849,7 +3990,10 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     orderIds: orderIds || '',
                     message,
                     status: 'Open',
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    updatedAt: Date.now(),
+                    unreadByAdmin: true,
+                    unreadByUser: false,
                 };
                 if (ticketAttachmentData) ticketData.attachmentBase64 = ticketAttachmentData;
 
