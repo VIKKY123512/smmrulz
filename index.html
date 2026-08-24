@@ -894,6 +894,8 @@
                     <div class="nav-item services" onclick="window.switchView('services')"><i class="fa-solid fa-list-ul"></i> Services List</div>
                     <div class="nav-item ff-my-subscriptions" onclick="window.switchView('ff-my-subscriptions')"><i class="fa-solid fa-calendar-check" style="color: #10b981;"></i> My Subscriptions</div>
                     <div class="nav-item orders-history" onclick="window.switchView('orders-history')"><i class="fa-solid fa-clock-rotate-left"></i> Order History</div>
+                    <div class="nav-item refunds" onclick="window.switchView('refunds')"><i class="fa-solid fa-hand-holding-dollar"></i> Refunds</div>
+                    <div class="nav-item catalogue-updates" onclick="window.switchView('catalogue-updates')"><i class="fa-solid fa-bullhorn"></i> Updates</div>
                     <div class="nav-item add-funds" onclick="window.switchView('add-funds')"><i class="fa-solid fa-money-bill-transfer"></i> Add Funds</div>
                     <div class="nav-item deposit-history" onclick="window.switchView('deposit-history')"><i class="fa-solid fa-file-invoice-dollar"></i> Deposit History</div>
                     <div class="nav-item transactions" onclick="window.switchView('transactions')"><i class="fa-solid fa-money-bill-transfer"></i> Transactions</div>
@@ -979,6 +981,20 @@
 
                         <div class="card" id="order-form-card">
                             <h2 class="page-title">Place a New Boost</h2>
+
+                            <!-- 🆕 Live search -- lets a user jump straight to a service by typing its
+                                 name instead of picking Category then hunting through the service
+                                 dropdown. Picking a result calls the existing selectCategory/
+                                 selectService handlers, so it drops straight into the normal flow. -->
+                            <div class="input-group" style="position:relative;">
+                                <label>🔍 Quick Search Services</label>
+                                <div class="live-search-wrapper">
+                                    <i class="fa-solid fa-magnifying-glass live-search-icon"></i>
+                                    <input type="text" id="smm-quick-search" class="live-search-input" placeholder="Type a service name, e.g. Instagram Followers..." autocomplete="off" oninput="window.filterQuickSearchServices(this.value)" onfocus="if(this.value) window.filterQuickSearchServices(this.value)">
+                                </div>
+                                <div id="smm-quick-search-results" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:50; background:var(--bg-top); border:1px solid var(--border-color); border-radius:10px; max-height:280px; overflow-y:auto; margin-top:4px; box-shadow:0 10px 30px rgba(0,0,0,0.25);"></div>
+                            </div>
+
                             <form id="order-form" onsubmit="window.submitOrder(event)">
                                 
                                 <div class="input-group">
@@ -1179,6 +1195,41 @@
                                 <table>
                                     <thead><tr><th>Order ID</th><th>Service</th><th>Link</th><th>Charge (<span class="cur-sym">₹</span>)</th><th>Qty</th><th>Status</th></tr></thead>
                                     <tbody id="user-orders-table"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🆕 REFUNDS -- the user's own refunded orders (full or partial), read from their
+                     own orders query (same one Order History uses -- no extra listener needed).
+                     Amount shown is the ACTUAL wallet credit, not just the order charge. -->
+                <div id="refunds" class="view">
+                    <div class="page-content">
+                        <h1 class="page-title">Refunds</h1>
+                        <div class="card" style="padding: 10px;">
+                            <div class="table-wrapper" style="border: none;">
+                                <table>
+                                    <thead><tr><th>Order ID</th><th>Service</th><th>Refund Type</th><th>Amount Refunded (<span class="cur-sym">₹</span>)</th><th>Order Status</th><th>Date</th></tr></thead>
+                                    <tbody id="user-refunds-table"><tr><td colspan="6" align="center">No refunds yet.</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🆕 UPDATES -- public-safe feed (public_updates_log, written by the admin panel's
+                     margin engine) of price changes and new services. Deliberately does NOT include
+                     provider cost or margin %, only what changed and the new selling price. -->
+                <div id="catalogue-updates" class="view">
+                    <div class="page-content">
+                        <h1 class="page-title">Updates</h1>
+                        <p style="font-size:12.5px; color:var(--text-gray); margin-top:-10px; margin-bottom:16px;">Recent price changes and newly added services.</p>
+                        <div class="card" style="padding: 10px;">
+                            <div class="table-wrapper" style="border: none;">
+                                <table>
+                                    <thead><tr><th>Date</th><th>Type</th><th>Service</th><th>Old Price</th><th>New Price</th></tr></thead>
+                                    <tbody id="user-updates-table"><tr><td colspan="5" align="center">No updates yet.</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -1747,8 +1798,13 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithCredential, sendPasswordResetEmail, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence, EmailAuthProvider, reauthenticateWithCredential, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getDatabase, ref, get, set, update, onValue, off, push, query, orderByChild, equalTo, onChildChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+        // 🆕 SUPABASE MIGRATION: Firebase Auth SDK import removed. All auth now goes through the
+        // backend's /api/auth/* routes (see backend-additions/app/api/auth/) -- no client-side
+        // Firebase Auth calls anywhere below. Realtime Database import (below) is UNCHANGED --
+        // only auth moved; the rest of this file's db reads/writes stay exactly as they were
+        // until the equivalent Postgres-backed API routes exist for those too (out of scope
+        // for this pass -- see 03-SUPABASE-SETUP.md for what's converted vs. still Firebase).
+        import { getDatabase, ref, get, set, update, onValue, off, push, query, orderByChild, equalTo, onChildChanged, limitToLast } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB_mdIsATHciAw05spK7OPQFTgqjXbmnd4",
@@ -1762,7 +1818,17 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        const AUTH_TOKEN_KEY = 'smmrulz_auth_token';
+        function getStoredToken() {
+            return localStorage.getItem(AUTH_TOKEN_KEY) || sessionStorage.getItem(AUTH_TOKEN_KEY);
+        }
+        function storeToken(token, remember) {
+            (remember ? localStorage : sessionStorage).setItem(AUTH_TOKEN_KEY, token);
+        }
+        function clearStoredToken() {
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+            sessionStorage.removeItem(AUTH_TOKEN_KEY);
+        }
         const db = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
@@ -1797,15 +1863,13 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         }
 
         async function apiFetch(path, options = {}) {
-            if (!currentUser) throw new Error("AUTH_REQUIRED");
-            // 🐛 BUG FIX: this used to call getIdToken(true), forcing a network round-trip to
-            // Google to refresh the token on EVERY single call. Firebase already refreshes the
-            // token proactively in the background before it actually expires (tokens are valid
-            // 1 hour) -- forcing it every time is pure waste, and during rapid repeated calls
-            // (like the UTR auto-verify poll below, which can call this up to ~15x in 60 seconds)
-            // it risks tripping Google's token-refresh rate limit, which throws and can silently
-            // kill an in-flight flow. Plain getIdToken() uses the cached token when still valid.
-            const idToken = await withTimeout(currentUser.getIdToken(), 10000, 'AUTH_TOKEN_TIMEOUT');
+            const token = getStoredToken();
+            if (!token) throw new Error("AUTH_REQUIRED");
+            // 🆕 SUPABASE MIGRATION: no more currentUser.getIdToken() round-trip -- the JWT from
+            // login/session-restore is just read from storage. It's a 7-day token (see
+            // backend-additions/app/lib/auth.ts), not a 1-hour Firebase token, so there's no
+            // proactive-refresh concept to replicate here; expiry is handled by a 401 causing
+            // a redirect to login (see checkSession below).
             console.log("[DEBUG] apiFetch ->", API_BASE_URL + path, options.body ? JSON.parse(options.body) : null);
             let res;
             try {
@@ -1814,17 +1878,19 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'Authorization': `Bearer ${idToken}`,
+                        'Authorization': `Bearer ${token}`,
                         ...(options.headers || {})
                     }
                 }), 15000, 'REQUEST_TIMEOUT');
             } catch (networkErr) {
-                // fetch() throws here for network failures, DNS errors, and CORS rejections --
-                // there is no HTTP status at all because the browser blocked/never got a response.
                 console.error("[DEBUG] apiFetch NETWORK/CORS failure:", path, networkErr);
                 const err = new Error(`Could not reach ${API_BASE_URL || '(same origin)'}${path}. This is a network or CORS failure, not a server error -- check the backend's CORS headers and that the domain is correct.`);
                 err.type = 'NETWORK';
                 throw err;
+            }
+            if (res.status === 401) {
+                clearStoredToken();
+                window.location.reload(); // bounces back to the login screen via checkSession()
             }
             const data = await res.json().catch(() => ({}));
             console.log("[DEBUG] apiFetch <-", path, res.status, data);
@@ -2223,14 +2289,52 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             const emailInput = document.getElementById('reset-email-input').value.trim();
             if(!emailInput) return window.showToast("Please enter an email address.", "error");
             try {
-                await sendPasswordResetEmail(auth, emailInput);
-                window.showToast("Success! A secure reset link has been sent to your email.", "success");
+                const res = await fetch(API_BASE_URL + '/api/auth/forgot-password', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: emailInput })
+                });
+                await res.json().catch(() => ({}));
+                // 🆕 Backend deliberately returns the same success message whether or not the
+                // account exists (see forgot-password/route.ts) -- prevents email enumeration.
+                // 🐛 UX FIX (found in a follow-up audit): the old message said "a reset link has
+                // been sent" -- but email delivery isn't wired up yet (see 04-AUTH-MIGRATION.md),
+                // so nothing actually arrives, and a user would have no way to know that and no
+                // path to recover their account. Being honest about it now, with a real path
+                // forward (contact support -- who now has a working "Reset Password" tool in
+                // the admin panel, see admin-reset-password/route.ts), rather than leaving them
+                // waiting on an email that's never coming.
+                window.showToast("If email delivery isn't set up yet, contact support directly and they can reset your password immediately.", "info");
                 window.closeResetModal();
             } catch(error) {
-                if(error.code === 'auth/user-not-found') window.showToast("No account found with this email.", "error");
-                else window.showToast("Error sending reset link. Check your email format.", "error");
+                window.showToast("Error sending reset link. Please try again.", "error");
             }
         };
+
+        // 🆕 UX IMPROVEMENT (added in a follow-up audit): a lockout used to show a one-time
+        // toast that disappears in a few seconds -- easy to miss, and the button re-enabled
+        // immediately, so the person would just click Login again and get rejected again with
+        // no new information. Now the button disables itself with a live countdown until the
+        // lock actually clears, so it's obvious there's no point retrying yet.
+        let lockoutInterval = null;
+        function startLockoutCountdown(minutesText) {
+            const btn = document.getElementById('auth-submit-btn');
+            const match = /(\d+)\s*minute/.exec(minutesText);
+            let secondsLeft = match ? parseInt(match[1], 10) * 60 : 60;
+            if (lockoutInterval) clearInterval(lockoutInterval);
+            btn.disabled = true;
+            const tick = () => {
+                const mm = Math.floor(secondsLeft / 60), ss = String(secondsLeft % 60).padStart(2, '0');
+                btn.innerHTML = `<i class="fa-solid fa-lock"></i> Try again in ${mm}:${ss}`;
+                if (secondsLeft <= 0) {
+                    clearInterval(lockoutInterval);
+                    btn.disabled = false;
+                    btn.innerHTML = isSignupMode ? 'Register Account' : 'Login Securely';
+                }
+                secondsLeft--;
+            };
+            tick();
+            lockoutInterval = setInterval(tick, 1000);
+        }
 
         window.handleAuth = async function(e) {
             e.preventDefault();
@@ -2238,6 +2342,12 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             const pass = document.getElementById('auth-password').value; 
             const rememberMe = document.getElementById('remember-me').checked;
             const btn = document.getElementById('auth-submit-btn');
+            let lockedOut = false; // tracks whether the countdown owns the button now -- a
+                                    // `return` inside the catch block below does NOT skip the
+                                    // finally block in JS (finally always runs), so relying on
+                                    // early-return to protect the countdown from being
+                                    // immediately overwritten would be a real bug, not a
+                                    // shortcut -- this flag is the actual mechanism.
             
             if(!email || !pass) return window.showToast("Fill all fields", "error");
             if(isSignupMode) {
@@ -2247,30 +2357,30 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Working...';
             
             try {
-                await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
-                
-                if(isSignupMode) {
-                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                    const baseWords = email.split('@')[0].replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(ref(db, `users/${cred.user.uid}`), { email: email, username: username, createdAt: Date.now() });
-                    window.showToast("Account Created! Logging in...");
-                } else { 
-                    await signInWithEmailAndPassword(auth, email, pass); 
-                    window.showToast("Login Successful!");
-                }
-            } catch(error) { 
-                if(error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    window.showToast("Invalid details. Sign up first.", "error");
-                } else if(error.code === 'auth/email-already-in-use') {
-                    window.showToast("Email already exists. Please Login.", "error");
-                } else if(error.code === 'auth/weak-password') {
-                    window.showToast("Password must be at least 6 characters.", "error");
-                } else {
-                    window.showToast("Invalid details. Please try again.", "error");
+                const endpoint = isSignupMode ? '/api/auth/register' : '/api/auth/login';
+                const body = isSignupMode ? { email, password: pass } : { email, password: pass };
+                const res = await fetch(API_BASE_URL + endpoint, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || 'Authentication failed.');
+
+                storeToken(data.token, rememberMe);
+                window.showToast(isSignupMode ? "Account Created! Logging in..." : "Login Successful!");
+                await checkSession();
+            } catch(error) {
+                // 🆕 Backend error messages (see auth/login/route.ts, auth/register/route.ts)
+                // are already user-facing plain English, unlike Firebase's error.code strings --
+                // no more code-to-message mapping needed here.
+                window.showToast(error.message || "Invalid details. Please try again.", "error");
+                if (error.message && error.message.includes('Too many failed login attempts')) {
+                    lockedOut = true;
+                    startLockoutCountdown(error.message);
                 }
             } finally { 
-                btn.disabled = false; btn.innerHTML = isSignupMode ? 'Register Account' : 'Login Securely'; 
+                if (!lockedOut) {
+                    btn.disabled = false; btn.innerHTML = isSignupMode ? 'Register Account' : 'Login Securely';
+                }
             }
         };
 
@@ -2281,22 +2391,16 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     googleWrapper.innerHTML = '<div style="padding: 10px; background: white; border: 1px solid #ddd; border-radius: 8px; color: #555; font-weight: 600; width: 100%; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"><i class="fa-solid fa-spinner fa-spin" style="color: var(--primary);"></i> Authenticating...</div>';
                 }
 
-                await setPersistence(auth, browserLocalPersistence);
-                
-                const credential = GoogleAuthProvider.credential(response.credential);
-                const result = await signInWithCredential(auth, credential);
-                
-                const userRef = ref(db, `users/${result.user.uid}`);
-                const snapshot = await get(userRef);
-                const safeEmail = result.user.email || 'user@smmrulz.com';
+                const res = await fetch(API_BASE_URL + '/api/auth/google', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: response.credential })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || 'Google sign-in failed.');
 
-                if (!snapshot.exists()) {
-                    const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                    const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                    await set(userRef, { email: window.safeHTML(safeEmail), username: username, createdAt: Date.now() });
-                }
-                
+                storeToken(data.token, true); // Google sign-in always persists, matching the old browserLocalPersistence choice
                 window.showToast("Google Login Successful!");
+                await checkSession();
                 
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
@@ -2345,7 +2449,8 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
 
         window.logout = async function() {
             try {
-                await signOut(auth);
+                clearStoredToken();
+                currentUser = null;
                 window.showToast("Logged Out Successfully", "success");
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-layout').style.display = 'none';
@@ -2421,13 +2526,10 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             }
         };
 
-        async function reauthenticateCurrentUser(password) {
-            // Re-proves the user's identity right before a sensitive change. Works only for
-            // password-based accounts -- Google-signed-in users don't have a password to check
-            // here (handled by the caller before this is ever invoked).
-            const credential = EmailAuthProvider.credential(currentUser.email, password);
-            await reauthenticateWithCredential(currentUser, credential);
-        }
+        // 🆕 SUPABASE MIGRATION: reauthenticateCurrentUser() removed -- the backend now verifies
+        // the current password itself as part of /api/auth/change-email and
+        // /api/auth/change-password (see those route files), so there's no separate
+        // re-proving-identity round trip needed client-side.
 
         window.saveAccountEmail = async function(e) {
             e.preventDefault();
@@ -2447,25 +2549,16 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
 
             try {
-                await reauthenticateCurrentUser(currentPassword);
-                await updateEmail(currentUser, newEmail);
-                // Keep the database record in sync with Firebase Auth's actual email -- several
-                // other parts of this app (deposit receipts, admin panel user list) read
-                // users/{uid}/email directly rather than re-fetching from Auth every time.
-                await update(ref(db, `users/${currentUser.uid}`), { email: newEmail });
+                const { ok, data } = await apiFetch('/api/auth/change-email', {
+                    method: 'POST', body: JSON.stringify({ newEmail, currentPassword })
+                });
+                if (!ok) throw new Error(data.error || 'Could not update email.');
+                currentUser.email = newEmail;
                 window.showToast("Email updated successfully!", "success");
                 e.target.reset();
             } catch (err) {
                 console.error("saveAccountEmail failed:", err);
-                if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-                    window.showToast("Incorrect current password.", "error");
-                } else if (err.code === 'auth/email-already-in-use') {
-                    window.showToast("That email is already in use by another account.", "error");
-                } else if (err.code === 'auth/requires-recent-login') {
-                    window.showToast("Please log out and log back in, then try again.", "error");
-                } else {
-                    window.showToast("Could not update email: " + (err.message || "unknown error"), "error");
-                }
+                window.showToast(err.message || "Could not update email.", "error");
             } finally {
                 btn.disabled = false; btn.innerHTML = originalText;
             }
@@ -2486,122 +2579,123 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
 
             try {
-                await reauthenticateCurrentUser(currentPassword);
-                await updatePassword(currentUser, newPassword);
+                const { ok, data } = await apiFetch('/api/auth/change-password', {
+                    method: 'POST', body: JSON.stringify({ currentPassword, newPassword })
+                });
+                if (!ok) throw new Error(data.error || 'Could not update password.');
                 window.showToast("Password updated successfully!", "success");
                 e.target.reset();
             } catch (err) {
                 console.error("saveAccountPassword failed:", err);
-                if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-                    window.showToast("Incorrect current password.", "error");
-                } else if (err.code === 'auth/requires-recent-login') {
-                    window.showToast("Please log out and log back in, then try again.", "error");
-                } else if (err.code === 'auth/weak-password') {
-                    window.showToast("Password is too weak. Use at least 8 characters.", "error");
-                } else {
-                    window.showToast("Could not update password: " + (err.message || "unknown error"), "error");
-                }
+                window.showToast(err.message || "Could not update password.", "error");
             } finally {
                 btn.disabled = false; btn.innerHTML = originalText;
             }
         };
 
-        onAuthStateChanged(auth, async (user) => {
-            currentUser = user;
-            
+        // 🆕 SUPABASE MIGRATION: replaces onAuthStateChanged. Runs once on page load (and after
+        // login/signup/Google -- see those handlers above calling checkSession() directly).
+        // currentUser keeps a `.uid` alias pointing at the Postgres user id so the rest of this
+        // file's many existing `currentUser.uid` references (ticket creation, order history
+        // queries, etc.) don't all need touching in this pass -- those still talk to Firebase
+        // Realtime Database directly for now (see the import-removal note at the top of this
+        // script block) and only need a stable "who is logged in" id, which this provides.
+        async function checkSession() {
+            const token = getStoredToken();
             const btn = document.getElementById('btn-google');
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Continue with Google';
             }
 
-            if (user) {
+            if (!token) {
+                currentUser = null;
+                document.getElementById('auth-container').style.display = 'flex';
+                document.getElementById('app-layout').style.display = 'none';
+                const loader = document.getElementById('global-loader');
+                if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 500); }
+                return;
+            }
+
+            try {
+                const res = await fetch(API_BASE_URL + '/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    // Expired/invalid token, or the account is suspended (verifyAuthToken()
+                    // excludes suspended users -- see backend-additions/app/lib/auth.ts) --
+                    // either way, back to the login screen.
+                    clearStoredToken();
+                    currentUser = null;
+                    document.getElementById('auth-container').style.display = 'flex';
+                    document.getElementById('app-layout').style.display = 'none';
+                    const loader = document.getElementById('global-loader');
+                    if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 500); }
+                    return;
+                }
+
+                const u = data.user;
+                // 🐛 REAL FIX: .uid must be firebase_uid, not the Postgres id -- every
+                // Firebase-keyed path this file still reads (users/{uid}, notifications/{uid},
+                // tickets by userId, etc.) is keyed by firebase_uid, and dual-write mirror
+                // writes from the backend (see firebaseMirror.ts) target that same key. Using
+                // the Postgres id here would silently point every Firebase read/write at a key
+                // nothing else uses. .pgId is kept separately for the few places that need the
+                // real Postgres id (there shouldn't be many, since almost everything in this
+                // file still talks to Firebase directly).
+                currentUser = { uid: u.firebase_uid, pgId: u.id, email: u.email, role: u.role, authProvider: u.auth_provider };
+
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-layout').style.display = 'flex';
 
-                try {
-                    const userRef = ref(db, `users/${user.uid}`);
-                    const userSnap = await get(userRef);
-
-                    if (userSnap.exists() && userSnap.val().suspended) {
-                        window.showToast("Account Suspended. Contact Support.", "error");
-                        await signOut(auth);
-                        document.getElementById('global-loader').style.display = 'none';
-                        return;
-                    }
-
-                    // 🔒 Full-site maintenance lockdown -- the owner account always gets through
-                    // (to actually test the site during maintenance); every other user sees a
-                    // full-screen maintenance notice and is signed out.
-                    const OWNER_UID = 'N7Utu3RcQeOkybmJWZ0VPyHJIuA3';
-                    const OWNER_EMAIL = 'vikkyvikky2177@gmail.com';
-                    if (user.uid !== OWNER_UID && user.email !== OWNER_EMAIL) {
-                        try {
-                            const maintSnap = await get(ref(db, 'settings/maintenanceFullSite'));
-                            const maint = maintSnap.val() || {};
-                            if (maint.enabled === true) {
-                                document.getElementById('app-layout').style.display = 'none';
-                                document.getElementById('global-loader').style.display = 'none';
-                                document.body.insertAdjacentHTML('beforeend', `
-                                    <div id="maintenance-overlay" style="position:fixed; inset:0; background:var(--bg-bottom); z-index:99999; display:flex; align-items:center; justify-content:center; padding:24px; text-align:center;">
-                                        <div style="max-width:380px;">
-                                            <i class="fa-solid fa-screwdriver-wrench" style="font-size:52px; color:var(--primary); margin-bottom:18px;"></i>
-                                            <h2 style="color:var(--text-dark); margin-bottom:10px;">We'll be right back</h2>
-                                            <p style="color:var(--text-gray); font-size:14px; line-height:1.6;">${window.safeHTML(maint.message) || "SMMRulz is currently undergoing scheduled maintenance. Please check back shortly -- your account and wallet are safe."}</p>
-                                        </div>
-                                    </div>`);
-                                await signOut(auth);
-                                return;
-                            }
-                        } catch (maintErr) {
-                            console.error("Maintenance-mode check failed:", maintErr);
+                // 🔒 Full-site maintenance lockdown -- role='owner' replaces the old hardcoded
+                // UID/email check (see 02-postgres-schema.sql's role column and
+                // 01-FIREBASE-AUDIT.md §6 for why). Reads settings/maintenanceFullSite from
+                // Firebase RTDB still -- that node hasn't moved to Postgres in this pass.
+                if (u.role !== 'owner') {
+                    try {
+                        const maintSnap = await get(ref(db, 'settings/maintenanceFullSite'));
+                        const maint = maintSnap.val() || {};
+                        if (maint.enabled === true) {
+                            document.getElementById('app-layout').style.display = 'none';
+                            const loaderEl = document.getElementById('global-loader');
+                            if (loaderEl) loaderEl.style.display = 'none';
+                            document.body.insertAdjacentHTML('beforeend', `
+                                <div id="maintenance-overlay" style="position:fixed; inset:0; background:var(--bg-bottom); z-index:99999; display:flex; align-items:center; justify-content:center; padding:24px; text-align:center;">
+                                    <div style="max-width:380px;">
+                                        <i class="fa-solid fa-screwdriver-wrench" style="font-size:52px; color:var(--primary); margin-bottom:18px;"></i>
+                                        <h2 style="color:var(--text-dark); margin-bottom:10px;">We'll be right back</h2>
+                                        <p style="color:var(--text-gray); font-size:14px; line-height:1.6;">${window.safeHTML(maint.message) || "SMMRulz is currently undergoing scheduled maintenance. Please check back shortly -- your account and wallet are safe."}</p>
+                                    </div>
+                                </div>`);
+                            clearStoredToken();
+                            currentUser = null;
+                            return;
                         }
+                    } catch (maintErr) {
+                        console.error("Maintenance-mode check failed:", maintErr);
                     }
-
-                    if (!userSnap.exists()) {
-                        const safeEmail = user.email || 'user@smmrulz.com';
-                        const baseWords = window.safeHTML(safeEmail.split('@')[0]).replace(/[^a-zA-Z]/g, '').substring(0, 6);
-                        const username = baseWords + '_' + Math.floor(1000 + Math.random() * 9000);
-                        await set(userRef, { email: window.safeHTML(safeEmail), username: username, createdAt: Date.now() });
-
-                        document.getElementById('drawer-email').innerHTML = username;
-                        document.getElementById('stat-username').innerHTML = username;
-                        document.getElementById('account-name-input').value = username;
-                        rawBalance = 0;
-                    } else {
-                        const safeDbEmail = userSnap.val().email || user.email || 'user@smmrulz.com';
-                        const finalUsername = window.safeHTML(userSnap.val().username || safeDbEmail.split('@')[0]);
-                        document.getElementById('drawer-email').innerHTML = finalUsername;
-                        document.getElementById('stat-username').innerHTML = finalUsername;
-                        document.getElementById('account-name-input').value = finalUsername;
-                        document.getElementById('account-phone-input').value = userSnap.val().phone || '';
-                        rawBalance = parseFloat(userSnap.val().balance) || 0;
-                    }
-                    const currentEmailLabel = document.getElementById('account-new-email-input');
-                    if (currentEmailLabel) currentEmailLabel.placeholder = `Current: ${user.email || ''}`;
-
-                    // Email/password change requires re-authenticating with a password --
-                    // Google sign-in accounts don't have one. Rather than let them submit and
-                    // hit a confusing Firebase error, hide those two forms entirely and explain.
-                    const isPasswordAccount = user.providerData.some(p => p.providerId === 'password');
-                    if (!isPasswordAccount) {
-                        const emailForm = document.getElementById('account-email-form');
-                        const passwordForm = document.getElementById('account-password-form');
-                        const note = '<p style="font-size:12px; color:var(--text-gray);"><i class="fa-brands fa-google"></i> Your account uses Google Sign-In. Email and password are managed through your Google account, not here.</p>';
-                        if (emailForm) emailForm.outerHTML = note;
-                        if (passwordForm) passwordForm.outerHTML = note;
-                    }
-
-                    document.getElementById('stat-balance').innerText = window.fmtMoneyRaw(rawBalance);
-                    update(userRef, { lastActive: Date.now() }).catch(()=>{});
-
-                } catch(e) {
-                    console.error("DB Fetch Error:", e);
-                    const safeEmail = user.email || 'user@smmrulz.com';
-                    const defaultName = window.safeHTML(safeEmail.split('@')[0]);
-                    document.getElementById('drawer-email').innerHTML = defaultName;
-                    document.getElementById('stat-username').innerHTML = defaultName;
                 }
+
+                const finalUsername = window.safeHTML(u.username || (u.email || '').split('@')[0] || 'User');
+                document.getElementById('drawer-email').innerHTML = finalUsername;
+                document.getElementById('stat-username').innerHTML = finalUsername;
+                document.getElementById('account-name-input').value = finalUsername;
+                rawBalance = parseFloat(u.balance) || 0;
+
+                const currentEmailLabel = document.getElementById('account-new-email-input');
+                if (currentEmailLabel) currentEmailLabel.placeholder = `Current: ${u.email || ''}`;
+
+                // Google accounts have no password to change -- same UX guard as before, now
+                // driven by the backend's auth_provider field instead of Firebase's providerData.
+                if (u.auth_provider === 'google') {
+                    const emailForm = document.getElementById('account-email-form');
+                    const passwordForm = document.getElementById('account-password-form');
+                    const note = '<p style="font-size:12px; color:var(--text-gray);"><i class="fa-brands fa-google"></i> Your account uses Google Sign-In. Email and password are managed through your Google account, not here.</p>';
+                    if (emailForm) emailForm.outerHTML = note;
+                    if (passwordForm) passwordForm.outerHTML = note;
+                }
+
+                document.getElementById('stat-balance').innerText = window.fmtMoneyRaw(rawBalance);
 
                 const initialView = window.location.hash.replace('#', '') || 'new-order';
                 window.switchView(initialView, false);
@@ -2610,8 +2704,11 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 loadUserData();
                 loadAppData();
                 window.syncLiveUserNotifications();
-                window.initWorkingOptionsTracker(); 
-            } else {
+                window.initWorkingOptionsTracker();
+            } catch (e) {
+                console.error("Session check failed:", e);
+                clearStoredToken();
+                currentUser = null;
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-layout').style.display = 'none';
             }
@@ -2621,13 +2718,10 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = isSignupMode ? "Register Account" : "Login Securely";
             }
-            
             const loader = document.getElementById('global-loader');
-            if (loader) {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 500);
-            }
-        });
+            if (loader) { loader.style.opacity = '0'; setTimeout(() => loader.style.display = 'none', 500); }
+        }
+        checkSession();
 
         window.getCatIcon = function(name) {
             const n = name.toLowerCase();
@@ -2675,6 +2769,54 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             document.getElementById('srv-trigger').innerHTML = `${icon} ${window.safeHTML(s.name)} - ${window.fmtMoney(s.price)}/1k`;
             window.updateServiceDetails();
         };
+
+        // 🆕 Live search on the New Order page: filters globalServices by name as you type and
+        // shows a dropdown; picking a result runs the exact same selectCategory -> selectService
+        // sequence the normal category/dropdown flow uses, so everything downstream (price,
+        // min/max, average time box) populates correctly with zero duplicate logic.
+        window.filterQuickSearchServices = function(rawQuery) {
+            const box = document.getElementById('smm-quick-search-results');
+            const q = (rawQuery || '').trim().toLowerCase();
+            if (!q) { box.style.display = 'none'; box.innerHTML = ''; return; }
+
+            const matches = Object.keys(globalServices)
+                .filter(id => (globalServices[id].name || '').toLowerCase().includes(q))
+                .slice(0, 25);
+
+            if (!matches.length) {
+                box.innerHTML = '<div style="padding:14px; font-size:13px; color:var(--text-gray); text-align:center;">No services match "' + window.safeHTML(rawQuery) + '"</div>';
+                box.style.display = 'block';
+                return;
+            }
+
+            box.innerHTML = matches.map(id => {
+                const s = globalServices[id];
+                const catName = globalCategories[s.categoryId]?.name || '';
+                const icon = window.getCatIcon(catName);
+                return `<div onclick="window.pickQuickSearchService('${id}')" style="padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--border-color); font-size:13px; display:flex; justify-content:space-between; align-items:center; gap:10px;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background=''">
+                    <span>${icon} <b>${window.safeHTML(s.name)}</b><br><span style="font-size:11px; color:var(--text-gray);">${window.safeHTML(catName)}</span></span>
+                    <span style="font-weight:700; color:var(--primary); white-space:nowrap;">${window.fmtMoney(s.price)}/1k</span>
+                </div>`;
+            }).join('');
+            box.style.display = 'block';
+        };
+
+        window.pickQuickSearchService = function(srvId) {
+            const s = globalServices[srvId];
+            if (!s) return;
+            window.selectCategory(s.categoryId);
+            window.selectService(srvId);
+            document.getElementById('smm-quick-search').value = s.name;
+            document.getElementById('smm-quick-search-results').style.display = 'none';
+            document.getElementById('order-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        // Close the dropdown when clicking anywhere outside it.
+        document.addEventListener('click', function(e) {
+            const box = document.getElementById('smm-quick-search-results');
+            const input = document.getElementById('smm-quick-search');
+            if (box && input && !box.contains(e.target) && e.target !== input) box.style.display = 'none';
+        });
 
         window.selectFilterCategory = function(catId, catName, event) {
             if(event) event.stopPropagation();
@@ -2792,6 +2934,19 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
             });
             
             onValue(ref(db, 'services'), (snap) => { globalServices = snap.val() || {}; renderServices(); });
+
+            // 🆕 Public Updates page -- reads the sanitized public_updates_log (no provider cost or
+            // margin, just service name + old/new selling price), newest first, capped at 100.
+            onValue(query(ref(db, 'public_updates_log'), limitToLast(100)), (snap) => {
+                const table = document.getElementById('user-updates-table');
+                if (!table) return;
+                const log = snap.val() || {};
+                const rows = Object.values(log).sort((a, b) => b.timestamp - a.timestamp);
+                table.innerHTML = rows.map(r => {
+                    const typeBadge = r.type === 'new_service' ? '<span class="badge bg-completed">Added</span>' : '<span class="badge bg-processing">Price Updated</span>';
+                    return `<tr><td>${new Date(r.timestamp).toLocaleDateString()}</td><td>${typeBadge}</td><td style="font-weight:600;">${window.safeHTML(r.serviceName || '')}</td><td>${r.oldPrice !== undefined ? window.fmtMoney(r.oldPrice) : '—'}</td><td style="font-weight:700;">${window.fmtMoney(r.newPrice || 0)}</td></tr>`;
+                }).join('') || '<tr><td colspan="5" align="center">No updates yet.</td></tr>';
+            });
 
             onValue(ref(db, 'settings/ff_banners'), (snap) => {
                 const b = snap.val() || {};
@@ -3009,6 +3164,25 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
                     html += `<tr><td><small><b title="Internal ref: ${o.id}">${window.safeHTML(String(displayId))}</b></small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td>${actionBtn}</td><td style="font-weight:700;">${window.fmtMoney(o.charge || 0)}</td><td>${parseInt(o.quantity)}</td><td>${badge}</td></tr>`;
                 });
                 document.getElementById('user-orders-table').innerHTML = html || '<tr><td colspan="6" align="center">No orders found.</td></tr>';
+
+                // 🆕 Refunds page -- same userOrdersCache, just filtered to refunded orders.
+                // No separate DB listener: this always stays in sync with Order History because
+                // it's derived from the exact same data on every render.
+                const refundTable = document.getElementById('user-refunds-table');
+                if (refundTable) {
+                    const refunded = userOrdersList.filter(o => o.refunded === true || o.refunded === 'partial');
+                    refundTable.innerHTML = refunded.map(o => {
+                        const displayId = o.providerOrderId && o.providerOrderId !== 'Manual' && o.providerOrderId !== 'Unknown' ? o.providerOrderId : `ORD_${o.id.slice(-6).toUpperCase()}`;
+                        let refundAmt;
+                        if (o.refunded === 'partial') {
+                            const qty = parseInt(o.quantity || 1);
+                            refundAmt = ((parseFloat(o.charge || 0) / qty) * (o.remains || 0));
+                        } else {
+                            refundAmt = parseFloat(o.charge || 0);
+                        }
+                        return `<tr><td><small><b title="Internal ref: ${o.id}">${window.safeHTML(String(displayId))}</b></small></td><td style="font-weight:600;">${window.safeHTML(o.serviceName)}</td><td>${o.refunded === 'partial' ? '<span class="badge bg-warning">Partial</span>' : '<span class="badge bg-canceled">Full</span>'}</td><td style="font-weight:700; color:var(--success);">${window.fmtMoney(refundAmt)}</td><td>${window.safeHTML(o.status || '')}</td><td>${o.statusUpdatedAt ? new Date(o.statusUpdatedAt).toLocaleDateString() : (o.canceledAt ? new Date(o.canceledAt).toLocaleDateString() : '—')}</td></tr>`;
+                    }).join('') || '<tr><td colspan="6" align="center">No refunds yet.</td></tr>';
+                }
             }
             window.renderUserOrders = renderUserOrders;
 
