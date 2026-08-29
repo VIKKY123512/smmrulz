@@ -1836,14 +1836,14 @@ body{font-family:Arial,sans-serif;background:#f4f7fa;padding:30px;color:#1f2937;
         // Leave as '' if this HTML is served from the SAME domain as your Node/Next.js backend
         // (e.g. Next.js serving both the app and the /api routes, or a reverse proxy in front of both).
         // If your backend lives on a DIFFERENT domain, put the full origin here instead, e.g:
-        //   const API_BASE_URL = "https://perfect-smm-backend.vercel.app";
+        //   const API_BASE_URL = "https://smmrulz-backend.onrender.com";
         // IMPORTANT: this must be your backend's ACTUAL live Vercel URL. You redeployed the
         // backend under a new project name ("smmrulz_backend" / "smmrulz-backend"), so the guess
         // below is a placeholder based on that name -- open your Vercel dashboard, copy the exact
         // domain shown for that project, and paste it in here if it differs even slightly
         // (a wrong subdomain here reproduces the exact "Server Error 400: Missing fields" bug,
         // since the request silently falls back to same-origin instead).
-        const API_BASE_URL = "https://smmrulz-backend.vercel.app";
+        const API_BASE_URL = "https://smmrulz-backend.onrender.com";
 
         // ===== SHARED AUTH HELPER (TASK 2) =====
         // Every authenticated backend call should go through this so we never forget the token.
